@@ -518,11 +518,12 @@ async function loadFromGrave() {
         });
         if (res.ok) {
             const json = await res.json();
-            const content = JSON.parse(atob(json.content.replace(/\n/g, "")));
+            // 修复中文解码：使用TextDecoder处理UTF-8
+            const bytes = Uint8Array.from(atob(json.content.replace(/\n/g, "")), c => c.charCodeAt(0));
+            const content = JSON.parse(new TextDecoder().decode(bytes));
             if (content.cards) {
                 document.getElementById("box").innerHTML = content.cards;
             }
-            // 缓存sha用于后续更新
             window._ghSha = json.sha;
             showToast("✅ 云端数据已同步！");
         } else if (res.status === 404) {
@@ -553,7 +554,9 @@ async function loadFromGrave() {
 async function saveToGitHub() {
     const cards = document.getElementById("box").innerHTML;
     const payload = JSON.stringify({ cards, updated: new Date().toISOString() });
-    const encoded = btoa(unescape(encodeURIComponent(payload)));
+    
+    // 修复中文编码：使用TextEncoder转为UTF-8再base64
+    const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
 
     const body = {
         message: "📦 更新资源库 " + new Date().toLocaleString("zh-CN"),
@@ -574,7 +577,6 @@ async function saveToGitHub() {
         if (res.ok) {
             const json = await res.json();
             window._ghSha = json.content.sha;
-            // 同时写本地缓存
             localStorage.setItem("TX_CACHE", cards);
             showToast("✅ 已同步到云端！所有人将看到最新内容");
         } else {
