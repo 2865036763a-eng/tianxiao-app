@@ -511,11 +511,17 @@ function clearCacheAndReload() {
 
 // 从 GitHub 读取卡片数据
 async function loadFromGrave() {
-    showToast("⏳ 正在同步云端数据...", 0);
+    // 尝试从云端加载，但设置超时保护
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超时
+
     try {
         const res = await fetch(GH_API + "?t=" + Date.now(), {
-            headers: { Authorization: "token " + GH_TOKEN }
+            headers: { Authorization: "token " + GH_TOKEN },
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
+        
         if (res.ok) {
             const json = await res.json();
             // 修复中文解码：使用TextDecoder处理UTF-8
@@ -525,20 +531,24 @@ async function loadFromGrave() {
                 document.getElementById("box").innerHTML = content.cards;
             }
             window._ghSha = json.sha;
-            showToast("✅ 云端数据已同步！");
+            console.log("✅ 云端数据已同步");
         } else if (res.status === 404) {
-            // 文件不存在，首次使用，保留HTML中的默认卡片
+            // 文件不存在，使用HTML默认内容
             window._ghSha = null;
-            showToast("✅ 首次使用，已加载默认内容");
+            console.log("✅ 使用默认内容");
         } else {
             throw new Error("HTTP " + res.status);
         }
     } catch(e) {
-        showToast("⚠️ 网络异常，使用本地缓存");
-        console.warn("GitHub加载失败:", e);
-        // 回退到本地缓存
+        clearTimeout(timeoutId);
+        console.log("⚠️ 云端连接失败，使用本地数据:", e.message);
+        // 不显示Toast，静默回退到本地
+        // 优先使用本地缓存，其次使用HTML内嵌内容
         const cached = localStorage.getItem("TX_CACHE");
-        if (cached) document.getElementById("box").innerHTML = cached;
+        if (cached) {
+            document.getElementById("box").innerHTML = cached;
+        }
+        // 如果本地缓存也没有，HTML里已经有默认卡片了，什么都不做
     }
 
     // 加载收藏（收藏是本地的，不用云端）
@@ -565,6 +575,11 @@ async function saveToGitHub() {
     if (window._ghSha) body.sha = window._ghSha;
 
     showToast("⏳ 正在保存到云端...", 0);
+    
+    // 设置5秒超时
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     try {
         const res = await fetch(GH_API, {
             method: "PUT",
@@ -572,8 +587,11 @@ async function saveToGitHub() {
                 Authorization: "token " + GH_TOKEN,
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(body)
+            body: JSON.stringify(body),
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
+        
         if (res.ok) {
             const json = await res.json();
             window._ghSha = json.content.sha;
@@ -584,8 +602,16 @@ async function saveToGitHub() {
             throw new Error(err.message);
         }
     } catch(e) {
-        showToast("❌ 云端保存失败：" + e.message);
-        console.error("GitHub保存失败:", e);
+        clearTimeout(timeoutId);
+        // 即使云端保存失败，也保存到本地
+        localStorage.setItem("TX_CACHE", cards);
+        
+        if (e.name === 'AbortError') {
+            showToast("⚠️ 网络超时，已保存到本地");
+        } else {
+            showToast("⚠️ 云端保存失败，已保存到本地");
+        }
+        console.warn("GitHub保存失败:", e);
     }
 }
 
