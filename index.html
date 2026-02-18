@@ -524,9 +524,16 @@ async function loadFromGrave() {
         
         if (res.ok) {
             const json = await res.json();
-            // 修复中文解码：使用TextDecoder处理UTF-8
-            const bytes = Uint8Array.from(atob(json.content.replace(/\n/g, "")), c => c.charCodeAt(0));
-            const content = JSON.parse(new TextDecoder().decode(bytes));
+            // 修复中文解码：兼容两种编码方式
+            let content;
+            try {
+                // 方法1: 使用 TextDecoder（现代浏览器）
+                const bytes = Uint8Array.from(atob(json.content.replace(/\n/g, "")), c => c.charCodeAt(0));
+                content = JSON.parse(new TextDecoder().decode(bytes));
+            } catch(e) {
+                // 方法2: 回退到传统方法
+                content = JSON.parse(decodeURIComponent(escape(atob(json.content.replace(/\n/g, "")))));
+            }
             if (content.cards) {
                 document.getElementById("box").innerHTML = content.cards;
             }
@@ -565,8 +572,15 @@ async function saveToGitHub() {
     const cards = document.getElementById("box").innerHTML;
     const payload = JSON.stringify({ cards, updated: new Date().toISOString() });
     
-    // 修复中文编码：使用TextEncoder转为UTF-8再base64
-    const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+    // 修复中文编码：使用更兼容的方式
+    let encoded;
+    try {
+        // 方法1: 使用 TextEncoder（现代浏览器）
+        encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+    } catch(e) {
+        // 方法2: 回退到传统方法
+        encoded = btoa(unescape(encodeURIComponent(payload)));
+    }
 
     const body = {
         message: "📦 更新资源库 " + new Date().toLocaleString("zh-CN"),
@@ -576,11 +590,15 @@ async function saveToGitHub() {
 
     showToast("⏳ 正在保存到云端...", 0);
     
-    // 设置5秒超时
+    // 设置10秒超时
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     
     try {
+        console.log("开始保存到GitHub...");
+        console.log("API地址:", GH_API);
+        console.log("Token前6位:", GH_TOKEN.substring(0, 6));
+        
         const res = await fetch(GH_API, {
             method: "PUT",
             headers: {
@@ -592,26 +610,30 @@ async function saveToGitHub() {
         });
         clearTimeout(timeoutId);
         
+        console.log("响应状态:", res.status);
+        
         if (res.ok) {
             const json = await res.json();
             window._ghSha = json.content.sha;
             localStorage.setItem("TX_CACHE", cards);
             showToast("✅ 已同步到云端！所有人将看到最新内容");
+            console.log("保存成功！");
         } else {
-            const err = await res.json();
-            throw new Error(err.message);
+            const errText = await res.text();
+            console.error("保存失败响应:", errText);
+            throw new Error("HTTP " + res.status + ": " + errText);
         }
     } catch(e) {
         clearTimeout(timeoutId);
+        console.error("保存错误详情:", e);
         // 即使云端保存失败，也保存到本地
         localStorage.setItem("TX_CACHE", cards);
         
         if (e.name === 'AbortError') {
             showToast("⚠️ 网络超时，已保存到本地");
         } else {
-            showToast("⚠️ 云端保存失败，已保存到本地");
+            showToast("⚠️ 云端保存失败：" + e.message);
         }
-        console.warn("GitHub保存失败:", e);
     }
 }
 
