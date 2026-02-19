@@ -161,7 +161,7 @@
     </div>
     <div id="adminBar" style="display: none;">
         <button onclick="addCard()">➕ 新增</button>
-        <button class="btn-save" onclick="exportHTML()">💾 导出HTML</button>
+        <button class="btn-save" onclick="exportHTML()">💾 保存到云端</button>
         <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
     </div>
@@ -403,6 +403,10 @@
     document.head.appendChild(style);
 })();
 // ================================
+// ===== Cloudflare Worker 核心配置（新增）=====
+const API_BASE = 'https://tianxiao.2865036763.workers.dev';
+const ADMIN_PASS = "tianxiao";
+// ===========================================
 
 const ACCESS_PASS = "114514"; 
 const ADMIN_PASS = "tianxiao"; 
@@ -430,7 +434,63 @@ function checkForUpdates() {
         console.log('✅ 首次安装，版本:', APP_VERSION);
         return;
     }
-    
+    // ===== 新增：从Cloudflare Worker加载数据 =====
+async function loadFromWorker() {
+    try {
+        const res = await fetch(`${API_BASE}/get`);
+        if (!res.ok) throw new Error('加载失败');
+        const data = await res.json();
+        if (data.html) {
+            document.getElementById("box").innerHTML = data.html;
+        }
+        // 加载本地收藏
+        const savedFav = localStorage.getItem(FAV_KEY);
+        if (savedFav) {
+            try { favorites = new Set(JSON.parse(savedFav)); } catch(e) { favorites = new Set(); }
+        }
+        initCardFavorites();
+        refreshUI();
+        showToast("✅ 云端数据加载成功");
+    } catch (err) {
+        console.error('加载云端数据失败:', err);
+        showToast("❌ 云端加载失败，使用本地缓存");
+        // 降级到本地缓存
+        const localCache = localStorage.getItem("TX_CACHE");
+        if (localCache) {
+            document.getElementById("box").innerHTML = localCache;
+            initCardFavorites();
+            refreshUI();
+        }
+    }
+}
+
+// ===== 新增：保存数据到Cloudflare Worker =====
+async function saveDataToWorker() {
+    if (!isEditMode) return;
+    try {
+        const html = document.getElementById("box").innerHTML;
+        const res = await fetch(`${API_BASE}/set`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'password': ADMIN_PASS
+            },
+            body: JSON.stringify({ html: html })
+        });
+        if (res.ok) {
+            showToast("✅ 数据成功保存到云端");
+            autoSave(); // 同时保存本地缓存
+        } else {
+            throw new Error('保存失败');
+        }
+    } catch (err) {
+        console.error('保存云端数据失败:', err);
+        showToast("❌ 云端保存失败，仅保存本地");
+        autoSave();
+    }
+}
+// ==============================================
+
     if (savedVersion !== APP_VERSION) {
         // 检测到新版本
         console.log('🔄 检测到更新:', savedVersion, '→', APP_VERSION);
@@ -680,6 +740,7 @@ function navPage(dir) {
 
 function verifyAccess() {
     if(document.getElementById("accessPass").value === ACCESS_PASS) document.getElementById("gateKeeper").style.display = "none";
+    loadFromWorker(); // 新增：解锁后加载云端数据
     else alert("你好像不是自己人，自由之地不欢迎你♂");
 }
 
@@ -736,7 +797,7 @@ function exitAdmin() {
         el.contentEditable = "false";
         el.removeAttribute("contenteditable");
     });
-    autoSave();
+    saveDataToWorker();
     refreshUI();
 }
 
