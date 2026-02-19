@@ -856,12 +856,37 @@ function savePage() {
     const clone = document.documentElement.cloneNode(true);
     clone.querySelector("#search").value = "";
     const blob = new Blob(["<!DOCTYPE html>\n" + clone.outerHTML], {type: "text/html"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "天笑操作秘密基地.html";
-    a.click();
+    
+    // 兼容移动端WebView的下载方式
+    if (navigator.userAgent.match(/Android/i)) {
+        // Android WebView：尝试多种方式
+        const reader = new FileReader();
+        reader.onload = function() {
+            const a = document.createElement("a");
+            a.href = reader.result;
+            a.download = "tianxiao-" + Date.now() + ".html";
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => document.body.removeChild(a), 100);
+        };
+        reader.readAsDataURL(blob);
+    } else {
+        // 桌面浏览器：原方式
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "tianxiao-" + Date.now() + ".html";
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+    
     gate.style.display = wasGate;
     if(was) enterAdmin();
+    
+    // 显示提示
+    setTimeout(() => {
+        alert("✅ 文件已生成！\n请在浏览器的下载列表中查看\n\n文件名：tianxiao-" + Date.now() + ".html");
+    }, 300);
 }
 
 window.onload = () => { 
