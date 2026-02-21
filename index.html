@@ -270,7 +270,7 @@
                 <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cOc54193691f&quot;,&quot;https://pan.quark.cn/s/681732cс6502&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="desc-wrap">
-                <div class="desc-text">📖 游戏简介：这是一款像素风格的安卓游戏...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
@@ -295,7 +295,7 @@
                 <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="desc-wrap">
-                <div class="desc-text">📖 游戏简介：这是一款猎奇风格的RPG游戏...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
@@ -320,7 +320,7 @@
                 <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/92010f612c22?pwd=pa2V', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="desc-wrap">
-                <div class="desc-text">📖 游戏简介：这是一款像素风格的PC游戏...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
@@ -345,7 +345,7 @@
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="desc-wrap">
-                <div class="desc-text">📖 游戏简介：这是一款RPG风格的PC游戏...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
@@ -370,7 +370,7 @@
                 <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/da3ab6a11c08', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="desc-wrap">
-                <div class="desc-text">📖 游戏简介：这是一款养成风格的PC游戏...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
@@ -395,7 +395,7 @@
                 <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/f72479580e14?pwd=74QB&quot;,&quot;https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             <div class="desc-wrap">
-                <div class="desc-text">📖 游戏简介：这是一款RPG风格的PC游戏...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
@@ -764,7 +764,7 @@ async function saveToCloud() {
 function exportHTML() {
     const was = isEditMode;
     if (was) {
-        document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => {
+        document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
             el.contentEditable = "false";
             el.removeAttribute("contenteditable");
         });
@@ -965,7 +965,7 @@ function enterAdmin() {
         if (delBtn) delBtn.onclick = function() { deleteCard(this); };
     });
 
-    document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => el.contentEditable = "true");
+    document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
     // 🐛 修复：为所有标签元素绑定粘贴处理
     document.querySelectorAll(".g-tags").forEach(el => {
         el.onpaste = handleTagPaste;
@@ -977,7 +977,7 @@ function exitAdmin() {
     isEditMode = false; document.body.classList.remove("admin-mode");
     document.getElementById("adminBar").style.display = "none";
     document.getElementById("entryBtn").style.visibility = "visible";
-    document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => {
+    document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
         el.contentEditable = "false";
         el.removeAttribute("contenteditable");
     });
@@ -1027,8 +1027,12 @@ function addCard() {
             <div class="g-name">标题...</div>
             <div class="g-tags" onpaste="handleTagPaste(event)">标签: ${defaultTag}</div>
             <div class="link-wrap">
-                <div class="link-text">🔗 链接及简介...</div>
+                <div class="link-text"></div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            <div class="desc-wrap">
+                <div class="desc-text"></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
     `;
@@ -1040,7 +1044,7 @@ function addCard() {
     
     // 🔒 安全修复：仅在管理员模式下设置为可编辑
     if (isEditMode) {
-        div.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => el.contentEditable = "true");
+        div.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
     }
     
     document.getElementById("search").value = ""; 
@@ -1092,7 +1096,7 @@ function ensureDescriptionAreas() {
             const descWrap = document.createElement('div');
             descWrap.className = 'desc-wrap';
             descWrap.innerHTML = `
-                <div class="desc-text">📖 游戏简介：这里可以填写游戏的详细故事背景、玩法特色、角色介绍等内容...</div>
+                <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             `;
             infoBox.appendChild(descWrap);
@@ -1277,7 +1281,7 @@ window.onload = async () => {
     await loadFromGrave();
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
     if (!isEditMode) {
-        document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => {
+        document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
             el.contentEditable = "false";
             el.removeAttribute("contenteditable");
         });
