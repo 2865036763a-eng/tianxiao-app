@@ -67,10 +67,10 @@
         .g-tags { font-size: 12px; color: var(--primary); margin-bottom: 12px; outline: none; word-break: break-word; max-height: 40px; overflow-y: auto; }
 
         .link-wrap { position: relative; background: #f8f9fb; border-radius: 8px; border: 1px solid #edf0f5; display: flex; flex-direction: column; }
-        .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.2; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; white-space: pre-wrap; max-height: 1.2em; }
+        .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.2; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 1.2em; }
         .expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; white-space: pre-wrap; }
         /* 🐛 修复：管理员模式下也支持展开收起 */
-        .admin-mode .link-text { -webkit-line-clamp: 1; display: -webkit-box; max-height: 1.2em; overflow-y: visible; white-space: pre-wrap; line-height: 1.2; }
+        .admin-mode .link-text { -webkit-line-clamp: 1; display: -webkit-box; max-height: 1.2em; overflow-y: visible; white-space: nowrap; text-overflow: ellipsis; line-height: 1.2; }
         .admin-mode .expanded .link-text { -webkit-line-clamp: initial; display: block; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
         .link-actions { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(0,0,0,0.03); }
         .link-jump-btn { flex: 1; padding: 8px; background: #007bff; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; }
