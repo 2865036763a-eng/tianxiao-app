@@ -82,6 +82,55 @@
 
         /* 修复：管理员模式下显示展开/收起按钮（已删除隐藏规则） */
 
+        /* 简介区域样式 */
+        .desc-wrap { 
+            margin-top: 20px; 
+            background: #e8f4fd; 
+            border-radius: 12px; 
+            border: 2px solid #b3d9ff; 
+            padding: 0; 
+            box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+        }
+        .desc-text { 
+            font-size: 14px; 
+            padding: 16px; 
+            color: #2c3e50; 
+            line-height: 1.8; 
+            word-break: break-word; 
+            display: -webkit-box; 
+            -webkit-box-orient: vertical; 
+            -webkit-line-clamp: 4; 
+            overflow: hidden; 
+            background: #ffffff; 
+            border-radius: 8px; 
+            margin: 0; 
+            border: 1px solid #e1f0ff;
+        }
+        .desc-wrap.expanded .desc-text { 
+            -webkit-line-clamp: initial; 
+            display: block; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            padding: 16px; 
+        }
+        .desc-expand-btn { 
+            text-align: center; 
+            padding: 12px; 
+            font-size: 13px; 
+            color: #007bff; 
+            cursor: pointer; 
+            border-top: 2px solid #d1e7ff; 
+            background: #f0f8ff; 
+            font-weight: 600; 
+            touch-action: manipulation; 
+            border-radius: 0 0 10px 10px; 
+            transition: all 0.3s;
+        }
+        .desc-expand-btn:hover { 
+            background: #d1e7ff; 
+            color: #0056b3;
+        }
+
         .pagination { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 20px 0; padding: 0 10px 80px 10px; }
         .page-numbers { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
         .page-item { min-width: 38px; height: 38px; border: 1px solid var(--border); background: #fff; color: #666; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; touch-action: manipulation; }
@@ -157,6 +206,7 @@
         <li onclick="filterTab('SLG',this)" class="">SLG</li>
         <li onclick="filterTab('RPG',this)">RPG</li>
         <li onclick="filterTab('GAL',this)">GAL</li>
+        <li onclick="filterTab('ADV',this)">ADV</li>
         <li onclick="filterTab('AZ',this)">AZ</li>
         <li onclick="filterTab('PC',this)">PC</li>
         <li onclick="filterTab('本子',this)">📚 本子</li>
@@ -191,8 +241,12 @@
             <div class="g-name">标题...</div>
             <div class="g-tags">标签: ACT</div>
             <div class="link-wrap">
-                <div class="link-text">🔗 链接及简介...</div>
+                <div class="link-text">🔗 链接...</div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这里可以填写游戏的详细故事背景、玩法特色、角色介绍等内容...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
     </div><div class="card active-render" style="order: 1;" data-card-id="card_1771284173942_0">
@@ -215,6 +269,10 @@
                 <div class="link-text">分卷1<div>https://pan.quark.cn/s/cOc54193691f</div><div>提取码:eR1q</div><div>分卷2</div><div>https://pan.quark.cn/s/681732cс6502</div><div>提取码:M7r2</div><div><br></div><div>解压码:114514</div></div>
                 <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cOc54193691f&quot;,&quot;https://pan.quark.cn/s/681732cс6502&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这是一款像素风格的安卓游戏...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
         </div>
     </div><div class="card active-render" style="order: 2;" data-card-id="card_1771284173942_1">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
@@ -235,6 +293,10 @@
             <div class="link-wrap">
                 <div class="link-text">https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb<div>提取码:kfjb</div></div>
                 <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这是一款猎奇风格的RPG游戏...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
     </div><div class="card active-render" style="order: 3;" data-card-id="card_1771284173942_2">
@@ -257,6 +319,10 @@
                 <div class="link-text">https://pan.quark.cn/s/92010f612c22?pwd=pa2V<div>提取码：pa2V</div></div>
                 <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/92010f612c22?pwd=pa2V', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这是一款像素风格的PC游戏...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
         </div>
     </div><div class="card active-render" style="order: 4;" data-card-id="card_1771284173942_3">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
@@ -277,6 +343,10 @@
             <div class="link-wrap">
                 <div class="link-text">https:/pan.quark.cn/s/2fa0472ac5af?pwd=eQVB<div>提取码:eQVB</div></div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这是一款RPG风格的PC游戏...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
     </div><div class="card active-render" style="order: 5;" data-card-id="card_1771284173942_4">
@@ -299,6 +369,10 @@
                 <div class="link-text">https://pan.quark.cn/s/da3ab6a11c08<div>提取码:2X4x</div></div>
                 <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/da3ab6a11c08', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这是一款养成风格的PC游戏...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
         </div>
     </div><div class="card active-render" style="order: 6;" data-card-id="card_1771284173942_5">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
@@ -319,6 +393,10 @@
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>https://pan.quark.cn/s/f72479580e14?pwd=74QB</div><div>提取码:74QB</div><div>分卷2</div><div>https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN</div><div>提取码:z4yN</div></div>
                 <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/f72479580e14?pwd=74QB&quot;,&quot;https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            <div class="desc-wrap">
+                <div class="desc-text">📖 游戏简介：这是一款RPG风格的PC游戏...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
         </div>
     </div></div>
@@ -582,11 +660,15 @@ async function loadFromGrave() {
                 content = JSON.parse(decodeURIComponent(escape(atob(json.content.replace(/\n/g, "")))));
             }
             if (content.cards) {
-                document.getElementById("box").innerHTML = content.cards;
-                const cardCount = document.querySelectorAll('.card').length;
-                loadSuccess = true;
-                loadMessage = `✅ 已加载 ${cardCount} 个资源`;
-            }
+        document.getElementById("box").innerHTML = content.cards;
+        
+        // 🔧 修复：确保所有卡片都包含简介区域
+        ensureDescriptionAreas();
+        
+        const cardCount = document.querySelectorAll('.card').length;
+        loadSuccess = true;
+        loadMessage = `✅ 已加载 ${cardCount} 个资源`;
+    }
             window._ghSha = json.sha;
             console.log("✅ 云端数据已同步");
         } else {
@@ -623,6 +705,7 @@ async function loadFromGrave() {
 
 // 保存到云端（通过Worker）
 async function saveToCloud() {
+    // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
     const payload = JSON.stringify({ cards, updated: new Date().toISOString() });
     
@@ -992,7 +1075,32 @@ function toggleExpand(btn) {
     btn.innerText = wrap.classList.contains('expanded') ? "收起 ▴" : "展开 ▾";
 }
 
-// 🐛 修复：处理标签粘贴，清理格式
+// 简介展开/收起功能
+function toggleDescExpand(btn) {
+    const wrap = btn.parentElement;
+    wrap.classList.toggle('expanded');
+    btn.innerText = wrap.classList.contains('expanded') ? "收起简介 ▴" : "展开简介 ▾";
+}
+
+// � 修复：确保所有卡片都包含简介区域
+function ensureDescriptionAreas() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const infoBox = card.querySelector('.info-box');
+        if (infoBox && !infoBox.querySelector('.desc-wrap')) {
+            // 如果卡片没有简介区域，就添加一个
+            const descWrap = document.createElement('div');
+            descWrap.className = 'desc-wrap';
+            descWrap.innerHTML = `
+                <div class="desc-text">📖 游戏简介：这里可以填写游戏的详细故事背景、玩法特色、角色介绍等内容...</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            `;
+            infoBox.appendChild(descWrap);
+        }
+    });
+}
+
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
