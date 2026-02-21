@@ -63,18 +63,22 @@
         .img-index { position: absolute; bottom: 10px; right: 12px; background: rgba(0,0,0,0.6); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; z-index: 4; }
 
         .info-box { padding: 15px; display: flex; flex-direction: column; background: #fff; }
-        .g-name { font-size: 17px; font-weight: bold; line-height: 1.4; margin-bottom: 8px; color: #111; outline: none; }
-        .g-tags { font-size: 12px; color: var(--primary); margin-bottom: 12px; outline: none; }
+        .g-name { font-size: 17px; font-weight: bold; line-height: 1.4; margin-bottom: 8px; color: #111; outline: none; word-break: break-word; }
+        .g-tags { font-size: 12px; color: var(--primary); margin-bottom: 12px; outline: none; word-break: break-word; }
 
         .link-wrap { position: relative; background: #f8f9fb; border-radius: 8px; border: 1px solid #edf0f5; display: flex; flex-direction: column; }
         .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.5; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
         .expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; }
+        /* 🐛 修复：管理员模式下允许完整显示和编辑 */
+        .admin-mode .link-text { -webkit-line-clamp: initial; display: block; max-height: 300px; overflow-y: auto; }
         .link-actions { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(0,0,0,0.03); }
         .link-jump-btn { flex: 1; padding: 8px; background: #007bff; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; }
         .link-jump-btn:hover { background: #0056b3; }
         .link-jump-btn:active { transform: scale(0.95); }
         .admin-mode .link-jump-btn { display: none; }
         .expand-btn { text-align: right; padding: 5px 12px; font-size: 11px; color: var(--primary); cursor: pointer; border-top: 1px solid rgba(0,0,0,0.03); touch-action: manipulation; }
+        /* 🐛 修复：确保展开按钮在管理员模式下也可见 */
+        .admin-mode .expand-btn { display: block; }
 
         /* 修复：管理员模式下显示展开/收起按钮（已删除隐藏规则） */
 
@@ -484,6 +488,53 @@ function showUpdateNotification(oldVer, newVer) {
     }, 5000);
 }
 
+// 显示资源加载通知
+function showLoadNotification(message, isSuccess) {
+    const notification = document.createElement('div');
+    const bgColor = isSuccess ? 
+        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 
+        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+    
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${bgColor};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        z-index: 9999;
+        font-size: 13px;
+        font-weight: bold;
+        animation: fadeInUp 0.4s ease;
+        max-width: 80%;
+        text-align: center;
+    `;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    
+    // 添加动画
+    if (!document.getElementById('loadNotifStyle')) {
+        const style = document.createElement('style');
+        style.id = 'loadNotifStyle';
+        style.textContent = `
+            @keyframes fadeInUp {
+                from { bottom: 50px; opacity: 0; }
+                to { bottom: 80px; opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // 3秒后自动消失
+    setTimeout(() => {
+        notification.style.animation = 'fadeInUp 0.4s ease reverse';
+        setTimeout(() => notification.remove(), 400);
+    }, 3000);
+}
+
 // 强制刷新缓存
 function clearCacheAndReload() {
     if ('serviceWorker' in navigator) {
@@ -511,6 +562,9 @@ async function loadFromGrave() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+    let loadSuccess = false;
+    let loadMessage = "";
+
     try {
         const res = await fetch(WORKER_API + "?t=" + Date.now(), {
             signal: controller.signal
@@ -529,6 +583,9 @@ async function loadFromGrave() {
             }
             if (content.cards) {
                 document.getElementById("box").innerHTML = content.cards;
+                const cardCount = document.querySelectorAll('.card').length;
+                loadSuccess = true;
+                loadMessage = `✅ 已加载 ${cardCount} 个资源`;
             }
             window._ghSha = json.sha;
             console.log("✅ 云端数据已同步");
@@ -541,6 +598,12 @@ async function loadFromGrave() {
         const cached = localStorage.getItem("TX_CACHE");
         if (cached) {
             document.getElementById("box").innerHTML = cached;
+            const cardCount = document.querySelectorAll('.card').length;
+            loadSuccess = false;
+            loadMessage = `⚠️ 云端连接失败，使用本地缓存 (${cardCount}个)`;
+        } else {
+            loadSuccess = false;
+            loadMessage = "❌ 无法加载资源，请检查网络";
         }
     }
 
@@ -551,6 +614,11 @@ async function loadFromGrave() {
     }
     initCardFavorites();
     refreshUI();
+
+    // 显示加载结果提示
+    if (loadMessage) {
+        showLoadNotification(loadMessage, loadSuccess);
+    }
 }
 
 // 保存到云端（通过Worker）
@@ -815,6 +883,10 @@ function enterAdmin() {
     });
 
     document.querySelectorAll(".g-name, .g-tags, .link-text").forEach(el => el.contentEditable = "true");
+    // 🐛 修复：为所有标签元素绑定粘贴处理
+    document.querySelectorAll(".g-tags").forEach(el => {
+        el.onpaste = handleTagPaste;
+    });
     refreshUI();
 }
 
@@ -870,7 +942,7 @@ function addCard() {
         </div>
         <div class="info-box">
             <div class="g-name">标题...</div>
-            <div class="g-tags">标签: ${defaultTag}</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: ${defaultTag}</div>
             <div class="link-wrap">
                 <div class="link-text">🔗 链接及简介...</div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
@@ -918,6 +990,18 @@ function toggleExpand(btn) {
     const wrap = btn.parentElement;
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起 ▴" : "展开 ▾";
+}
+
+// 🐛 修复：处理标签粘贴，清理格式
+function handleTagPaste(event) {
+    event.preventDefault();
+    const text = (event.clipboardData || window.clipboardData).getData('text');
+    // 清理文本：去除多余空格、换行、HTML标签
+    const cleanText = text.replace(/\s+/g, ' ').replace(/<[^>]*>/g, '').trim();
+    // 如果不是以"标签:"开头，自动添加
+    const finalText = cleanText.startsWith('标签:') ? cleanText : `标签: ${cleanText}`;
+    document.execCommand('insertText', false, finalText);
+    autoSave();
 }
 
 // 💖 收藏功能
