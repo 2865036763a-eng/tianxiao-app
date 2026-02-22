@@ -1216,17 +1216,84 @@ function addLinkJumpButtons() {
         actionsDiv.className = 'link-actions';
         
         if (urls.length === 1) {
-            // 单个链接：显示一个跳转按钮
-            actionsDiv.innerHTML = `<button class="link-jump-btn" onclick="window.open('${urls[0]}', '_blank')">🔗 打开链接</button>`;
+            // 单个链接：显示一个跳转按钮（使用智能处理）
+            const processedUrl = processCloudLink(urls[0]);
+            actionsDiv.innerHTML = `<button class="link-jump-btn" onclick="window.open('${processedUrl}', '_blank')">🔗 打开链接</button>`;
         } else {
-            // 多个链接：显示选择按钮
-            const urlsJson = JSON.stringify(urls).replace(/'/g, "\\'");
+            // 多个链接：显示选择按钮（所有链接都经过智能处理）
+            const processedUrls = urls.map(url => processCloudLink(url));
+            const urlsJson = JSON.stringify(processedUrls).replace(/'/g, "\\'");
             actionsDiv.innerHTML = `<button class="link-jump-btn" onclick='showLinkSelector(${urlsJson})'>🔗 选择链接 (${urls.length}个)</button>`;
         }
         
         // 插入到展开按钮之前
         wrap.insertBefore(actionsDiv, expandBtn);
     });
+}
+
+// 智能处理网盘链接
+function processCloudLink(url) {
+    // 常见网盘域名映射
+    const cloudDomains = {
+        'pan.quark.cn': '夸克网盘',
+        'pan.baidu.com': '百度网盘',
+        'yun.baidu.com': '百度网盘',
+        'www.aliyundrive.com': '阿里云盘',
+        'www.123pan.com': '123云盘',
+        'cloud.189.cn': '天翼云盘',
+        'cowtransfer.com': '奶牛快传',
+        'wetransfer.com': 'WeTransfer',
+        'lanzou.com': '蓝奏云',
+        'lanzoux.com': '蓝奏云',
+        'lanzoui.com': '蓝奏云'
+    };
+    
+    // 检查是否为网盘链接
+    const domain = new URL(url).hostname;
+    const cloudName = cloudDomains[domain];
+    
+    if (!cloudName) return url; // 不是网盘链接，返回原链接
+    
+    // 针对不同网盘进行特殊处理
+    if (domain.includes('pan.quark.cn')) {
+        // 夸克网盘：确保有pwd参数
+        const urlObj = new URL(url);
+        if (!urlObj.searchParams.has('pwd')) {
+            // 尝试从文本中提取提取码
+            const pwdMatch = url.match(/提取码[：:]\s*([a-zA-Z0-9]+)/i);
+            if (pwdMatch && pwdMatch[1]) {
+                urlObj.searchParams.set('pwd', pwdMatch[1]);
+                return urlObj.toString();
+            }
+        }
+    }
+    else if (domain.includes('pan.baidu.com') || domain.includes('yun.baidu.com')) {
+        // 百度网盘：确保有正确的参数
+        const urlObj = new URL(url);
+        if (url.includes('/s/')) {
+            // 分享链接格式：https://pan.baidu.com/s/1xxx
+            if (!urlObj.searchParams.has('pwd')) {
+                const pwdMatch = url.match(/提取码[：:]\s*([a-zA-Z0-9]+)/i);
+                if (pwdMatch && pwdMatch[1]) {
+                    urlObj.searchParams.set('pwd', pwdMatch[1]);
+                    return urlObj.toString();
+                }
+            }
+        }
+    }
+    else if (domain.includes('aliyundrive.com')) {
+        // 阿里云盘：确保链接格式正确
+        const urlObj = new URL(url);
+        if (!urlObj.pathname.includes('/s/')) {
+            // 尝试修复阿里云盘链接格式
+            const match = url.match(/aliyundrive\.com\/([a-zA-Z0-9]+)/);
+            if (match && match[1]) {
+                return `https://www.aliyundrive.com/s/${match[1]}`;
+            }
+        }
+    }
+    
+    return url; // 返回处理后的链接
 }
 
 // 从文本中提取所有URL
@@ -1248,9 +1315,10 @@ function showLinkSelector(urls) {
     modal.style.display = 'flex';
     
     let linksHtml = urls.map((url, idx) => {
-        const shortUrl = url.length > 60 ? url.substring(0, 60) + '...' : url;
+        const processedUrl = processCloudLink(url);
+        const shortUrl = processedUrl.length > 60 ? processedUrl.substring(0, 60) + '...' : processedUrl;
         return `<div style="margin: 8px 0;">
-            <button class="modal-btn btn-confirm" onclick="window.open('${url}', '_blank'); this.closest('.modal-overlay').remove();" style="width: 100%; text-align: left; padding: 12px; word-break: break-all;">
+            <button class="modal-btn btn-confirm" onclick="window.open('${processedUrl}', '_blank'); this.closest('.modal-overlay').remove();" style="width: 100%; text-align: left; padding: 12px; word-break: break-all;">
                 ${idx + 1}. ${shortUrl}
             </button>
         </div>`;
