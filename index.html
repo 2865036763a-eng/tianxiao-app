@@ -23,8 +23,28 @@
 
         header { flex-shrink: 0; padding: 12px 15px; background: var(--card); border-bottom: 1px solid var(--border); z-index: 100; position: relative; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .site-title { font-size: 18px; font-weight: bold; color: var(--primary); flex: 1; text-align: center; margin-left: 30px; }
+        .site-title { font-size: 18px; font-weight: bold; color: var(--primary); flex: 1; text-align: center; }
         .login-icon { font-size: 18px; cursor: pointer; color: #ccc; padding: 5px; touch-action: manipulation; }
+        .clear-cache-btn { 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            border: none; 
+            background: #f0f0f0; 
+            color: #666; 
+            font-size: 16px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: 0.3s; 
+            touch-action: manipulation;
+        }
+        .clear-cache-btn:active { 
+            background: var(--primary); 
+            color: #fff; 
+            transform: rotate(360deg);
+        }
 
         #search { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; outline: none; box-sizing: border-box; margin-bottom: 10px; touch-action: manipulation; }
         
@@ -231,6 +251,7 @@
 
 <header>
     <div class="header-top">
+        <button id="clearCacheBtn" class="clear-cache-btn" onclick="clearCacheAndReload()" title="清除缓存并刷新">🔄</button>
         <div class="site-title">天笑の秘密基地</div>
         <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
     </div>
@@ -1796,4 +1817,4 @@ setInterval(() => { if(isEditMode) autoSave(); }, 5000);
 </script>
 
 
-<div title="添加到主屏幕" style="position: fixed; left: 15px; bottom: 100px; width: 45px; height: 45px; background: rgb(76, 175, 80); color: rgb(255, 255, 255); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: rgba(76, 175, 80, 0.4) 0px 4px 12px; cursor: pointer; z-index: 200; animation: 2s ease 0s infinite normal none running pulse;">📱</div></body></html>
+</body></html>
