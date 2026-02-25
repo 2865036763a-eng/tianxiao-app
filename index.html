@@ -71,7 +71,7 @@
         .card.is-pinned::before { content: "📌 置顶"; position: absolute; top: 10px; right: 80px; background: var(--notice); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; z-index: 10; font-weight: bold; }
 
         .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #e0e0e0; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; touch-action: pan-y pinch-zoom; }
-        .slider-box img { width: 100%; height: 100%; display: none; object-fit: cover; background: #000; }
+        .slider-box img { width: 100%; height: 100%; display: none; object-fit: contain; background: #000; cursor: pointer; }
         .slider-box img.active { display: block; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
@@ -209,6 +209,12 @@
         .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
         .btn-cancel { background: #f5f5f5; color: #666; }
         .btn-confirm { background: #eff4ff; color: #3b82f6; }
+        
+        /* 🖼️ 图片全屏预览样式 */
+        #imagePreviewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        #imagePreviewModal img { max-width: 95%; max-height: 95%; object-fit: contain; }
+        #imagePreviewModal .close-btn { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
+        #imagePreviewModal .close-btn:active { background: rgba(255,255,255,0.4); }
     </style>
 <style>
         @keyframes pulse {
@@ -1167,6 +1173,8 @@ function autoSave() {
     localStorage.setItem("TX_CACHE", data);
     // 🐛 修复：保存后重新生成链接按钮，确保按钮指向最新的链接
     addLinkJumpButtons();
+    // 🖼️ 重新初始化图片预览（确保新图片也能预览）
+    initImagePreview();
 }
 
 // Toast提示（保留）
@@ -1198,15 +1206,23 @@ function refreshUI(targetPage) {
         currentPage = targetPage;
         goTop();
     }
-    const searchVal = document.getElementById("search").value.toUpperCase();
+    const searchVal = document.getElementById("search").value.trim();
     const box = document.getElementById("box");
     const allCards = Array.from(box.querySelectorAll(".card"));
+    
+    // 🔍 优化：将搜索词分割成多个关键词
+    const keywords = searchVal
+        .split(/\s+/)  // 按空格分割
+        .filter(k => k.length > 0)  // 过滤空字符串
+        .map(k => k.toUpperCase());  // 转大写
     
     // 1. 过滤逻辑
     let filtered = allCards.filter(c => {
         const txt = c.innerText.toUpperCase();
         const matchCat = (currentCat === "all" || txt.includes(currentCat));
-        const matchSearch = txt.includes(searchVal);
+        
+        // 🔍 优化：所有关键词都要匹配（顺序无关）
+        const matchSearch = keywords.length === 0 || keywords.every(kw => txt.includes(kw));
         
         // 收藏分区：只显示已收藏的卡片
         if (currentCat === '收藏') {
@@ -1419,6 +1435,9 @@ function addCard() {
     
     // ✨ 核心修复：新增后立即刷新以应用最新的 order 权重
     refreshUI(1);
+    
+    // 🖼️ 为新卡片初始化图片预览
+    initImagePreview();
 }
 
 function changeSlide(btn, dir) {
@@ -1439,6 +1458,39 @@ function editCurrentImg(btn) {
         activeImg.src = url;
         autoSave();
     }
+}
+
+// 🖼️ 图片全屏预览功能
+function openImagePreview(img) {
+    const modal = document.getElementById('imagePreviewModal');
+    const previewImg = document.getElementById('previewImage');
+    previewImg.src = img.src;
+    modal.style.display = 'flex';
+    // 阻止body滚动
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImagePreview() {
+    const modal = document.getElementById('imagePreviewModal');
+    modal.style.display = 'none';
+    // 恢复body滚动
+    document.body.style.overflow = '';
+}
+
+// 为所有卡片图片添加点击预览功能
+function initImagePreview() {
+    document.querySelectorAll('.slider-box img').forEach(img => {
+        // 移除旧的点击事件（如果有）
+        img.onclick = null;
+        // 添加新的点击事件
+        img.addEventListener('click', function(e) {
+            // 管理员模式下不触发预览（避免与编辑冲突）
+            if (!isEditMode) {
+                e.stopPropagation();
+                openImagePreview(this);
+            }
+        });
+    });
 }
 
 function toggleExpand(btn) {
@@ -1702,6 +1754,9 @@ window.onload = async () => {
         });
     }
     
+    // 🖼️ 初始化图片预览功能
+    initImagePreview();
+    
     // 📱 注册Service Worker（PWA支持）
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register(createServiceWorkerBlob()).then(function(registration) {
@@ -1816,5 +1871,11 @@ function installApp() {
 setInterval(() => { if(isEditMode) autoSave(); }, 5000);
 </script>
 
+
+<!-- 🖼️ 图片全屏预览 -->
+<div id="imagePreviewModal" onclick="closeImagePreview()">
+    <button class="close-btn" onclick="closeImagePreview()">×</button>
+    <img id="previewImage" src="" alt="预览">
+</div>
 
 </body></html>
