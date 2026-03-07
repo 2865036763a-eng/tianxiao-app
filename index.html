@@ -781,7 +781,7 @@
 <div id="loginModal" class="modal-overlay" style="display: none;">
     <div class="modal-box">
         <div class="modal-title">🔑 验证管理身份：</div>
-        <input type="password" id="passInput" class="modal-input" placeholder="天笑的管理暗号">
+        <input type="password" id="passInput" class="modal-input" placeholder="天笑的管理暗号" onkeydown="if(event.key==='Enter') checkPass()">
         <div class="modal-btns">
             <button class="modal-btn btn-cancel" onclick="closeLogin()">取消</button>
             <button class="modal-btn btn-confirm" onclick="checkPass()">确定</button>
@@ -860,7 +860,8 @@
 // ================================
 
 const ACCESS_PASS = "114514"; 
-const ADMIN_PASS = "4399"; 
+// 🔒 安全：管理员密码的 SHA-256 哈希值
+const ADMIN_PASS_HASH = "dc0d962b7b165bba49f28aa2e92e5c663b03ab5bbf1604af8191de10d0f0d32e"; 
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
 const APP_VERSION = "3.0.0"; // Worker 云端同步版本
@@ -1326,9 +1327,29 @@ function goTop() { document.getElementById("mainScroll").scrollTo({ top: 0, beha
 
 function openLogin() { if(!isEditMode) document.getElementById("loginModal").style.display = "flex"; }
 function closeLogin() { document.getElementById("loginModal").style.display = "none"; document.getElementById("passInput").value = ""; }
-function checkPass() {
-    if(document.getElementById("passInput").value === ADMIN_PASS) { enterAdmin(); closeLogin(); }
-    else { alert("你还想冒充天笑我?去鹿吧你！"); closeLogin(); }
+
+// 🔒 计算密码的 SHA-256 哈希值
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+// 🔒 验证密码（使用哈希对比）
+async function checkPass() {
+    const inputPassword = document.getElementById("passInput").value;
+    const inputHash = await hashPassword(inputPassword);
+    
+    if(inputHash === ADMIN_PASS_HASH) { 
+        enterAdmin(); 
+        closeLogin(); 
+    } else { 
+        alert("你还想冒充天笑我?去鹿吧你！"); 
+        closeLogin(); 
+    }
 }
 
 function enterAdmin() {
