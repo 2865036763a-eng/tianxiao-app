@@ -1339,17 +1339,23 @@ async function hashPassword(password) {
 }
 
 // 🔒 验证密码（使用哈希对比）
-async function checkPass() {
+function checkPass() {
     const inputPassword = document.getElementById("passInput").value;
-    const inputHash = await hashPassword(inputPassword);
     
-    if(inputHash === ADMIN_PASS_HASH) { 
-        enterAdmin(); 
-        closeLogin(); 
-    } else { 
-        alert("你还想冒充天笑我?去鹿吧你！"); 
-        closeLogin(); 
-    }
+    // 异步计算哈希并验证
+    hashPassword(inputPassword).then(inputHash => {
+        if(inputHash === ADMIN_PASS_HASH) { 
+            enterAdmin(); 
+            closeLogin(); 
+        } else { 
+            alert("你还想冒充天笑我?去鹿吧你！"); 
+            closeLogin(); 
+        }
+    }).catch(error => {
+        console.error("密码验证出错:", error);
+        alert("验证失败，请重试");
+        closeLogin();
+    });
 }
 
 function enterAdmin() {
