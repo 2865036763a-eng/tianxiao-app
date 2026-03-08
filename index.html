@@ -2564,7 +2564,7 @@ function initImagePreview() {
     });
 }
 
-// 链接区展开/收起功能（修复版）
+// 链接区展开/收起功能
 function toggleExpand(btn) {
     // 🔧 修复：准确找到 link-wrap 父元素
     const wrap = btn.closest('.link-wrap');
@@ -2575,19 +2575,15 @@ function toggleExpand(btn) {
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起 ▴" : "展开 ▾";
     
-    // ✨ 新功能：收起时滚动到链接区顶部
+    // ✨ 收起时滚动到链接区顶部
     if (!isExpanding) {
-        // 收起了，滚动到链接区顶部
         setTimeout(() => {
-            wrap.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start'
-            });
-        }, 100); // 延迟100ms，等动画完成
+            wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     }
 }
 
-// 简介展开/收起功能（修复版）
+// 简介展开/收起功能
 function toggleDescExpand(btn) {
     // 🔧 修复：准确找到 desc-wrap 父元素
     const wrap = btn.closest('.desc-wrap');
@@ -2598,15 +2594,11 @@ function toggleDescExpand(btn) {
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起简介 ▴" : "展开简介 ▾";
     
-    // ✨ 新功能：收起时滚动到简介区顶部
+    // ✨ 收起时滚动到简介区顶部
     if (!isExpanding) {
-        // 收起了，滚动到简介区顶部
         setTimeout(() => {
-            wrap.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start'
-            });
-        }, 100); // 延迟100ms，等动画完成
+            wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     }
 }
 
