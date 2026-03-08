@@ -210,6 +210,45 @@
         .btn-cancel { background: #f5f5f5; color: #666; }
         .btn-confirm { background: #eff4ff; color: #3b82f6; }
         
+        /* ☁️ 云端连接进度条 */
+        #cloudProgress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #ff99bb);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progressShine 1.5s infinite;
+        }
+        @keyframes progressShine {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .progress-text {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            font-weight: 500;
+        }
+        
         /* 🖼️ 图片全屏预览样式 */
         #imagePreviewModal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; }
         #imagePreviewModal img { max-width: 95%; max-height: 95%; object-fit: contain; }
@@ -287,6 +326,7 @@
         <li onclick="filterTab('ADV',this)">ADV</li>
         <li onclick="filterTab('AZ',this)">AZ</li>
         <li onclick="filterTab('PC',this)">PC</li>
+        <li onclick="filterTab('动画',this)">🎬 动画</li>
         <li onclick="filterTab('本子',this)">📚 本子</li>
         <li onclick="filterTab('其他软件',this)">🛠️ 其他软件</li>
         <li onclick="filterTab('充电视频',this)" class="video-tab">⚡ 充电视频</li>
@@ -299,6 +339,14 @@
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
     </div>
 </header>
+
+<!-- ☁️ 云端连接进度条 -->
+<div id="cloudProgress" style="display: none;">
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-text" id="progressText">正在连接云端...</div>
+</div>
 
 <main id="mainScroll" onscroll="handleScroll()">
     <div class="grid" id="box"><div class="card active-render" data-card-id="card_1772869619728_n5r0bzwpm" style="order: 0;">
@@ -1568,71 +1616,137 @@ function clearCacheAndReload() {
 
 // ===== 云端读写核心函数 =====
 
-// 从云端读取数据
+// 从云端读取数据（带进度条和自动重连）
 async function loadFromGrave() {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    let loadSuccess = false;
-    let loadMessage = "";
-
-    try {
-        const res = await fetch(WORKER_API + "?t=" + Date.now(), {
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
+    const maxRetries = 3; // 最多重试3次
+    let retryCount = 0;
+    
+    // 显示进度条
+    function showProgress(percent, text) {
+        const progressBar = document.getElementById('cloudProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
         
-        if (res.ok) {
-            const json = await res.json();
-            // Worker返回的是GitHub API格式
-            let content;
-            try {
-                const bytes = Uint8Array.from(atob(json.content.replace(/\n/g, "")), c => c.charCodeAt(0));
-                content = JSON.parse(new TextDecoder().decode(bytes));
-            } catch(e) {
-                content = JSON.parse(decodeURIComponent(escape(atob(json.content.replace(/\n/g, "")))));
+        progressBar.style.display = 'block';
+        progressFill.style.width = percent + '%';
+        progressText.textContent = text;
+    }
+    
+    // 隐藏进度条
+    function hideProgress() {
+        setTimeout(() => {
+            document.getElementById('cloudProgress').style.display = 'none';
+        }, 500);
+    }
+    
+    // 尝试加载数据（单次）
+    async function attemptLoad(retryNum) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+        
+        try {
+            // 显示进度
+            if (retryNum === 0) {
+                showProgress(20, '正在连接云端...');
+            } else {
+                showProgress(20, `重新连接中 (${retryNum}/${maxRetries})...`);
             }
-            if (content.cards) {
-        document.getElementById("box").innerHTML = content.cards;
-        
-        // 🔧 修复：确保所有卡片都包含简介区域
-        ensureDescriptionAreas();
-        
-        const cardCount = document.querySelectorAll('.card').length;
-        loadSuccess = true;
-        loadMessage = `✅ 已加载 ${cardCount} 个资源`;
-    }
-            window._ghSha = json.sha;
-            console.log("✅ 云端数据已同步");
-        } else {
-            throw new Error("HTTP " + res.status);
+            
+            const res = await fetch(WORKER_API + "?t=" + Date.now(), {
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            showProgress(50, '正在下载数据...');
+            
+            if (res.ok) {
+                const json = await res.json();
+                showProgress(80, '正在解析数据...');
+                
+                // Worker返回的是GitHub API格式
+                let content;
+                try {
+                    const bytes = Uint8Array.from(atob(json.content.replace(/\n/g, "")), c => c.charCodeAt(0));
+                    content = JSON.parse(new TextDecoder().decode(bytes));
+                } catch(e) {
+                    content = JSON.parse(decodeURIComponent(escape(atob(json.content.replace(/\n/g, "")))));
+                }
+                
+                if (content.cards) {
+                    showProgress(90, '正在渲染卡片...');
+                    document.getElementById("box").innerHTML = content.cards;
+                    
+                    // 🔧 修复：确保所有卡片都包含简介区域
+                    ensureDescriptionAreas();
+                    
+                    const cardCount = document.querySelectorAll('.card').length;
+                    window._ghSha = json.sha;
+                    
+                    showProgress(100, `✅ 加载完成！共 ${cardCount} 个资源`);
+                    console.log("✅ 云端数据已同步");
+                    
+                    hideProgress();
+                    showLoadNotification(`✅ 已加载 ${cardCount} 个资源`, true);
+                    return true; // 成功
+                }
+            } else {
+                throw new Error("HTTP " + res.status);
+            }
+        } catch(e) {
+            clearTimeout(timeoutId);
+            console.log(`⚠️ 加载失败 (尝试 ${retryNum + 1}/${maxRetries + 1}):`, e.message);
+            return false; // 失败
         }
-    } catch(e) {
-        clearTimeout(timeoutId);
-        console.log("⚠️ 云端加载失败，使用本地缓存:", e.message);
-        const cached = localStorage.getItem("TX_CACHE");
-        if (cached) {
-            document.getElementById("box").innerHTML = cached;
-            const cardCount = document.querySelectorAll('.card').length;
-            loadSuccess = false;
-            loadMessage = `⚠️ 云端连接失败，使用本地缓存 (${cardCount}个)`;
-        } else {
-            loadSuccess = false;
-            loadMessage = "❌ 无法加载资源，请检查网络";
+    }
+    
+    // 主加载逻辑（带重试）
+    while (retryCount <= maxRetries) {
+        const success = await attemptLoad(retryCount);
+        
+        if (success) {
+            // 成功了，加载收藏并刷新UI
+            const savedFav = localStorage.getItem(FAV_KEY);
+            if (savedFav) {
+                try { favorites = new Set(JSON.parse(savedFav)); } catch(e) { favorites = new Set(); }
+            }
+            initCardFavorites();
+            refreshUI();
+            return; // 成功，退出
         }
-    }
-
-    // 加载收藏
-    const savedFav = localStorage.getItem(FAV_KEY);
-    if (savedFav) {
-        try { favorites = new Set(JSON.parse(savedFav)); } catch(e) { favorites = new Set(); }
-    }
-    initCardFavorites();
-    refreshUI();
-
-    // 显示加载结果提示
-    if (loadMessage) {
-        showLoadNotification(loadMessage, loadSuccess);
+        
+        // 失败了，准备重试
+        retryCount++;
+        
+        if (retryCount <= maxRetries) {
+            // 还有重试机会，等待1秒后重试
+            showProgress(10, `连接失败，${2}秒后自动重试 (${retryCount}/${maxRetries})...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            showProgress(10, `连接失败，${1}秒后自动重试 (${retryCount}/${maxRetries})...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+            // 用完所有重试机会，使用本地缓存
+            showProgress(100, '❌ 云端连接失败，使用本地缓存...');
+            console.log("⚠️ 云端加载失败，使用本地缓存");
+            
+            const cached = localStorage.getItem("TX_CACHE");
+            if (cached) {
+                document.getElementById("box").innerHTML = cached;
+                const cardCount = document.querySelectorAll('.card').length;
+                showLoadNotification(`⚠️ 云端连接失败，使用本地缓存 (${cardCount}个)`, false);
+            } else {
+                showLoadNotification("❌ 无法加载资源，请检查网络", false);
+            }
+            
+            hideProgress();
+            
+            // 加载收藏并刷新UI
+            const savedFav = localStorage.getItem(FAV_KEY);
+            if (savedFav) {
+                try { favorites = new Set(JSON.parse(savedFav)); } catch(e) { favorites = new Set(); }
+            }
+            initCardFavorites();
+            refreshUI();
+        }
     }
 }
 
