@@ -1484,6 +1484,7 @@ let currentCat = "all";
 let currentPage = 1;
 let maxPageCount = 1;
 let favorites = new Set(); // 收藏列表（存储卡片ID）
+let adminToken = null; // 🔐 管理员 Token
 
 // 检查版本更新
 function checkForUpdates() {
@@ -1750,8 +1751,15 @@ async function loadFromGrave() {
     }
 }
 
-// 保存到云端（通过Worker）
+// 保存到云端（通过Worker，需要 Token 验证）
 async function saveToCloud() {
+    // 🔒 检查 Token
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    if (!token) {
+        showToast("❌ 未授权：请先登录管理员");
+        return;
+    }
+    
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
     const payload = JSON.stringify({ cards, updated: new Date().toISOString() });
@@ -1778,7 +1786,8 @@ async function saveToCloud() {
         const res = await fetch(WORKER_API, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}` // 🔒 发送 Token
             },
             body: JSON.stringify(body),
             signal: controller.signal
@@ -1792,7 +1801,16 @@ async function saveToCloud() {
             showToast("✅ 已同步到云端！所有人将看到最新内容");
         } else {
             const err = await res.json();
-            throw new Error(err.error || "保存失败");
+            
+            // Token 过期或无效
+            if (res.status === 401) {
+                adminToken = null;
+                sessionStorage.removeItem('ADMIN_TOKEN');
+                showToast("❌ 登录已过期，请重新登录");
+                exitAdmin();
+            } else {
+                throw new Error(err.error || "保存失败");
+            }
         }
     } catch(e) {
         clearTimeout(timeoutId);
@@ -2002,7 +2020,7 @@ function goTop() { document.getElementById("mainScroll").scrollTo({ top: 0, beha
 function openLogin() { if(!isEditMode) document.getElementById("loginModal").style.display = "flex"; }
 function closeLogin() { document.getElementById("loginModal").style.display = "none"; document.getElementById("passInput").value = ""; }
 
-// 🔒 通过 API 验证密码（密码存在 Cloudflare 环境变量）
+// 🔒 通过 API 验证密码并获取 Token（密码存在 Cloudflare 环境变量）
 async function checkPass() {
     const inputPassword = document.getElementById("passInput").value;
     
@@ -2022,7 +2040,11 @@ async function checkPass() {
         
         const result = await response.json();
         
-        if (result.success) {
+        if (result.success && result.token) {
+            // ✅ 验证成功，保存 Token
+            adminToken = result.token;
+            sessionStorage.setItem('ADMIN_TOKEN', result.token); // 存储到 Session
+            
             enterAdmin();
             closeLogin();
         } else {
@@ -2037,6 +2059,13 @@ async function checkPass() {
 }
 
 function enterAdmin() {
+    // 🔒 安全检查：必须有 Token
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    if (!token) {
+        alert("❌ 未授权访问！请先登录");
+        return;
+    }
+    
     isEditMode = true; 
     document.body.classList.add("admin-mode");
     document.getElementById("adminBar").style.display = "flex";
@@ -2066,6 +2095,11 @@ function exitAdmin() {
     isEditMode = false; document.body.classList.remove("admin-mode");
     document.getElementById("adminBar").style.display = "none";
     document.getElementById("entryBtn").style.visibility = "visible";
+    
+    // 🔒 清除 Token
+    adminToken = null;
+    sessionStorage.removeItem('ADMIN_TOKEN');
+    
     document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
         el.contentEditable = "false";
         el.removeAttribute("contenteditable");
