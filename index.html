@@ -1421,7 +1421,7 @@
 // ================================
 
 const ACCESS_PASS = "114514"; 
-const ADMIN_PASS = "4399"; 
+// 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
 const APP_VERSION = "3.0.0"; // Worker 云端同步版本
@@ -1887,9 +1887,39 @@ function goTop() { document.getElementById("mainScroll").scrollTo({ top: 0, beha
 
 function openLogin() { if(!isEditMode) document.getElementById("loginModal").style.display = "flex"; }
 function closeLogin() { document.getElementById("loginModal").style.display = "none"; document.getElementById("passInput").value = ""; }
-function checkPass() {
-    if(document.getElementById("passInput").value === ADMIN_PASS) { enterAdmin(); closeLogin(); }
-    else { alert("你还想冒充天笑我?去鹿吧你！"); closeLogin(); }
+
+// 🔒 通过 API 验证密码（密码存在 Cloudflare 环境变量）
+async function checkPass() {
+    const inputPassword = document.getElementById("passInput").value;
+    
+    if (!inputPassword) {
+        alert("请输入密码！");
+        return;
+    }
+    
+    try {
+        const response = await fetch(WORKER_API.replace('/api/data', '/api/verify'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: inputPassword })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            enterAdmin();
+            closeLogin();
+        } else {
+            alert("你还想冒充天笑我?去鹿吧你！");
+            closeLogin();
+        }
+    } catch (error) {
+        console.error("密码验证失败:", error);
+        alert("验证失败，请检查网络连接");
+        closeLogin();
+    }
 }
 
 function enterAdmin() {
