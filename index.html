@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 天笑の秘密基地 v3.3.0 - 链接复制功能版 -->
+<!-- 天笑の秘密基地 v3.4.0 - 轮播Banner版 -->
 <!-- 修复: 搜索只看标题标签 + 展开独立 + 瞬间滚动 + CSS修复 -->
 <html data-color-scheme-option="auto"><head>
     <meta charset="UTF-8">
@@ -62,6 +62,29 @@
         #nav li.favorite-tab.active { background: #ff1493; color: #fff; }
 
         main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y; }
+        
+        /* ✨ v3.4.0 轮播Banner */
+        #bannerSection { max-width: 550px; margin: 0 auto 16px auto; border-radius: 14px; overflow: hidden; position: relative; background: #eee; display: none; }
+        #bannerSection.has-slides { display: block; }
+        .banner-track-wrap { overflow: hidden; border-radius: 14px; }
+        .banner-track { display: flex; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); will-change: transform; }
+        .banner-slide { flex: 0 0 100%; position: relative; cursor: pointer; }
+        .banner-slide img { width: 100%; height: 160px; object-fit: cover; display: block; border-radius: 14px; }
+        .banner-slide .slide-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 22px 12px 8px; background: linear-gradient(transparent, rgba(0,0,0,0.45)); color: #fff; font-size: 13px; font-weight: 500; border-radius: 0 0 14px 14px; pointer-events: none; }
+        .banner-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; }
+        .banner-dots span { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.5); transition: all 0.3s; }
+        .banner-dots span.active { width: 18px; background: #fff; }
+        /* 管理员Banner编辑面板 */
+        #bannerEditPanel { display: none; background: #fff8f0; border: 1px dashed #ffb74d; border-radius: 12px; padding: 12px; margin: 0 auto 12px auto; max-width: 550px; }
+        #bannerEditPanel.show { display: block; }
+        .banner-edit-title { font-size: 13px; font-weight: bold; color: #e65100; margin-bottom: 8px; }
+        .banner-slide-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; background: #fff; border-radius: 8px; padding: 8px; border: 1px solid #ffe0b2; }
+        .banner-slide-row input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 6px 8px; font-size: 12px; outline: none; min-width: 0; }
+        .banner-slide-row input:focus { border-color: var(--primary); }
+        .banner-slide-row .del-slide { background: #ff5252; color: #fff; border: none; border-radius: 6px; padding: 5px 8px; cursor: pointer; font-size: 12px; flex-shrink: 0; }
+        .banner-add-btn { width: 100%; padding: 7px; background: #fff3e0; border: 1px dashed #ffb74d; border-radius: 8px; color: #e65100; font-size: 13px; cursor: pointer; margin-top: 4px; }
+        .banner-save-btn { width: 100%; padding: 8px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+
         /* ✨ 关键修复：给 grid 开启弹性布局以支持 order 排序 */
         .grid { display: flex; flex-direction: column; gap: 20px; max-width: 550px; margin: 0 auto; }
         
@@ -348,6 +371,7 @@
     <div id="adminBar" style="display: none;">
         <button onclick="addCard()">➕ 新增</button>
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
+        <button onclick="toggleBannerEdit()" style="background: #ff9800 !important;">🖼️ 轮播图</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
         <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
@@ -363,6 +387,23 @@
 </div>
 
 <main id="mainScroll" onscroll="handleScroll()">
+
+    <!-- ✨ v3.4.0 轮播Banner区域 -->
+    <div id="bannerSection">
+        <div class="banner-track-wrap">
+            <div class="banner-track" id="bannerTrack"></div>
+        </div>
+        <div class="banner-dots" id="bannerDots"></div>
+    </div>
+
+    <!-- 管理员Banner编辑面板（仅管理模式显示） -->
+    <div id="bannerEditPanel">
+        <div class="banner-edit-title">🖼️ 轮播图管理（点击图片可跳转链接）</div>
+        <div id="bannerSlideList"></div>
+        <button class="banner-add-btn" onclick="addBannerSlide()">＋ 添加一张图片</button>
+        <button class="banner-save-btn" onclick="saveBannerConfig()">💾 保存轮播图</button>
+    </div>
+
     <div class="grid" id="box"><div class="card active-render" data-card-id="card_1772869619728_n5r0bzwpm" style="order: 0;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
@@ -1730,6 +1771,13 @@ async function loadFromGrave() {
                     // 🔧 修复：确保所有卡片都包含简介区域
                     ensureDescriptionAreas();
                     
+                    // ✨ v3.4.0：从云端恢复轮播图配置
+                    if (content.banner && Array.isArray(content.banner)) {
+                        bannerSlides = content.banner;
+                        try { localStorage.setItem(BANNER_KEY, JSON.stringify(bannerSlides)); } catch(e) {}
+                        renderBanner();
+                    }
+                    
                     const cardCount = document.querySelectorAll('.card').length;
                     window._ghSha = json.sha;
                     
@@ -1812,7 +1860,8 @@ async function saveToCloud() {
     
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
-    const payload = JSON.stringify({ cards, updated: new Date().toISOString() });
+    // ✨ v3.4.0：同时保存轮播图配置
+    const payload = JSON.stringify({ cards, banner: bannerSlides, updated: new Date().toISOString() });
     
     let encoded;
     try {
@@ -2152,6 +2201,8 @@ function exitAdmin() {
     isEditMode = false; document.body.classList.remove("admin-mode");
     document.getElementById("adminBar").style.display = "none";
     document.getElementById("entryBtn").style.visibility = "visible";
+    // 隐藏Banner编辑面板
+    const bp = document.getElementById("bannerEditPanel"); if(bp) bp.classList.remove("show");
     
     // 🔒 清除 Token
     adminToken = null;
@@ -2783,6 +2834,197 @@ function installApp() {
 }
 
 setInterval(() => { if(isEditMode) autoSave(); }, 5000);
+
+// ==========================================
+// ✨ v3.4.0 轮播Banner系统
+// ==========================================
+
+// Banner 数据结构：[{ url: '图片URL', link: '点击跳转链接(可选)', label: '标题(可选)' }, ...]
+let bannerSlides = [];
+let bannerCurrentIndex = 0;
+let bannerTimer = null;
+const BANNER_KEY = 'tianxiao_banner';
+
+// 初始化Banner（先读本地缓存，云端加载完后会自动覆盖）
+async function initBanner() {
+    try {
+        const local = localStorage.getItem(BANNER_KEY);
+        if (local) {
+            bannerSlides = JSON.parse(local);
+        }
+    } catch(e) {}
+    renderBanner();
+}
+
+// 渲染Banner
+function renderBanner() {
+    const section = document.getElementById('bannerSection');
+    const track = document.getElementById('bannerTrack');
+    const dots = document.getElementById('bannerDots');
+    if (!section || !track || !dots) return;
+
+    // 过滤空项
+    const slides = bannerSlides.filter(s => s.url && s.url.trim());
+
+    if (slides.length === 0) {
+        section.classList.remove('has-slides');
+        stopBannerTimer();
+        return;
+    }
+
+    section.classList.add('has-slides');
+
+    // 渲染幻灯片
+    track.innerHTML = slides.map((s, i) => `
+        <div class="banner-slide" onclick="bannerClick(${i})">
+            <img src="${escapeHtml(s.url)}" alt="${escapeHtml(s.label||'')}" onerror="this.style.display='none'">
+            ${s.label ? `<div class="slide-label">${escapeHtml(s.label)}</div>` : ''}
+        </div>
+    `).join('');
+
+    // 渲染指示点
+    dots.innerHTML = slides.map((_, i) => `<span class="${i===0?'active':''}"></span>`).join('');
+
+    bannerCurrentIndex = 0;
+    updateBannerPosition();
+    startBannerTimer();
+}
+
+// 点击跳转
+function bannerClick(index) {
+    const slides = bannerSlides.filter(s => s.url && s.url.trim());
+    const slide = slides[index];
+    if (slide && slide.link && slide.link.trim()) {
+        window.open(slide.link.trim(), '_blank');
+    }
+}
+
+// 切换到指定索引
+function goToBannerSlide(index) {
+    const slides = bannerSlides.filter(s => s.url && s.url.trim());
+    if (slides.length === 0) return;
+    bannerCurrentIndex = (index + slides.length) % slides.length;
+    updateBannerPosition();
+}
+
+// 更新位置和指示点
+function updateBannerPosition() {
+    const track = document.getElementById('bannerTrack');
+    const dots = document.getElementById('bannerDots');
+    if (track) track.style.transform = `translateX(-${bannerCurrentIndex * 100}%)`;
+    if (dots) {
+        dots.querySelectorAll('span').forEach((d, i) => {
+            d.classList.toggle('active', i === bannerCurrentIndex);
+        });
+    }
+}
+
+// 自动轮播
+function startBannerTimer() {
+    stopBannerTimer();
+    const slides = bannerSlides.filter(s => s.url && s.url.trim());
+    if (slides.length <= 1) return;
+    bannerTimer = setInterval(() => {
+        goToBannerSlide(bannerCurrentIndex + 1);
+    }, 3500);
+}
+
+function stopBannerTimer() {
+    if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
+}
+
+// 触摸滑动支持
+(function setupBannerTouch() {
+    let startX = 0, isDragging = false;
+    document.addEventListener('touchstart', e => {
+        const section = document.getElementById('bannerSection');
+        if (!section || !section.contains(e.target)) return;
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        stopBannerTimer();
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+        if (!isDragging) return;
+        isDragging = false;
+        const diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) {
+            goToBannerSlide(bannerCurrentIndex + (diff > 0 ? 1 : -1));
+        }
+        startBannerTimer();
+    }, { passive: true });
+})();
+
+// ---- 管理员编辑面板 ----
+
+function toggleBannerEdit() {
+    const panel = document.getElementById('bannerEditPanel');
+    if (!panel) return;
+    const isShow = panel.classList.toggle('show');
+    if (isShow) renderBannerEditPanel();
+}
+
+function renderBannerEditPanel() {
+    const list = document.getElementById('bannerSlideList');
+    if (!list) return;
+    const slides = bannerSlides.length > 0 ? bannerSlides : [{ url: '', link: '', label: '' }];
+    list.innerHTML = slides.map((s, i) => `
+        <div class="banner-slide-row" id="brow_${i}">
+            <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+                <input type="text" value="${escapeHtml(s.url||'')}" placeholder="🖼️ 图片URL（必填）" oninput="updateBannerRow(${i},'url',this.value)">
+                <input type="text" value="${escapeHtml(s.link||'')}" placeholder="🔗 点击跳转链接（可选）" oninput="updateBannerRow(${i},'link',this.value)">
+                <input type="text" value="${escapeHtml(s.label||'')}" placeholder="📝 底部标题文字（可选）" oninput="updateBannerRow(${i},'label',this.value)">
+            </div>
+            <button class="del-slide" onclick="deleteBannerSlide(${i})">×</button>
+        </div>
+    `).join('');
+    bannerSlides = slides;
+}
+
+function updateBannerRow(index, field, value) {
+    if (!bannerSlides[index]) bannerSlides[index] = {};
+    bannerSlides[index][field] = value;
+}
+
+function addBannerSlide() {
+    bannerSlides.push({ url: '', link: '', label: '' });
+    renderBannerEditPanel();
+}
+
+function deleteBannerSlide(index) {
+    bannerSlides.splice(index, 1);
+    renderBannerEditPanel();
+    renderBanner();
+}
+
+function saveBannerConfig() {
+    // 清理空数据
+    bannerSlides = bannerSlides.filter(s => s.url && s.url.trim());
+    try {
+        localStorage.setItem(BANNER_KEY, JSON.stringify(bannerSlides));
+    } catch(e) {}
+    renderBanner();
+    renderBannerEditPanel();
+    alert('✅ 轮播图已保存！\n\n提示：轮播图数据存储在本地，若需多端同步请导出备份。');
+}
+
+// 字符转义
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// 退出管理时隐藏编辑面板
+const _origExitAdmin = typeof exitAdmin === 'function' ? exitAdmin : null;
+window._bannerExitHook = function() {
+    const panel = document.getElementById('bannerEditPanel');
+    if (panel) panel.classList.remove('show');
+};
+
+// 页面加载后初始化
+document.addEventListener('DOMContentLoaded', () => { initBanner(); });
+// 兜底：若已加载完毕
+if (document.readyState !== 'loading') initBanner();
+
 </script>
 
 
