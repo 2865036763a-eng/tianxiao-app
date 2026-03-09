@@ -1,7 +1,4 @@
 <!DOCTYPE html>
-<!-- 天笑の秘密基地 v3.1.0 - 搜索修复版 + 管理验证修复 -->
-<!-- 更新时间: 2026-03-09 -->
-<!-- 修复内容: 1.搜索只看标题和标签 2.展开收起独立 3.瞬间滚动 -->
 <html data-color-scheme-option="auto"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -308,6 +305,20 @@
             overscroll-behavior-y: contain !important;
             -webkit-overflow-scrolling: touch !important;
         }
+    </style><style>
+        html, body {
+            overscroll-behavior: none !important;
+            overscroll-behavior-y: none !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        #mainScroll {
+            overscroll-behavior: contain !important;
+            overscroll-behavior-y: contain !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
     </style></head>
 <body class="view-mode">
 
@@ -327,7 +338,7 @@
     <div class="header-top">
         <button id="clearCacheBtn" class="clear-cache-btn" onclick="clearCacheAndReload()" title="清除缓存并刷新">🔄</button>
         <div class="site-title">天笑の秘密基地</div>
-        <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
+        <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: hidden;">🔒</div>
     </div>
     <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1)">
     <div id="nav">
@@ -358,13 +369,247 @@
 <!-- ☁️ 云端连接进度条 -->
 <div id="cloudProgress" style="display: none;">
     <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-fill" id="progressFill" style="width: 100%;"></div>
     </div>
-    <div class="progress-text" id="progressText">正在连接云端...</div>
+    <div class="progress-text" id="progressText">✅ 加载完成！共 88 个资源</div>
 </div>
 
 <main id="mainScroll" onscroll="handleScroll()">
-    <div class="grid" id="box"><div class="card active-render" data-card-id="card_1772869619728_n5r0bzwpm" style="order: 0;">
+    <div class="grid" id="box"><div class="card" data-card-id="card_1772984626677_jyi01lta0" style="order: 1;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ada7852f6bf.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ada7853b4a7.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ada788051ae.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A46】妹同居2-v1.2.5彼梦精翻-预览版v25.10.5(彩绘&amp;黑白&amp;幽夜彩绘) (300MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ 养成 SLG 妹妹 萝莉 异世界</div>
+            <div class="desc-wrap">
+                <div class="desc-text">备注:感谢幽夜、清歌不尽和B站彼梦等发电者的用爱发电!</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/8094857b78f7</div><div>提取码:Y3iN</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/c2996e43d22c</div><div>提取码:jP8Y</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8094857b78f7&quot;,&quot;https://pan.quark.cn/s/c2996e43d22c&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984610732_zv1oyag1d" style="order: 2;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ada6b457694.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ada6b6e210a.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ada6b865d31.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A45】恶作剧电车 /いたずらトレイン(68.6MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ 生肉 萝莉 SLG 触摸 电车</div>
+            <div class="desc-wrap">
+                <div class="desc-text">在意电车中遇到的少女的主人公。<div>无防备地小睡的她,鬼迷心窍般地——</div><div>通过点击和拖动控制穿脱衣服,玩弄她的胸部和那处…</div><div>根据你的操作,将模拟出她会做出的实时反应。除了鼠标操作,还能通过选项和她搭话,选择穿脱衣服或命令她的行动。</div><div>·威逼强迫她</div><div>·睡着期间恶作剧</div><div>·关系亲密后的甜甜蜜蜜H！</div><div>在您喜欢的路线中享受吧</div><div>另外,为了您不亲手操作也能享受本游戏,还提供自动播放和自动射o功能。</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/be7723b74990</div><div>提取码:5u7Q</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/7c10fda19c29</div><div>提取码:zRsQ</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/be7723b74990&quot;,&quot;https://pan.quark.cn/s/7c10fda19c29&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984603993_ilkebocg8" style="order: 3;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ad9f1725cad.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9f1844984.png" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9f1b71183.png" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A44】alarm/半夜被继母偷袭(460MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ 正太 SLG 巨乳</div>
+            <div class="desc-wrap expanded">
+                <div class="desc-text">这个游戏真的很难，不要轻易尝试!</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
+            </div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/f2e62e7ebc2a</div><div>提取码:wL31</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/5799b34a9d77</div><div>提取码:VriM</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/f2e62e7ebc2a&quot;,&quot;https://pan.quark.cn/s/5799b34a9d77&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984596098_jtv0f39n4" style="order: 4;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ad9e9d44b31.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9e9fb1803.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9ea12ac3e.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A43】在蝴蝶飞舞之时~蝶が舞う頃に~DayDream(282MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC ACT 动态 触手 解密 异种X 羞辱</div>
+            <div class="desc-wrap">
+                <div class="desc-text">少女在一片昏暗的荒原中醒来，什么也想不起来。<div>这是一个可怖的世界，遍布着危险，到处都是游荡的黑影。</div><div>要小心别被它们抓到。</div><div><br></div><div>在那前方突然出现了一个神秘的白发女人，她回头轻轻瞥了你一眼便消失不见。</div><div>追上去，探寻失去的记忆，获得奇异的能力，前往世界的深处！</div><div><br></div><div>「欢迎来到、██的箱庭——」</div><div><br></div><div>◆角色在获取能力后会逐渐改变自己角色的形象。</div><div>◆全日文声优配音。</div><div>◆内容均搭载精美的动画。</div><div>◆在游戏内按下TAB键可以打开操作指南。</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/2d4df2a682b0</div><div>提取码:a5pU</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/87abc5e1f4e0</div><div>提取码:6uhn</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/2d4df2a682b0&quot;,&quot;https://pan.quark.cn/s/87abc5e1f4e0&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984587933_yo01fvr98" style="order: 5;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ad9e464a190.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9e49a140f.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9e4b2669d.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A42】しすたーず!義姉妹との性活/与义妹的性活 (641MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 SLG 动态 萝莉 RPG</div>
+            <div class="desc-wrap">
+                <div class="desc-text">◆剧情梗概 父母再婚后你有了新的义理姐妹。你将与义理姐妹在一栋独栋房子里共同生活…<div>在温柔稳重的姐姐枫（Kaede）与沉默内向的妹妹恋（Ren）的悠闲日常中，尽情享受充满治愈与情色的每一天吧！</div><div>◆与义姐妹甜蜜同居的像素风模拟游戏！本作是以像素动画呈现的同居生活模拟游戏。通过与姐妹互动提升好感度等级。</div><div>设有"枫好感条"和"恋好感条"，通过交流提升等级即可触发多样事件。</div><div>通过情色图标，可在宅邸任意角落享受像素动画形式的情趣互动。需注意某些场所会限制可选体位。</div><div>◆在商店购买物品赠送吧！每天积攒发放的金钱，在商店购买服装吧。每拥有一个物品，就能解锁新的点阵动画&amp;CG 事件。</div><div>◆部分点阵动画+CG 事件附带语音！点阵动画配有声优双耳收录音频，呈现真实且富有临场感的动画场景。</div><div>◆结局 结局分为普通结局、枫结局和恋结局三种，当经过 30 天后会强制触发普通结局，并进入无尽模式。</div><div>当枫等级、恋等级分别达到 MAX 级别时，将分别触发枫结局和恋结局。</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/85a40e82ef01</div><div>提取码:QE57</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/6a344d6a9527</div><div>提取码:rk5G</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/85a40e82ef01&quot;,&quot;https://pan.quark.cn/s/6a344d6a9527&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984578329_rx12xqasq" style="order: 6;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ad9dea6a9a1.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9dea63003.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9df8cdba3.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A41】绯月仙行录/绯月修仙传V0.628官方中文步兵(3G)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC RPG 仙侠 国风 巨乳 调教 joi</div>
+            <div class="desc-wrap">
+                <div class="desc-text">备注:幽默游戏，Steam阉割版敢卖140人民币，步兵版敢卖280人民币，加几张破壁纸和小游戏就敢卖560人民币，纯属逆天。<br><div><br></div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/932412b0ad79</div><div>提取码:fExF</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/40dda564baa8</div><div>提取码:tLHM</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/932412b0ad79&quot;,&quot;https://pan.quark.cn/s/40dda564baa8&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984569564_77a0owdqg" style="order: 7;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/usr/2413/69ad9d7c44a5e.jpg">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9d7f1e22b.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/usr/2413/69ad9d8146233.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A40】流星-aWishStar-（1.89G）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC GAL ADV 纯爱</div>
+            <div class="desc-wrap">
+                <div class="desc-text">—————游戏简介——————<div>“我来到这是为了成为你的女朋友。”</div><div><br></div><div>暑假前的某个潮湿夜晚，一位银发红瞳的少女突然出现在见星彼方与姐姐同居的生活中。她自称为神明，初次见面便毫不掩饰地表达出浓烈的好感，甚至近乎咄咄逼人。</div><div><br></div><div>自此，彼方的日常被彻底改变。与这位神秘少女一同度过的每一天，都充满了欢笑与温馨：一起助人为乐，一起在海边嬉戏，一起品尝美食。两人形影不离，仿佛沉浸在热恋的幸福中。</div><div><br></div><div>然而，这份安逸终究难以长久。为了爱，他们不得不面对泪水与离别。那段难以忘怀的夏日时光，注定会成为永远铭刻心底的记忆。</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/9fe93ac23058</div><div>提取码:WPc7</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/d36a5026fd64</div><div>提取码:Zgmq</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/9fe93ac23058&quot;,&quot;https://pan.quark.cn/s/d36a5026fd64&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984510356_p15iklxwg" style="order: 8;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/guest/26-03/08/69ad62a5c220d.jpg">
+            <img loading="lazy" src="https://p.inari.site/guest/26-03/08/69ad62a7e9f74.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/guest/26-03/08/69ad62aa60fad.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A39】公寓物语(100MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 动态 SLG 互动</div>
+            <div class="desc-wrap">
+                <div class="desc-text">《公寓物语》是一款像素风箱庭式SLG，扮演公寓管理员，你的目标是窥探、威胁甚至诱骗住户，将其变为你的玩物。<div><br></div><div>利用各种手段偷窥她们的秘密，用H录像威胁她们，甚至使用药物，一步步让她们堕落。</div><div><br></div><div>体验操控一切的快感，打造属于你的肉欲乐园！</div><div><br></div><div>游戏自带官方中文，随时随地享受邪恶乐趣</div><div>偷窥、做A、威胁，这间公寓将成为我肉欲的天堂……一个箱庭式的H模拟器，整个公寓都是舞台</div><div><br></div><div>偷窥、拍摄、威胁,这座公寓成了我的肉欲乐园。</div><div><br></div><div>扮演公寓管理员,以整座公寓为舞台的箱庭式H模拟器。</div><div><br></div><div>偷窥她们!</div><div><br></div><div>能使用多种手段来偷窥住户。</div><div><br></div><div>记录她们不可告人的秘密。</div><div><br></div><div>威胁她们!</div><div><br></div><div>用她们的H录像威胁她们做H的事……同时录制更多H录像。</div><div><br></div><div>让她们堕落!</div><div><br></div><div>只要H次数够多,她们总会堕落的……实在不行的话……还能下药。</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/262dc2291d11</div><div>提取码:C8tF</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/bba20fc8d0ee</div><div>提取码:Q7m5</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/262dc2291d11&quot;,&quot;https://pan.quark.cn/s/bba20fc8d0ee&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1772984456984_zmg838yqx" style="order: 9;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://p.inari.site/guest/26-03/08/69ad502c437c5.jpg">
+            <img loading="lazy" src="https://p.inari.site/guest/26-03/08/69ad502ca182f.jpg" class="">
+            <img loading="lazy" src="https://p.inari.site/guest/26-03/08/69ad507887853.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A38】UOH 捕手 UOH キャッチャー（353MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ 生肉 魔法少女 巨乳 机械X 调教 SLG 羞辱</div>
+            <div class="desc-wrap">
+                <div class="desc-text"></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3510855a24e2</div><div>提取码:2CDM</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f1bf43ccb7f0</div><div>提取码:x3a3</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3510855a24e2&quot;,&quot;https://pan.quark.cn/s/f1bf43ccb7f0&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+        </div>
+    </div><div class="card is-pinned" data-card-id="card_1772869619728_n5r0bzwpm" style="order: -1000;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -384,14 +629,13 @@
             <div class="desc-wrap">
                 <div class="desc-text">现在该网站已经换了服务器，现在你们都不需要魔法打开。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
-            <div class="link-wrap expanded">
+            <div class="link-wrap">
                 <div class="link-text">解压教程:jpg改001 png改002，点击001解压，然后接下来的所有文件改7z就行，直到出现文件夹或者安装包</div>
-                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
         </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1772724610817_pkhdsddzq" style="order: 1;">
+    </div><div class="card" data-card-id="card_1772724610817_pkhdsddzq" style="order: 10;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -411,15 +655,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">非常高质量的芙莉莲同人作品，极度推荐！这个动画真的非常棒👍🏻</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text"><div>分卷1</div>https://pan.quark.cn/s/4514b9a9fc02?pwd=a9sT<div>提取码：a9sT</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/04b2a27599af</div><div>提取码:9XZ7</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4514b9a9fc02?pwd=a9sT&quot;,&quot;https://pan.quark.cn/s/04b2a27599af&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4514b9a9fc02?pwd=a9sT&quot;,&quot;https://pan.quark.cn/s/04b2a27599af&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1772483305725_6m1v01r3r" style="order: 2;">
+    </div><div class="card" data-card-id="card_1772483305725_6m1v01r3r" style="order: 11;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -439,15 +682,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">超级牛逼的ACT作品，内容特别丰富，cg顶级，强烈推荐！</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/66838d263aa0</div><div>提取码:j3qu</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/b51c0533685b</div><div>提取码:kq6p</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/66838d263aa0&quot;,&quot;https://pan.quark.cn/s/b51c0533685b&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/66838d263aa0&quot;,&quot;https://pan.quark.cn/s/b51c0533685b&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1772482637423_02q26cunz" style="order: 3;">
+    </div><div class="card" data-card-id="card_1772482637423_02q26cunz" style="order: 12;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -467,15 +709,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">内容挺丰富的，推荐</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
-            <div class="link-wrap expanded">
+            <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/eb0de69b93a5</div><div>提取码:tEJK</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/0a3eb7cb3bf5</div><div>提取码:Zzmi</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/eb0de69b93a5&quot;,&quot;https://pan.quark.cn/s/0a3eb7cb3bf5&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/eb0de69b93a5&quot;,&quot;https://pan.quark.cn/s/0a3eb7cb3bf5&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1772001573030_e8eig8mkj" style="order: 4;">
+    </div><div class="card" data-card-id="card_1772001573030_e8eig8mkj" style="order: 13;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -492,18 +733,16 @@
         <div class="info-box">
             <div class="g-name">【A35】GODDESSES'WHIM/女神的旨意0.43<div>（2G）</div></div>
             <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ SLG 多女主 兽娘</div>
-            <div class="desc-wrap expanded">
+            <div class="desc-wrap">
                 <div class="desc-text">以女神的名义……冲锋！</div>
-                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
-            </div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             <div class="link-wrap">
-                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3c7f1931b52f</div><div>提取码:kvrH</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f902965bdf2c</div><div>提取码:twqj</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3c7f1931b52f&quot;,&quot;https://pan.quark.cn/s/f902965bdf2c&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3c7f1931b52f</div><div>提取码:kvrH</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f902965bdf2c</div><div>提取码:twqj</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3c7f1931b52f&quot;,&quot;https://pan.quark.cn/s/f902965bdf2c&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1772000385611_tcipdrcix" style="order: 5;">
+    </div><div class="card" data-card-id="card_1772000385611_tcipdrcix" style="order: 14;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -523,15 +762,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">画风超级好，可惜用来做黄油了。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text"><span style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">分卷1</span><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">链接:https://pan.quark.cn/s/8b74be586374</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">提取码:zcsR</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">分卷2</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">链接:https://pan.quark.cn/s/871dc1a85707</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">提取码:HHsK</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8b74be586374&quot;,&quot;https://pan.quark.cn/s/871dc1a85707&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8b74be586374&quot;,&quot;https://pan.quark.cn/s/871dc1a85707&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1771999013961_zmgo30kky" style="order: 6;">
+    </div><div class="card" data-card-id="card_1771999013961_zmgo30kky" style="order: 15;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -551,15 +789,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">不要月抛，月抛不好。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/4a414d8bcbaf</div><div>提取码:gjeD</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/3dedb8f2b5f0</div><div>提取码:Pkp2</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a414d8bcbaf&quot;,&quot;https://pan.quark.cn/s/3dedb8f2b5f0&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a414d8bcbaf&quot;,&quot;https://pan.quark.cn/s/3dedb8f2b5f0&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1771961581648_m8nzpp1fw" style="order: 7;">
+    </div><div class="card" data-card-id="card_1771961581648_m8nzpp1fw" style="order: 16;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -579,15 +816,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">好好的忍者为什么会被抓住呢？🤔一定是故意的🤓</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/6a684edd68df</div><div>提取码:RaLW</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f7911b3c10d1</div><div>提取码:GmzY</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6a684edd68df&quot;,&quot;https://pan.quark.cn/s/f7911b3c10d1&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6a684edd68df&quot;,&quot;https://pan.quark.cn/s/f7911b3c10d1&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1771960852872_3jepserpx" style="order: 8;">
+    </div><div class="card" data-card-id="card_1771960852872_3jepserpx" style="order: 17;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -607,15 +843,14 @@
             <div class="desc-wrap">
                 <div class="desc-text">声明，这是群友要的，我只是负责找，仅供学习交流。<div><br></div><div><br></div><div><br></div><div><br></div><div>真他妈跟我没有一点关系！</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/4a9f86a24495</div><div>提取码:MJJa</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9388bf460e76</div><div>提取码:zQZt</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a9f86a24495&quot;,&quot;https://pan.quark.cn/s/9388bf460e76&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a9f86a24495&quot;,&quot;https://pan.quark.cn/s/9388bf460e76&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card active-render" data-card-id="card_1771960351253_b83lgew5z" style="order: 9;">
+    </div><div class="card" data-card-id="card_1771960351253_b83lgew5z" style="order: 18;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -635,15 +870,808 @@
             <div class="desc-wrap">
                 <div class="desc-text">这个游戏就是典型的挤牙膏更新，估计下一次要到猴年马月了。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
-            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/675ede5b720f</div><div>提取码:9c2i</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/ba26fcabe9bb</div><div>提取码:DRTr</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/675ede5b720f&quot;,&quot;https://pan.quark.cn/s/ba26fcabe9bb&quot;])">🔗 选择链接 (2个)</button></div>
-                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/675ede5b720f&quot;,&quot;https://pan.quark.cn/s/ba26fcabe9bb&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
-    </div><div class="card" data-card-id="card_1771959889533_kukihb56w" style="order: 10;">
+    </div><div class="card" data-card-id="card_1771959889533_kukihb56w" style="order: 19;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbZRpnfdpilJSSHvKk5VoZOEO45d_SgACEQxrG3RB8US59ctawfafdwEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbZNpnfdki2bVcCpamOQ0MS4qfYa5_AACEAxrG3RB8UT2ESaA7diYtQEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbZJpnfdeiOqkNf8Mei_rI4XaOn5iHAACDwxrG3RB8UTXTYBpbwyZSwEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A29】スク水少女快楽拷問シミュレーション (520MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 捆绑 调教 SM 拷问 触摸 拘束 官中 SLG</div>
+            <div class="desc-wrap">
+                <div class="desc-text">我记得这玩意还有漫画来着，没想到还有游戏</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/607330ae8bf3</div><div>提取码:tWRX</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9879f94d3e94</div><div>提取码:UDk2</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/607330ae8bf3&quot;,&quot;https://pan.quark.cn/s/9879f94d3e94&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771959092138_00rxbo44b" style="order: 20;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbZFpnfVQKuXNdrMNPIFGiJ-rlbIM7gACDgxrG3RB8UQ6L9tRB626lQEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbZBpnfVLBbZjm3G7Q8tMdC-HDSc3agACDQxrG3RB8URy9VV9pTiyuAEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbY9pnfVDiix1buR4KtTV8-tCnu6sZAACDAxrG3RB8UR7OaBq9Hu5NgEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A28】寻找夏日的宝物（550MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ 像素 动态 SLG 萝莉 正太</div>
+            <div class="desc-wrap">
+                <div class="desc-text">神作！我第一款玩哭的黄油😭，极度推荐！</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/fd1a13a85133</div><div>提取码:KPgz</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/e9efa8fdcd5b</div><div>提取码:awFs</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/fd1a13a85133&quot;,&quot;https://pan.quark.cn/s/e9efa8fdcd5b&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771958276440_c5hjgbs53" style="order: 21;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbYxpnfH4jfzE7dMsZ1jW6XW3sdMy3wACCQxrG3RB8USsO_F-oXoFNwEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbYxpnfH4jfzE7dMsZ1jW6XW3sdMy3wACCQxrG3RB8USsO_F-oXoFNwEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbY5pnfKJBOBVn0bEjxANu_yNk45NtwACCwxrG3RB8UQDD8B3nP_emQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A27】恐惧脚步/フィアフルステップ(170MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC SLG 触手 动态 丸吞 拘束 异种X 强迫</div>
+            <div class="desc-wrap">
+                <div class="desc-text">黄油版跳一跳</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/087213be3b12</div><div>提取码:rbAD</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/ef4e85160ed7</div><div>提取码:zFp8</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/087213be3b12&quot;,&quot;https://pan.quark.cn/s/ef4e85160ed7&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771957504837_0gbzo06w6" style="order: 22;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbYtpne7AXzQh66z1phlMmsRQiEqDSQACBwxrG3RB8US3kwfHVNQoXQEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbYppne66hNqgKRsW9HAk9IHkR6mpEgACBgxrG3RB8UROsugTmZhXBgEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbYlpne60dEqMxS5-uWtVh5Svj5cDDwACBQxrG3RB8UTzctGmLITZmQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A26】八丁目の魔法少女 (150MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC ACT 魔法少女 官中 触手</div>
+            <div class="desc-wrap">
+                <div class="desc-text">类8号出口，一个找不同游戏</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/86ea6f92cbb7</div><div>提取码:PXWt</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/b37d61d2db26</div><div>提取码:HgLk</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/86ea6f92cbb7&quot;,&quot;https://pan.quark.cn/s/b37d61d2db26&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771835613729_jhtoo6nx7" style="order: 23;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbOFpnBJht57wTYwNWMT1omrag6tTpAACgwtrG1Oj4UTJSHfxyY4iNgEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbOBpnBJcUCmafCIZuGH--My32w9IcgACggtrG1Oj4UTGAT7WYVd4WwEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbN9pnBJW-x4Bwyxyp7PuhF3l6aPtLAACgQtrG1Oj4UTX4XibVpFsOAEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A25】天使台球酒吧/エンジェルス・ビリヤード・バー<div>（500MB）</div></div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC SLG SM 调教 滴蜡 捆绑 动态 后宫</div>
+            <div class="desc-wrap">
+                <div class="desc-text">社团名：イルカのヒレ<div>▫️名称：天使台球酒吧</div><div>▫️原名：エンジェルス・ビリヤード・バー</div><div>▫️贩卖日：2025年05月08日</div><div>在 “天使台球酒吧”，你可以邂逅各式各样的台球美少女。</div><div>你只需运用自己的技巧，一步步攻略她们。</div><div>为了满足你的各种需求，这里准备了多种游戏模式。</div><div>而规则只有一个——只要获胜，就能赢得一切！</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/d23ad15c11f5</div><div>提取码:znaQ</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/72311665b538</div><div>提取码:fkpV</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/d23ad15c11f5&quot;,&quot;https://pan.quark.cn/s/72311665b538&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771834637780_biua3yq5w" style="order: 24;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbN5pnA9L90Mh0gP9CxZJEShYZnq29wACgAtrG1Oj4URQHOamtszBfwEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbN1pnA9GoQ_QL0zwTdpVmqL-nMWsxAACfwtrG1Oj4UQnPY5g74-hmQEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNxpnA8oN1PS_eY20UUihdXMoQZIrwACfgtrG1Oj4URjW_lBYKH-0wEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A24】地精的家畜骑士-汉化_1.0.(1.3G)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ RPG 恶堕 异种X</div>
+            <div class="desc-wrap">
+                <div class="desc-text">质量很高的RPG，它甚至还有开场动画，应该是关于他前作的故事。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b32759abbc55</div><div>提取码:nrte</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/2aa7bf7a0c33</div><div>提取码:8n3Y</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b32759abbc55&quot;,&quot;https://pan.quark.cn/s/2aa7bf7a0c33&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771833857140_80c7xjcgc" style="order: 25;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNhpnAwlhMIAAeFyu6F9bdM-7HXT26UAAnwLaxtTo-FEix0gEuns34kBAAMCAAN4AAM6BA.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNdpnAwgBwV9FMpwmuGqMHbZPZPIQAACewtrG1Oj4UQPSi0tmdahWAEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNZpnAwZMPZDFpbQ1Tr5KcmwLuYp8wACegtrG1Oj4UR4IriYRh1ZEAEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A23】小夏的牛奶时间/ぎゅうにゅうのじかん(423MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC AZ SLG 萝莉 兽耳</div>
+            <div class="desc-wrap">
+                <div class="desc-text">双端，画风顶中顶！</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>https://pan.quark.cn/s/876839c93a50</div><div>提取码: PUWe</div><div>分卷2</div><div>https://pan.quark.cn/s/e13f43575c1f</div><div>提取码: Rsyx</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/876839c93a50&quot;,&quot;https://pan.quark.cn/s/e13f43575c1f&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771832908301_s9wxz81r0" style="order: 26;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNFpnAgyZcL0dEnhfKmQkpMQPdjp_AACdgtrG1Oj4UQKNowxiHeLvAEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNNpnAhNfJwWDu6N92VQK2HRwBHjQAACeAtrG1Oj4UQUUKQd0iewvAEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNJpnAhIVZNNU2YqUYnRVx_20Uhm6wACdwtrG1Oj4UTHOGyifW_TpQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A22】与天使姐妹締結契約/天使の姉妹と契るだけ (200MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC SLG 动态 触摸 怀孕 乳头刺激 姐妹</div>
+            <div class="desc-wrap">
+                <div class="desc-text">这两个天使比吊带袜天使那两个天使纯洁多了。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/8f9a388c05fa</div><div>提取码:yxw7</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/0a698d861659</div><div>提取码:6UXz</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8f9a388c05fa&quot;,&quot;https://pan.quark.cn/s/0a698d861659&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771832360023_pw97moaq4" style="order: 27;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbNBpnAU3UP4GLaIBZDi9d_HhvFBRSgACdQtrG1Oj4UT5TXC7Yb-xYAEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbM9pnAUx-hdUdPagZ_ZdpITgiWSNggACdAtrG1Oj4UQps1EXIoLfZAEAAwIAA3cAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbM5pnAUrbh_WwrBulLrBRyFrON59jwACcwtrG1Oj4USK_zjbLf8-JAEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A21】逃离修女世界/SisterWordEscape (300MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签:PC ACT 修女 触手 像素 动态 姐妹</div>
+            <div class="desc-wrap">
+                <div class="desc-text">质量中规中矩，话说修女题材的黄油怎么越来越多了？</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/86223193a1da</div><div>提取码:B37v</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/4f98b8b64735</div><div>提取码:NbzP</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/86223193a1da&quot;,&quot;https://pan.quark.cn/s/4f98b8b64735&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771831840346_4q7c66int" style="order: 28;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbMtpnALib429Vv20HbyBsgIXJep8qQACbgtrG1Oj4URQClcrWou0pAEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbM1pnAMM55gVfESzDY_6mO4O1F1QQgACcAtrG1Oj4USfbStbxyonmgEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbMxpnAMDrvW9qPSU52bHDMajtHiDKwACbwtrG1Oj4URIjDKxyZpIMwEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A20】消灭马赛克（200MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC SLG 触手 兽耳 异种X</div>
+            <div class="desc-wrap">
+                <div class="desc-text">马赛克是世界上最愚蠢的发明！好好的B直接变成一团不知名方块。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/6ce0bf053201</div><div>提取码:aLCf</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/b67a575121bf</div><div>提取码:fgQK</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6ce0bf053201&quot;,&quot;https://pan.quark.cn/s/b67a575121bf&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771793176220_mk2rt4jgu" style="order: 29;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbKhpm2v0bIEnMCUYF0Hbyrst1ALu3AAC5gtrG3zp4UTkX_G8T7TF2wEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbKlpm2v6N-UwASCatVhRaIIkDtCFTQAC5wtrG3zp4UQQS3pvO2750QEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbKppm2v-isexDwGW5B1tKNwgjJJbeQAC6AtrG3zp4URKkvGY1rwiaAEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A19】放学后玩捉迷藏（35MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 动态 正太 骑大车 ACT</div>
+            <div class="desc-wrap">
+                <div class="desc-text">很考验反应力，被女鬼抓到的话要被迫请他们喝你的安慕希😘，该游戏手机盖世模拟器可流畅运行。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/c4f2ff2b8e76</div><div>提取码:45Gg</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/a09820b86110</div><div>提取码:xj8K</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/c4f2ff2b8e76&quot;,&quot;https://pan.quark.cn/s/a09820b86110&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771792288693_898kq8of4" style="order: 30;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbKVpm2lQp9Pf_cJk8JmMnJTrh2FeIgAC4wtrG3zp4UTfI77VvytSWQEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbKZpm2l24-oEdm1E9D5l8AElrvs1wwAC5AtrG3zp4UQPDGWeqP2UjwEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbKdpm2mJRHAU64D8kcgWUBTURVZctgAC5QtrG3zp4UT3qxUedZxeEQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A18】甜蜜女友3（7.8G）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC GAL ADV SLG 纯爱</div>
+            <div class="desc-wrap">
+                <div class="desc-text">我也想要美少女陪我……算了，再起飞一次。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/cca6face355a</div><div>提取码:eeyH</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/a09820b86110</div><div>提取码:xj8K</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cca6face355a&quot;,&quot;https://pan.quark.cn/s/a09820b86110&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771783744090_z0nf8web1" style="order: 31;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbIVpmzDtu21rrxcnelsEFVd02F_ZcQACCQxrG3zp2UQao3bL6Rn40QEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbIZpmzEF-VB5y5TuRtIQ4I8Q5LvRMAACCgxrG3zp2USwUbJEpTjezAEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbIhpmzEkntZc75woygURwyp9TP24IQACCwxrG3zp2UROZ0wYd0Vv6gEAAwIAA3gAAzoE.jpg" class="active">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">3 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A17】とある女上司の秘密のマッサージ店 (410MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC RPG 像素 动态 模拟经营</div>
+            <div class="desc-wrap expanded">
+                <div class="desc-text">罕见的RPG经营类黄油，但是这女主立绘是拿格调画的吗？</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3565ccb9c365</div><div>提取码:KLwq</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9757e5667569</div><div>提取码:6h8U</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3565ccb9c365&quot;,&quot;https://pan.quark.cn/s/9757e5667569&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771783491025_9iakrabz3" style="order: 32;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGdpmxBuz3ph7CC48optXAOEL_mJ6AAC5QtrG3zp2URyCPG1IzG4bgEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGlpmxCvqyd2co-tYPF3DEuxK8w_EAAC5gtrG3zp2UTUOgHp55suZwEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGppmxDG-5dAv1e91bWIBTz_vcto1AAC5wtrG3zp2UQoMGefG2TMMAEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A15】Chibi PAKO School (50MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 动态 萝莉 学生</div>
+            <div class="desc-wrap">
+                <div class="desc-text">住手啊，你们抓错人了！我喜欢的是御姐，只是想提前培养感情罢了……住手别电啦！！！</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text"><div>分卷1</div><div>链接:https://pan.quark.cn/s/c1fa73107c44</div><div>提取码:gmnA</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/2b43e60c2b95</div><div>提取码:SNTj</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/c1fa73107c44&quot;,&quot;https://pan.quark.cn/s/2b43e60c2b95&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771777633202_7p3rhuy47" style="order: 33;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbIFpmy9emrmGE0TOIs3zaQ7GoUwgFQACBQxrG3zp2UQtGDb8egkslwEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbIJpmy93LKZXBFdGfc_OEKrOB31H2gACBgxrG3zp2USyna5KlZ7QIAEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbINpmy-Sf4d76O7Rf_CWEhjQPYAN3wACBwxrG3zp2USWBzzomYcWOQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A16】亚人女仆10日间的牛奶供给契约（250MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC SLG 巨乳 女仆 兽娘</div>
+            <div class="desc-wrap">
+                <div class="desc-text">和一头牛谈恋爱?其实只要脸好看哪怕是猪都没问题，你说是吧？<div><br></div><div><br></div><div><br></div><div>比如猪猪侠里的小菲菲。</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/42a314467eab</div><div>提取码:hd6k</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/e4f9395f77ef</div><div>提取码:pH2k</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/42a314467eab&quot;,&quot;https://pan.quark.cn/s/e4f9395f77ef&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771769064434_5gcdxln5n" style="order: 34;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGRpmw4SYwYnRdmFDb2UsoeyhbTjIQAC4gtrG3zp2UQ0yaLPfMPteAEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGVpmw4wlmGmSTOOUiI9tLFkIBCT_wAC4wtrG3zp2UR3Z4Ojehc7fwEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGZpmw5O0K73K4_YEyD6OFnIpHtm0gAC5AtrG3zp2UR4urUaY39JIAEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A14】SUMMER~夏天的14日~ SUMMER~夏の14日~Al汉化版正式版+存档（1.50G）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 动态 SLG 巨乳</div>
+            <div class="desc-wrap">
+                <div class="desc-text">质量超高的像素游戏，我也喜欢巨乳小姐姐，所以我什么时候会有女朋友呢😭</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/33782d01a419</div><div>提取码:jRAw</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/332f91ef8ec2</div><div>提取码:HC5F</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/33782d01a419&quot;,&quot;https://pan.quark.cn/s/332f91ef8ec2&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771768555163_1hkmgcnwz" style="order: 35;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGFpmwuezPFxxRh3vVt2vAJHoZwK4QAC3gtrG3zp2UT2ZXyRx7qQgAEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGJpmwu7U00CfEM9efM5IjqiNnt4vQAC3wtrG3zp2URc1urRTHDmOQEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbGNpmwvTeSIgC1dJwArIYGsf3XTlmAAC4AtrG3zp2UTjhmKBC5wpvwEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A13】我是椅子（60MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 动态 SLG 萝莉 肛交</div>
+            <div class="desc-wrap">
+                <div class="desc-text">经典互动小游戏，质量还不错，但是注意一下熬，就是有屎尿屁。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b6e22ecf3764</div><div>提取码:bV5n</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/34dd1cefe48d</div><div>提取码:U7K8</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b6e22ecf3764&quot;,&quot;https://pan.quark.cn/s/34dd1cefe48d&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771748838000_vcnqi0ax8" style="order: 36;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDxpmr7f6dEguIoDUWTMr7ZY4nfNSgACugtrG3zp2URdcJBTTKBOJQEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbD1pmr70bBHaFIzvupQf7DCNqiXr1QACuwtrG3zp2UTK6OEMHE38sAEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbD5pmr8UdQqRk2UfBCzQJX0Oz9lGLwACvAtrG3zp2UR4-sXGF1VWmQEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A12】苗床战争/苗床うぉーず（400MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ SLG 萝莉 触手 魔法少女</div>
+            <div class="desc-wrap">
+                <div class="desc-text"><div>抓住魔女，把她当作苗床!苗床开发系线上防卫游戏!!</div><div>你作为“苗床迷宫”被造物主大人诞生了。</div><div>既然出生在苗床迷宫就要做一件事…</div><div>把魔女作为苗床，榨取魔力!</div><div>反击了来到迷宫的魔女少女们，</div><div>让所有的魔女少女都成为你的苗床吧!</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b85dbe595fb1</div><div>提取码:jjWr</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/78002471b0d2</div><div>提取码:GSgc</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b85dbe595fb1&quot;,&quot;https://pan.quark.cn/s/78002471b0d2&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771748251127_xp3m3lr6g" style="order: 37;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDlpmrzYP0oGLmch3q_xtx7ZqhBVDwACtwtrG3zp2UQELBVrLlqR9gEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDppmrz0GQ-yUUAAAe0BSnwIkht1-XIAArgLaxt86dlEzqNOobhmcw4BAAMCAAN4AAM6BA.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDtpmr0Pr7vc-N9_l1SaoX0PqEk2HAACuQtrG3zp2UTbqjpczJtaBQEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A11】那个孩子从坏掉后就一直有股味道（あの子、壊れてからずっと臭い）（300MB）<div><br></div></div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: PC 像素 动态 萝莉 监禁</div>
+            <div class="desc-wrap">
+                <div class="desc-text">“再让我变得更臭吧…”<div>被山贼囚禁、不断遭受侵犯的少女。</div><div><br></div><div>在精液与男人气味的浸染下，身心逐渐堕落，沉溺于快感之中──</div><div><br></div><div>这是一款采用点阵动画风格的短篇RPG，描绘了少女被精液玷污的故事。</div><div><br></div><div>从OP到ED为线性剧情，游玩时间约10～15分钟。</div><div><br></div><div>所有H场景从一开始即可在回忆房间中全部解锁。</div><div><br></div><div>【收录点阵H动画】全7个场景（轮○・口交・乳交等）</div><div><br></div><div>【主题】精液・气味・堕落少女的台词设计</div><div><br></div><div>■ 推荐给以下人群</div><div><br></div><div>・喜欢点阵绘・点阵色情内容</div><div><br></div><div>・喜欢精液沾染、射精涂抹描写</div><div><br></div><div>・想短时间内获得满足</div><div><br></div><div>・喜欢被玷污・堕落系女主角</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/feff336bf9e6</div><div>提取码:3N9J</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/ba7458089674</div><div>提取码:xMsR</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/feff336bf9e6&quot;,&quot;https://pan.quark.cn/s/ba7458089674&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771747585867_q4p20u3ak" style="order: 38;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDZpmrq3g08OpgLq0e4h_XyjBcRJHgACtAtrG3zp2UR_SYdMQ45fPAEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDdpmrseEX0hq1wE2Rx2Pl9ZyHiMSgACtQtrG3zp2USyBEaGiNxSXQEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDhpmrs3DKCahNrm4JdDz8Xsj68MwgACtgtrG3zp2URtIRBkkXrqSQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A10】蜂蜜村，在异世界也能为所欲为?（300MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: AZ ACT 魔物娘 动态</div>
+            <div class="desc-wrap">
+                <div class="desc-text">与鬼共生的小镇续作，地图很大，超高探索度。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b7c601cf8343</div><div>提取码:Gs2b</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/27e0b69add43</div><div>提取码:mQsa</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b7c601cf8343&quot;,&quot;https://pan.quark.cn/s/27e0b69add43&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card" data-card-id="card_1771746993029_7bnk44ef7" style="order: 39;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDRpmrgxvOY7QTCJg2UZsTiVvW15jwACsgtrG3zp2USRswFXg71IOwEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDNpmrgYT4d36jq7IN_3KjPZgXNVmgACsQtrG3zp2UQc-MmhnOjuqgEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDVpmrg_8V8nD6gNweMzdGc2ZC-pCwACswtrG3zp2USosjttbJJOowEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A9】我的城镇时间停止时！（俺の町が止まった時）DL官方中文（100MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签:PC ACT 动态 时间停止</div>
+            <div class="desc-wrap">
+                <div class="desc-text">操作手感像答辩，至少cg还行。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/7789bd844bb2</div><div>提取码:gUAt</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/17930c8a76db</div><div>解压码:114514</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/7789bd844bb2&quot;,&quot;https://pan.quark.cn/s/17930c8a76db&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card active-render" data-card-id="card_1771746555722_exc6n3fz5" style="order: 40;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDBpmrTpvNk0FliGMdoICjwO-9xESwACrgtrG3zp2UTjlSJ1-wdT6wEAAwIAA3gAAzoE.webp">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDFpmrUQM-Nvz1fdLl3cKdpWQeWMSwACrwtrG3zp2URfBczBDpJMrAEAAwIAA3kAAzoE.webp" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBbDJpmrUp4HayqMM5y_ygeCDEzt80OQACsAtrG3zp2URFj4bys7FEQAEAAwIAA3kAAzoE.webp" class="active">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">3 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A8】异变检查，毫无疏漏！ 異変チェックに漏れは無し!（300MB）</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签:PC 像素 动态 ACT SLG</div>
+            <div class="desc-wrap">
+                <div class="desc-text">这个盖世模拟器可以玩，可惜的是这个游戏没漏福，内容是憋尿。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/9708a1ac7569<div>提取码:PZB7</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/de0f685dd16f</div><div>提取码:Y6wZ</div>
+        </div><div>解压码:114514</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/9708a1ac7569&quot;,&quot;https://pan.quark.cn/s/de0f685dd16f&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div>
+        </div>
+    </div><div class="card active-render" data-card-id="card_1771680352692_87k8k56o4" style="order: 41;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBa_tpmbLG2ubIO4PGaa3ouYyUMDFS9AACVwtrG3zp0USTZpk1Y7E6wQEAAwIAA3gAAzoE.png">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBa_ppmbKuqQm_EHB_-PvvCQq84kV5XgACVgtrG3zp0US5e6Q7_qiwnQEAAwIAA3gAAzoE.png" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBa_xpmbLvCe0zszkIYRzSAAFhNO_S8AoAAlgLaxt86dFERuHNY18y14ABAAMCAAN4AAM6BA.png" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A7】Lure Of Passion_0.7.2 (100MB)</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">标签: SLG AZ 像素 动态&nbsp;</div>
+            <div class="desc-wrap">
+                <div class="desc-text">谁能拒绝一个可爱的猫猫呢？</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b6f653020532</div><div>提取码:1tBf</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/1578cf2c69d8</div><div>提取码:Yyas</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b6f653020532&quot;,&quot;https://pan.quark.cn/s/1578cf2c69d8&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" data-card-id="card_1771658624536_aks1x8ete" style="order: 42;">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://image.acg.lol/file/2026/02/21/photo_2026-02-13_20-37-196d604a628a399ede.jpg">
+            <img loading="lazy" src="https://image.acg.lol/file/2026/02/21/photo_2026-02-13_20-37-36.jpg" class="">
+            <img loading="lazy" src="https://image.acg.lol/file/2026/02/21/photo_2026-02-13_20-37-41.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">[foxy]恋爱定位 神社×前辈<div>ろけらぶ -Location Love- 神社×先輩&nbsp;</div></div>
+            <div class="g-tags">标签: GAL ADV 无码 步兵 恋爱 巫女 青梅竹马 PC kr模拟器</div>
+            <div class="desc-wrap">
+                <div class="desc-text">视觉小说，赞哦</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text"><div>注意两个链接，下两个文件保存后下载防炸,把jpg和png两个文件都下载，</div><div>后缀jpg改001，png 改002</div><div>解压码foxyfoxy</div><div>二层@xinkongkafei</div><div>uc下载文件而不是文件夹，不然下载失败</div><div>https://pan.quark.cn/s/63f1e61bf839</div><div>https://drive.uc.cn/s/498d11a908e84?public=1</div><div><br></div><div>https://pan.baidu.com/s/1Z1c9bcVCGNOEmJgUOt7g-Q?pwd=foxy</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/63f1e61bf839&quot;,&quot;https://drive.uc.cn/s/498d11a908e84?public=1&quot;,&quot;https://pan.baidu.com/s/1Z1c9bcVCGNOEmJgUOt7g-Q?pwd=foxy&quot;])">🔗 选择链接 (3个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" style="order: 43;" data-card-id="card_1771284173942_0">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzdpkEYUF6cM2Jr85ZBieEMAASJ0yTkAAu4LaxuvV4BEDZGywkv2XZ4BAAMCAANtAAM6BA.jpeg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzZpkEXvtqDLGP9BfjEj5HcHIGCCVgAC7QtrG69XgEQ-YLy651zIUQEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzhpkEYvWdGnGUb1D5T-gi4Ya6AKZAAC7wtrG69XgETLlj04eJmpiQEAAwIAA3cAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A6】Lesson（130MB）</div>
+            <div class="g-tags">标签: AZ 像素 动态 萝莉 体操服</div>
+            <div class="desc-wrap">
+                <div class="desc-text">设置里可以调中文。</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">分卷1<div>https://pan.quark.cn/s/cOc54193691f</div><div>提取码:eR1q</div><div>分卷2</div><div>https://pan.quark.cn/s/681732cс6502</div><div>提取码:M7r2</div><div><br></div><div>解压码:114514</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cOc54193691f&quot;,&quot;https://pan.quark.cn/s/681732c&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" style="order: 44;" data-card-id="card_1771284173942_1">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzNpkENj0Aiwyp6MPz5duaJBSB9eUwAC6AtrG69XgETUUtjXL2PJfQEAAwIAA3kAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzRpkEN2Xm-WRFusvtFaom8HskzCEQAC6QtrG69XgESEsWkVU5NkNwEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzVpkEOWvtMIVoA4zHIYdaJULlWbyQAC6gtrG69XgEQOvkhpIYUvRgEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A5】孙笑川传奇（270MB）</div>
+            <div class="g-tags">标签: AZ RPG 猎奇</div>
+            <div class="desc-wrap">
+                <div class="desc-text">天皇万岁！<div>天皇万歳！</div></div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb<div>提取码:kfjb</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" style="order: 45;" data-card-id="card_1771284173942_2">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZy9pkEIEUaiSrjnNMj0RDcJcl7zS0AAC4wtrG69XgERCZbLBl-KeLQEAAwIAA3gAAzoE.webp">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzBpkEIXB6ivQIYZrANxPB-zs7ZTGwAC5AtrG69XgERj5z3-uMFzvAEAAwIAA3gAAzoE.webp" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZzFpkEIs2Aof654RXR90sz3XLbBwqgAC5QtrG69XgESg24IZkAxbCAEAAwIAA3gAAzoE.webp" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A4】kyuuko9（40MB）</div>
+            <div class="g-tags">标签: PC 像素 动态 萝莉 SLG</div>
+            <div class="desc-wrap">
+                <div class="desc-text">感觉像在玩音游……</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">https://pan.quark.cn/s/92010f612c22?pwd=pa2V<div>提取码：pa2V</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/92010f612c22?pwd=pa2V', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" style="order: 46;" data-card-id="card_1771284173942_3">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyxpkD9UZ-aFW_EYmu6LHMoYp6ldlwAC4AtrG69XgES9V59981NhZQEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZy1pkD-ApJM4F41QqWYZMngKm5vh1AAC4QtrG69XgERW6iGi_ELpcQEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZy5pkD-fRBgztq5BYqfjpKnSzsFcggAC4gtrG69XgES1Pq1W2UKvAwEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A3】令和时代的萝莉控（1.4G）</div>
+            <div class="g-tags">标签: PC RPG 像素 动态 萝莉</div>
+            <div class="desc-wrap">
+                <div class="desc-text">质量中规中矩，能玩就行</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap">
+                <div class="link-text">https:/pan.quark.cn/s/2fa0472ac5af?pwd=eQVB<div>提取码:eQVB</div>
+        </div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" style="order: 47;" data-card-id="card_1771284173942_4">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZylpkD5mggQwEfzNdnEEotWd2xkxWgAC2wtrG69XgETCS3qv0rQX0AEAAwIAA3cAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyppkD5-GeiDjv0zfZnnQzd1UyWzpwAC3AtrG69XgEQn-ej4uB_CvAEAAwIAA3kAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZytpkD6Rx4cdUPVuO0_oeUCZ7jk4RgAC3QtrG69XgERV4rjMis_APQEAAwIAA3kAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A2】我的女仆 /僕のメイド（1.2G）</div>
+            <div class="g-tags">标签: PC 养成 像素 动态 女仆 萝莉 SLG</div>
+            <div class="desc-wrap expanded">
+                <div class="desc-text">养女仆，经典像素动态</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">https://pan.quark.cn/s/da3ab6a11c08<div>提取码:2X4x</div></div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/da3ab6a11c08', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div></div>
+    </div><div class="card active-render" style="order: 48;" data-card-id="card_1771284173942_5">
+        <div class="pin-btn" onclick="togglePin(this)">📌</div>
+        <div class="del-btn" onclick="deleteCard(this)">×</div>
+        <div class="slider-box">
+            <button class="edit-img-btn" onclick="editCurrentImg(this)">🔗 更换图片</button>
+            <button class="slide-btn prev" onclick="changeSlide(this, -1)">‹</button>
+            <img class="active" loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyVpkDxeceHPBhLidF7zIfk9wglL2wAC2AtrG69XgES2fGjF3twC4wEAAwIAA3gAAzoE.jpg">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZydpkDyQSoXE-1jSHv2f8h_6uCZ9sgAC2QtrG69XgER6s-TT_E82oAEAAwIAA3gAAzoE.jpg" class="">
+            <img loading="lazy" src="https://im.gurl.eu.org/file/AgACAgEAAxkDAAEBZyhpkDypRDekWEHSu1w3kzKVoMxiYwAC2gtrG69XgEQCFlepvQcKXgEAAwIAA3gAAzoE.jpg" class="">
+            <button class="slide-btn next" onclick="changeSlide(this, 1)">›</button>
+            <div class="img-index">1 / 3</div>
+            <div class="fav-btn" onclick="toggleFavorite(this)">🤍</div>
+        </div>
+        <div class="info-box">
+            <div class="g-name">【A1】我和姐姐们的夏天（180MB）</div>
+            <div class="g-tags">标签: PC RPG 正太 骑大车 巨乳 像素 动态</div>
+            <div class="desc-wrap">
+                <div class="desc-text">经典正太骑大车，joi可运行</div>
+                <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            <div class="link-wrap expanded">
+                <div class="link-text">分卷1<div>https://pan.quark.cn/s/f72479580e14?pwd=74QB</div><div>提取码:74QB</div><div>分卷2</div><div>https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN</div><div>提取码:z4yN</div>
+        </div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/f72479580e14?pwd=74QB&quot;,&quot;https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+            </div>
+            </div></div>
+    </div></div><div class="card" data-card-id="card_1771959889533_kukihb56w" style="order: 10;">
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
         <div class="del-btn" onclick="deleteCard(this)">×</div>
         <div class="slider-box">
@@ -666,7 +1694,7 @@
             </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/607330ae8bf3</div><div>提取码:tWRX</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9879f94d3e94</div><div>提取码:UDk2</div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/607330ae8bf3&quot;,&quot;https://pan.quark.cn/s/9879f94d3e94&quot;])">🔗 选择链接 (2个)</button></div>
+                
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
@@ -1470,16 +2498,16 @@
                 <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div></div>
-    </div></div>
-    <div id="pagination" class="pagination"><div class="page-numbers"><div class="page-item active" onclick="refreshUI(1)">1</div><div class="page-item " onclick="refreshUI(2)">2</div><div class="page-item " onclick="refreshUI(3)">3</div><div class="page-item " onclick="refreshUI(4)">4</div></div>
+    </div>
+    <div id="pagination" class="pagination"><div class="page-numbers"><div class="page-item " onclick="refreshUI(1)">1</div><div class="page-item " onclick="refreshUI(2)">2</div><div class="page-item " onclick="refreshUI(3)">3</div><div class="page-item " onclick="refreshUI(4)">4</div><div class="page-item active" onclick="refreshUI(5)">5</div></div>
             <div class="page-jump-row">
                 <span>跳至</span>
-                <input type="number" class="page-jump" placeholder="页码..." onkeydown="if(event.keyCode==13) { let p=parseInt(this.value); if(p&gt;0 &amp;&amp; p&lt;=4) refreshUI(p); else alert('没有这一页！'); }">
-                <span>/ 共 4 页</span>
+                <input type="number" class="page-jump" placeholder="页码..." onkeydown="if(event.keyCode==13) { let p=parseInt(this.value); if(p&gt;0 &amp;&amp; p&lt;=5) refreshUI(p); else alert('没有这一页！'); }">
+                <span>/ 共 5 页</span>
             </div></div>
-    <div id="rocket" onclick="goTop()" class="">🚀</div>
-    <div id="prevPageBtn" class="side-nav-btn" onclick="navPage(-1)">‹</div>
-    <div id="nextPageBtn" class="side-nav-btn show" onclick="navPage(1)">›</div>
+    <div id="rocket" onclick="goTop()" class="show">🚀</div>
+    <div id="prevPageBtn" class="side-nav-btn show" onclick="navPage(-1)">‹</div>
+    <div id="nextPageBtn" class="side-nav-btn" onclick="navPage(1)">›</div>
 </main>
 
 <div id="loginModal" class="modal-overlay" style="display: none;">
@@ -2770,6 +3798,8 @@ setInterval(() => { if(isEditMode) autoSave(); }, 5000);
     <button class="close-btn" onclick="closeImagePreview()">×</button>
     <img id="previewImage" src="" alt="预览">
 </div>
+
+<script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;a6648af1a52e42bfa20fc3be41d9bad9&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
 
 <script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;a6648af1a52e42bfa20fc3be41d9bad9&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
 
