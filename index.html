@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- 天笑の秘密基地 v3.2.0 - 完整修复版 -->
+<!-- 天笑の秘密基地 v3.3.0 - 链接复制功能版 -->
 <!-- 修复: 搜索只看标题标签 + 展开独立 + 瞬间滚动 + CSS修复 -->
 <html data-color-scheme-option="auto"><head>
     <meta charset="UTF-8">
@@ -1522,7 +1522,7 @@ const ACCESS_PASS = "114514";
 // 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
-const APP_VERSION = "3.2.0"; // 搜索修复 + 展开修复 + 滚动修复
+const APP_VERSION = "3.3.0"; // 链接复制功能 + 识别所有链接
 const VERSION_KEY = "TX_APP_VERSION";
 
 // ===== Cloudflare Worker API =====
@@ -2498,20 +2498,18 @@ function processCloudLink(url) {
     }
 }
 
-// 从文本中提取所有URL
+// 从文本中提取所有URL（改进版：识别所有链接）
 function extractUrls(text) {
-    // 🐛 修复：更严格的URL匹配，避免提取到不完整的URL
-    const urlPattern = /(https?:\/\/[a-zA-Z0-9][a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+)/g;
+    // ✨ 更全面的 URL 匹配，支持各种链接格式
+    const urlPattern = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+)/g;
     const matches = text.match(urlPattern);
     if (!matches) return [];
     
     // 清理URL末尾的标点和验证URL
     return matches
         .map(url => {
-            // 去除末尾标点
+            // 去除末尾常见标点符号
             let cleanUrl = url.replace(/[,，。.;；!！?？\)）\]】}>》\'"]+$/, '');
-            // 去除开头可能误匹配的内容
-            cleanUrl = cleanUrl.replace(/^[^\w:]*/, '');
             return cleanUrl;
         })
         .filter(url => {
@@ -2535,23 +2533,34 @@ function showLinkSelector(urls) {
     modal.style.display = 'flex';
     
     let linksHtml = urls.map((url, idx) => {
-        const processedUrl = processCloudLink(url);
-        const shortUrl = processedUrl.length > 60 ? processedUrl.substring(0, 60) + '...' : processedUrl;
-        return `<div style="margin: 8px 0;">
-            <button class="modal-btn btn-confirm" onclick="window.open('${processedUrl}', '_blank'); this.closest('.modal-overlay').remove();" style="width: 100%; text-align: left; padding: 12px; word-break: break-all;">
-                ${idx + 1}. ${shortUrl}
+        // ✨ 不再调用 processCloudLink，直接使用原始 URL
+        const shortUrl = url.length > 60 ? url.substring(0, 60) + '...' : url;
+        
+        // ✨ 为每个链接生成唯一 ID
+        const linkId = `link_${idx}_${Date.now()}`;
+        
+        return `<div style="margin: 12px 0; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background: #f9f9f9;">
+            <button class="modal-btn btn-confirm" 
+                    onclick="window.open('${url.replace(/'/g, "\\'")}', '_blank');" 
+                    style="width: 100%; text-align: left; padding: 12px; word-break: break-all; margin-bottom: 8px; background: #007bff; color: white;">
+                📱 ${idx + 1}. ${shortUrl}
+            </button>
+            <button class="modal-btn" 
+                    onclick="copyLinkToClipboard('${url.replace(/'/g, "\\'")}', this)" 
+                    style="width: 100%; text-align: center; padding: 10px; background: #28a745; color: white; font-size: 14px;">
+                📋 复制链接
             </button>
         </div>`;
     }).join('');
     
     modal.innerHTML = `
-        <div class="modal-box" style="max-width: 450px;">
-            <div class="modal-title">🔗 选择要打开的链接 (共${urls.length}个)</div>
-            <div style="max-height: 400px; overflow-y: auto;">
+        <div class="modal-box" style="max-width: 500px;">
+            <div class="modal-title">🔗 选择链接操作 (共${urls.length}个)</div>
+            <div style="max-height: 500px; overflow-y: auto; padding: 10px;">
                 ${linksHtml}
             </div>
-            <div style="margin-top: 15px;">
-                <button class="modal-btn btn-cancel" onclick="this.closest('.modal-overlay').remove()" style="width: 100%;">取消</button>
+            <div style="margin-top: 15px; padding: 0 10px;">
+                <button class="modal-btn btn-cancel" onclick="this.closest('.modal-overlay').remove()" style="width: 100%;">关闭</button>
             </div>
         </div>
     `;
@@ -2564,6 +2573,72 @@ function showLinkSelector(urls) {
             modal.remove();
         }
     });
+}
+
+// ✨ 新增：复制链接到剪贴板
+function copyLinkToClipboard(url, btn) {
+    // 方法1：使用 Clipboard API（现代浏览器）
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url)
+            .then(() => {
+                showCopyFeedback(btn, true);
+            })
+            .catch(err => {
+                // 失败时使用备用方法
+                fallbackCopyTextToClipboard(url, btn);
+            });
+    } else {
+        // 方法2：备用方法（旧浏览器）
+        fallbackCopyTextToClipboard(url, btn);
+    }
+}
+
+// 备用复制方法
+function fallbackCopyTextToClipboard(text, btn) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.width = "2em";
+    textArea.style.height = "2em";
+    textArea.style.padding = "0";
+    textArea.style.border = "none";
+    textArea.style.outline = "none";
+    textArea.style.boxShadow = "none";
+    textArea.style.background = "transparent";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        showCopyFeedback(btn, successful);
+    } catch (err) {
+        showCopyFeedback(btn, false);
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// 显示复制反馈
+function showCopyFeedback(btn, success) {
+    const originalText = btn.innerText;
+    const originalBg = btn.style.background;
+    
+    if (success) {
+        btn.innerText = '✅ 已复制！';
+        btn.style.background = '#28a745';
+    } else {
+        btn.innerText = '❌ 复制失败';
+        btn.style.background = '#dc3545';
+    }
+    
+    setTimeout(() => {
+        btn.innerText = originalText;
+        btn.style.background = originalBg;
+    }, 2000);
 }
 
 function savePage() {
