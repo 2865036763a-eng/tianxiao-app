@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- 天笑の秘密基地 v3.1.0 - 搜索修复版 + 管理验证修复 -->
+<!-- 更新时间: 2026-03-09 -->
+<!-- 修复内容: 1.搜索只看标题和标签 2.展开收起独立 3.瞬间滚动 -->
 <html data-color-scheme-option="auto"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -88,10 +91,10 @@
 
         .link-wrap { position: relative; background: #f8f9fb; border-radius: 8px; border: 1px solid #edf0f5; display: flex; flex-direction: column; }
         .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.2; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 1.2em; }
-        .expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; white-space: pre-wrap; }
+        .link-wrap.expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; white-space: pre-wrap; }
         /* 🐛 修复：管理员模式下也支持展开收起 */
         .admin-mode .link-text { -webkit-line-clamp: 1; display: -webkit-box; max-height: 1.2em; overflow-y: visible; white-space: nowrap; text-overflow: ellipsis; line-height: 1.2; }
-        .admin-mode .expanded .link-text { -webkit-line-clamp: initial; display: block; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+        .admin-mode .link-wrap.expanded .link-text { -webkit-line-clamp: initial; display: block; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
         .link-actions { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(0,0,0,0.03); }
         .link-jump-btn { flex: 1; padding: 8px; background: #007bff; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; }
         .link-jump-btn:hover { background: #0056b3; }
@@ -381,6 +384,7 @@
             <div class="desc-wrap">
                 <div class="desc-text">现在该网站已经换了服务器，现在你们都不需要魔法打开。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">解压教程:jpg改001 png改002，点击001解压，然后接下来的所有文件改7z就行，直到出现文件夹或者安装包</div>
                 <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
@@ -407,10 +411,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">非常高质量的芙莉莲同人作品，极度推荐！这个动画真的非常棒👍🏻</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text"><div>分卷1</div>https://pan.quark.cn/s/4514b9a9fc02?pwd=a9sT<div>提取码：a9sT</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/04b2a27599af</div><div>提取码:9XZ7</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4514b9a9fc02?pwd=a9sT&quot;,&quot;https://pan.quark.cn/s/04b2a27599af&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4514b9a9fc02?pwd=a9sT&quot;,&quot;https://pan.quark.cn/s/04b2a27599af&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -434,10 +439,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">超级牛逼的ACT作品，内容特别丰富，cg顶级，强烈推荐！</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/66838d263aa0</div><div>提取码:j3qu</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/b51c0533685b</div><div>提取码:kq6p</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/66838d263aa0&quot;,&quot;https://pan.quark.cn/s/b51c0533685b&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/66838d263aa0&quot;,&quot;https://pan.quark.cn/s/b51c0533685b&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -461,10 +467,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">内容挺丰富的，推荐</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/eb0de69b93a5</div><div>提取码:tEJK</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/0a3eb7cb3bf5</div><div>提取码:Zzmi</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/eb0de69b93a5&quot;,&quot;https://pan.quark.cn/s/0a3eb7cb3bf5&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/eb0de69b93a5&quot;,&quot;https://pan.quark.cn/s/0a3eb7cb3bf5&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -488,9 +495,11 @@
             <div class="desc-wrap expanded">
                 <div class="desc-text">以女神的名义……冲锋！</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
+            </div>
             <div class="link-wrap">
-                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3c7f1931b52f</div><div>提取码:kvrH</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f902965bdf2c</div><div>提取码:twqj</div></div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3c7f1931b52f&quot;,&quot;https://pan.quark.cn/s/f902965bdf2c&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3c7f1931b52f</div><div>提取码:kvrH</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f902965bdf2c</div><div>提取码:twqj</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3c7f1931b52f&quot;,&quot;https://pan.quark.cn/s/f902965bdf2c&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -514,10 +523,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">画风超级好，可惜用来做黄油了。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text"><span style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">分卷1</span><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">链接:https://pan.quark.cn/s/8b74be586374</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">提取码:zcsR</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">分卷2</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">链接:https://pan.quark.cn/s/871dc1a85707</div><div style="color: rgb(44, 62, 80); font-size: 14px; white-space: pre-wrap;">提取码:HHsK</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8b74be586374&quot;,&quot;https://pan.quark.cn/s/871dc1a85707&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8b74be586374&quot;,&quot;https://pan.quark.cn/s/871dc1a85707&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -541,10 +551,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">不要月抛，月抛不好。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/4a414d8bcbaf</div><div>提取码:gjeD</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/3dedb8f2b5f0</div><div>提取码:Pkp2</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a414d8bcbaf&quot;,&quot;https://pan.quark.cn/s/3dedb8f2b5f0&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a414d8bcbaf&quot;,&quot;https://pan.quark.cn/s/3dedb8f2b5f0&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -568,10 +579,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">好好的忍者为什么会被抓住呢？🤔一定是故意的🤓</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/6a684edd68df</div><div>提取码:RaLW</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/f7911b3c10d1</div><div>提取码:GmzY</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6a684edd68df&quot;,&quot;https://pan.quark.cn/s/f7911b3c10d1&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6a684edd68df&quot;,&quot;https://pan.quark.cn/s/f7911b3c10d1&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -595,10 +607,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">声明，这是群友要的，我只是负责找，仅供学习交流。<div><br></div><div><br></div><div><br></div><div><br></div><div>真他妈跟我没有一点关系！</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/4a9f86a24495</div><div>提取码:MJJa</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9388bf460e76</div><div>提取码:zQZt</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a9f86a24495&quot;,&quot;https://pan.quark.cn/s/9388bf460e76&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/4a9f86a24495&quot;,&quot;https://pan.quark.cn/s/9388bf460e76&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -622,10 +635,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">这个游戏就是典型的挤牙膏更新，估计下一次要到猴年马月了。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/675ede5b720f</div><div>提取码:9c2i</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/ba26fcabe9bb</div><div>提取码:DRTr</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/675ede5b720f&quot;,&quot;https://pan.quark.cn/s/ba26fcabe9bb&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/675ede5b720f&quot;,&quot;https://pan.quark.cn/s/ba26fcabe9bb&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -649,10 +663,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">我记得这玩意还有漫画来着，没想到还有游戏</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/607330ae8bf3</div><div>提取码:tWRX</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9879f94d3e94</div><div>提取码:UDk2</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/607330ae8bf3&quot;,&quot;https://pan.quark.cn/s/9879f94d3e94&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/607330ae8bf3&quot;,&quot;https://pan.quark.cn/s/9879f94d3e94&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -676,10 +691,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">神作！我第一款玩哭的黄油😭，极度推荐！</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/fd1a13a85133</div><div>提取码:KPgz</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/e9efa8fdcd5b</div><div>提取码:awFs</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/fd1a13a85133&quot;,&quot;https://pan.quark.cn/s/e9efa8fdcd5b&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/fd1a13a85133&quot;,&quot;https://pan.quark.cn/s/e9efa8fdcd5b&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -703,10 +719,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">黄油版跳一跳</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/087213be3b12</div><div>提取码:rbAD</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/ef4e85160ed7</div><div>提取码:zFp8</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/087213be3b12&quot;,&quot;https://pan.quark.cn/s/ef4e85160ed7&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/087213be3b12&quot;,&quot;https://pan.quark.cn/s/ef4e85160ed7&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -730,10 +747,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">类8号出口，一个找不同游戏</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/86ea6f92cbb7</div><div>提取码:PXWt</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/b37d61d2db26</div><div>提取码:HgLk</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/86ea6f92cbb7&quot;,&quot;https://pan.quark.cn/s/b37d61d2db26&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/86ea6f92cbb7&quot;,&quot;https://pan.quark.cn/s/b37d61d2db26&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -757,10 +775,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">社团名：イルカのヒレ<div>▫️名称：天使台球酒吧</div><div>▫️原名：エンジェルス・ビリヤード・バー</div><div>▫️贩卖日：2025年05月08日</div><div>在 “天使台球酒吧”，你可以邂逅各式各样的台球美少女。</div><div>你只需运用自己的技巧，一步步攻略她们。</div><div>为了满足你的各种需求，这里准备了多种游戏模式。</div><div>而规则只有一个——只要获胜，就能赢得一切！</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/d23ad15c11f5</div><div>提取码:znaQ</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/72311665b538</div><div>提取码:fkpV</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/d23ad15c11f5&quot;,&quot;https://pan.quark.cn/s/72311665b538&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/d23ad15c11f5&quot;,&quot;https://pan.quark.cn/s/72311665b538&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -784,10 +803,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">质量很高的RPG，它甚至还有开场动画，应该是关于他前作的故事。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b32759abbc55</div><div>提取码:nrte</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/2aa7bf7a0c33</div><div>提取码:8n3Y</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b32759abbc55&quot;,&quot;https://pan.quark.cn/s/2aa7bf7a0c33&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b32759abbc55&quot;,&quot;https://pan.quark.cn/s/2aa7bf7a0c33&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -811,10 +831,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">双端，画风顶中顶！</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>https://pan.quark.cn/s/876839c93a50</div><div>提取码: PUWe</div><div>分卷2</div><div>https://pan.quark.cn/s/e13f43575c1f</div><div>提取码: Rsyx</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/876839c93a50&quot;,&quot;https://pan.quark.cn/s/e13f43575c1f&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/876839c93a50&quot;,&quot;https://pan.quark.cn/s/e13f43575c1f&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -838,10 +859,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">这两个天使比吊带袜天使那两个天使纯洁多了。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/8f9a388c05fa</div><div>提取码:yxw7</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/0a698d861659</div><div>提取码:6UXz</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8f9a388c05fa&quot;,&quot;https://pan.quark.cn/s/0a698d861659&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/8f9a388c05fa&quot;,&quot;https://pan.quark.cn/s/0a698d861659&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -865,10 +887,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">质量中规中矩，话说修女题材的黄油怎么越来越多了？</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/86223193a1da</div><div>提取码:B37v</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/4f98b8b64735</div><div>提取码:NbzP</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/86223193a1da&quot;,&quot;https://pan.quark.cn/s/4f98b8b64735&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/86223193a1da&quot;,&quot;https://pan.quark.cn/s/4f98b8b64735&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -892,10 +915,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">马赛克是世界上最愚蠢的发明！好好的B直接变成一团不知名方块。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/6ce0bf053201</div><div>提取码:aLCf</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/b67a575121bf</div><div>提取码:fgQK</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6ce0bf053201&quot;,&quot;https://pan.quark.cn/s/b67a575121bf&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/6ce0bf053201&quot;,&quot;https://pan.quark.cn/s/b67a575121bf&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -919,10 +943,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">很考验反应力，被女鬼抓到的话要被迫请他们喝你的安慕希😘，该游戏手机盖世模拟器可流畅运行。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/c4f2ff2b8e76</div><div>提取码:45Gg</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/a09820b86110</div><div>提取码:xj8K</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/c4f2ff2b8e76&quot;,&quot;https://pan.quark.cn/s/a09820b86110&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/c4f2ff2b8e76&quot;,&quot;https://pan.quark.cn/s/a09820b86110&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -946,10 +971,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">我也想要美少女陪我……算了，再起飞一次。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/cca6face355a</div><div>提取码:eeyH</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/a09820b86110</div><div>提取码:xj8K</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cca6face355a&quot;,&quot;https://pan.quark.cn/s/a09820b86110&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cca6face355a&quot;,&quot;https://pan.quark.cn/s/a09820b86110&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -973,9 +999,11 @@
             <div class="desc-wrap expanded">
                 <div class="desc-text">罕见的RPG经营类黄油，但是这女主立绘是拿格调画的吗？</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
+            </div>
             <div class="link-wrap expanded">
-                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3565ccb9c365</div><div>提取码:KLwq</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9757e5667569</div><div>提取码:6h8U</div></div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3565ccb9c365&quot;,&quot;https://pan.quark.cn/s/9757e5667569&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/3565ccb9c365</div><div>提取码:KLwq</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/9757e5667569</div><div>提取码:6h8U</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/3565ccb9c365&quot;,&quot;https://pan.quark.cn/s/9757e5667569&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -999,10 +1027,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">住手啊，你们抓错人了！我喜欢的是御姐，只是想提前培养感情罢了……住手别电啦！！！</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text"><div>分卷1</div><div>链接:https://pan.quark.cn/s/c1fa73107c44</div><div>提取码:gmnA</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/2b43e60c2b95</div><div>提取码:SNTj</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/c1fa73107c44&quot;,&quot;https://pan.quark.cn/s/2b43e60c2b95&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/c1fa73107c44&quot;,&quot;https://pan.quark.cn/s/2b43e60c2b95&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -1026,10 +1055,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">和一头牛谈恋爱?其实只要脸好看哪怕是猪都没问题，你说是吧？<div><br></div><div><br></div><div><br></div><div>比如猪猪侠里的小菲菲。</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/42a314467eab</div><div>提取码:hd6k</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/e4f9395f77ef</div><div>提取码:pH2k</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/42a314467eab&quot;,&quot;https://pan.quark.cn/s/e4f9395f77ef&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/42a314467eab&quot;,&quot;https://pan.quark.cn/s/e4f9395f77ef&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div>
         </div>
@@ -1053,10 +1083,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">质量超高的像素游戏，我也喜欢巨乳小姐姐，所以我什么时候会有女朋友呢😭</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/33782d01a419</div><div>提取码:jRAw</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/332f91ef8ec2</div><div>提取码:HC5F</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/33782d01a419&quot;,&quot;https://pan.quark.cn/s/332f91ef8ec2&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/33782d01a419&quot;,&quot;https://pan.quark.cn/s/332f91ef8ec2&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1080,10 +1111,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">经典互动小游戏，质量还不错，但是注意一下熬，就是有屎尿屁。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b6e22ecf3764</div><div>提取码:bV5n</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/34dd1cefe48d</div><div>提取码:U7K8</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b6e22ecf3764&quot;,&quot;https://pan.quark.cn/s/34dd1cefe48d&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b6e22ecf3764&quot;,&quot;https://pan.quark.cn/s/34dd1cefe48d&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1107,10 +1139,11 @@
             <div class="desc-wrap">
                 <div class="desc-text"><div>抓住魔女，把她当作苗床!苗床开发系线上防卫游戏!!</div><div>你作为“苗床迷宫”被造物主大人诞生了。</div><div>既然出生在苗床迷宫就要做一件事…</div><div>把魔女作为苗床，榨取魔力!</div><div>反击了来到迷宫的魔女少女们，</div><div>让所有的魔女少女都成为你的苗床吧!</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b85dbe595fb1</div><div>提取码:jjWr</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/78002471b0d2</div><div>提取码:GSgc</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b85dbe595fb1&quot;,&quot;https://pan.quark.cn/s/78002471b0d2&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b85dbe595fb1&quot;,&quot;https://pan.quark.cn/s/78002471b0d2&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1134,10 +1167,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">“再让我变得更臭吧…”<div>被山贼囚禁、不断遭受侵犯的少女。</div><div><br></div><div>在精液与男人气味的浸染下，身心逐渐堕落，沉溺于快感之中──</div><div><br></div><div>这是一款采用点阵动画风格的短篇RPG，描绘了少女被精液玷污的故事。</div><div><br></div><div>从OP到ED为线性剧情，游玩时间约10～15分钟。</div><div><br></div><div>所有H场景从一开始即可在回忆房间中全部解锁。</div><div><br></div><div>【收录点阵H动画】全7个场景（轮○・口交・乳交等）</div><div><br></div><div>【主题】精液・气味・堕落少女的台词设计</div><div><br></div><div>■ 推荐给以下人群</div><div><br></div><div>・喜欢点阵绘・点阵色情内容</div><div><br></div><div>・喜欢精液沾染、射精涂抹描写</div><div><br></div><div>・想短时间内获得满足</div><div><br></div><div>・喜欢被玷污・堕落系女主角</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/feff336bf9e6</div><div>提取码:3N9J</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/ba7458089674</div><div>提取码:xMsR</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/feff336bf9e6&quot;,&quot;https://pan.quark.cn/s/ba7458089674&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/feff336bf9e6&quot;,&quot;https://pan.quark.cn/s/ba7458089674&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1161,10 +1195,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">与鬼共生的小镇续作，地图很大，超高探索度。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b7c601cf8343</div><div>提取码:Gs2b</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/27e0b69add43</div><div>提取码:mQsa</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b7c601cf8343&quot;,&quot;https://pan.quark.cn/s/27e0b69add43&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b7c601cf8343&quot;,&quot;https://pan.quark.cn/s/27e0b69add43&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1188,10 +1223,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">操作手感像答辩，至少cg还行。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/7789bd844bb2</div><div>提取码:gUAt</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/17930c8a76db</div><div>解压码:114514</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/7789bd844bb2&quot;,&quot;https://pan.quark.cn/s/17930c8a76db&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/7789bd844bb2&quot;,&quot;https://pan.quark.cn/s/17930c8a76db&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1215,10 +1251,12 @@
             <div class="desc-wrap">
                 <div class="desc-text">这个盖世模拟器可以玩，可惜的是这个游戏没漏福，内容是憋尿。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/9708a1ac7569<div>提取码:PZB7</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/de0f685dd16f</div><div>提取码:Y6wZ</div>
-        </div><div>解压码:114514</div></div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/9708a1ac7569&quot;,&quot;https://pan.quark.cn/s/de0f685dd16f&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+        </div><div>解压码:114514</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/9708a1ac7569&quot;,&quot;https://pan.quark.cn/s/de0f685dd16f&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div>
         </div>
@@ -1242,10 +1280,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">谁能拒绝一个可爱的猫猫呢？</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>链接:https://pan.quark.cn/s/b6f653020532</div><div>提取码:1tBf</div><div>分卷2</div><div>链接:https://pan.quark.cn/s/1578cf2c69d8</div><div>提取码:Yyas</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b6f653020532&quot;,&quot;https://pan.quark.cn/s/1578cf2c69d8&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/b6f653020532&quot;,&quot;https://pan.quark.cn/s/1578cf2c69d8&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div></div>
     </div><div class="card" data-card-id="card_1771658624536_aks1x8ete" style="order: 33;">
@@ -1268,10 +1307,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">视觉小说，赞哦</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text"><div>注意两个链接，下两个文件保存后下载防炸,把jpg和png两个文件都下载，</div><div>后缀jpg改001，png 改002</div><div>解压码foxyfoxy</div><div>二层@xinkongkafei</div><div>uc下载文件而不是文件夹，不然下载失败</div><div>https://pan.quark.cn/s/63f1e61bf839</div><div>https://drive.uc.cn/s/498d11a908e84?public=1</div><div><br></div><div>https://pan.baidu.com/s/1Z1c9bcVCGNOEmJgUOt7g-Q?pwd=foxy</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/63f1e61bf839https://drive.uc.cn/s/498d11a908e84?public=1https://pan.baidu.com/s/1Z1c9bcVCGNOEmJgUOt7g-Q?pwd=foxy', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/63f1e61bf839https://drive.uc.cn/s/498d11a908e84?public=1https://pan.baidu.com/s/1Z1c9bcVCGNOEmJgUOt7g-Q?pwd=foxy', '_blank')">🔗 打开链接</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div></div>
     </div><div class="card" style="order: 34;" data-card-id="card_1771284173942_0">
@@ -1293,10 +1333,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">设置里可以调中文。</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">分卷1<div>https://pan.quark.cn/s/cOc54193691f</div><div>提取码:eR1q</div><div>分卷2</div><div>https://pan.quark.cn/s/681732cс6502</div><div>提取码:M7r2</div><div><br></div><div>解压码:114514</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cOc54193691f&quot;,&quot;https://pan.quark.cn/s/681732c&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/cOc54193691f&quot;,&quot;https://pan.quark.cn/s/681732c&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div></div>
     </div><div class="card" style="order: 35;" data-card-id="card_1771284173942_1">
@@ -1318,10 +1359,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">天皇万岁！<div>天皇万歳！</div></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb<div>提取码:kfjb</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/4c1788ee28e4?pwd=kfjb', '_blank')">🔗 打开链接</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div></div>
     </div><div class="card" style="order: 36;" data-card-id="card_1771284173942_2">
@@ -1343,10 +1385,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">感觉像在玩音游……</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">https://pan.quark.cn/s/92010f612c22?pwd=pa2V<div>提取码：pa2V</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/92010f612c22?pwd=pa2V', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/92010f612c22?pwd=pa2V', '_blank')">🔗 打开链接</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div></div>
     </div><div class="card" style="order: 37;" data-card-id="card_1771284173942_3">
@@ -1368,9 +1411,10 @@
             <div class="desc-wrap">
                 <div class="desc-text">质量中规中矩，能玩就行</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text">https:/pan.quark.cn/s/2fa0472ac5af?pwd=eQVB<div>提取码:eQVB</div>
-        </div>
+                
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             </div></div>
@@ -1393,9 +1437,11 @@
             <div class="desc-wrap expanded">
                 <div class="desc-text">养女仆，经典像素动态</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">收起简介 ▴</div>
+            </div>
             <div class="link-wrap expanded">
-                <div class="link-text">https://pan.quark.cn/s/da3ab6a11c08<div>提取码:2X4x</div></div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/da3ab6a11c08', '_blank')">🔗 打开链接</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-text">https://pan.quark.cn/s/da3ab6a11c08<div>提取码:2X4x</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="window.open('https://pan.quark.cn/s/da3ab6a11c08', '_blank')">🔗 打开链接</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div></div>
     </div><div class="card" style="order: 39;" data-card-id="card_1771284173942_5">
@@ -1417,10 +1463,11 @@
             <div class="desc-wrap">
                 <div class="desc-text">经典正太骑大车，joi可运行</div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
+            </div>
             <div class="link-wrap expanded">
                 <div class="link-text">分卷1<div>https://pan.quark.cn/s/f72479580e14?pwd=74QB</div><div>提取码:74QB</div><div>分卷2</div><div>https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN</div><div>提取码:z4yN</div>
-        </div>
-                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/f72479580e14?pwd=74QB&quot;,&quot;https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN&quot;])">🔗 选择链接 (2个)</button></div><div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
+                <div class="link-actions"><button class="link-jump-btn" onclick="showLinkSelector([&quot;https://pan.quark.cn/s/f72479580e14?pwd=74QB&quot;,&quot;https://pan.quark.cn/s/13e6ba4d007f?pwd=z4yN&quot;])">🔗 选择链接 (2个)</button></div>
+                <div class="expand-btn" onclick="toggleExpand(this)">收起 ▴</div>
             </div>
             </div></div>
     </div></div>
@@ -1520,7 +1567,7 @@ const ACCESS_PASS = "114514";
 // 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
-const APP_VERSION = "3.0.0"; // Worker 云端同步版本
+const APP_VERSION = "3.1.0"; // 搜索修复 + 管理验证修复
 const VERSION_KEY = "TX_APP_VERSION";
 
 // ===== Cloudflare Worker API =====
@@ -1959,11 +2006,18 @@ function refreshUI(targetPage) {
     
     // 1. 过滤逻辑
     let filtered = allCards.filter(c => {
-        const txt = c.innerText.toUpperCase();
-        const matchCat = (currentCat === "all" || txt.includes(currentCat));
+        // 🔍 只搜索标题和标签，不搜索链接和简介
+        const nameElem = c.querySelector('.g-name');
+        const tagsElem = c.querySelector('.g-tags');
+        
+        const name = nameElem ? nameElem.innerText.toUpperCase() : '';
+        const tags = tagsElem ? tagsElem.innerText.toUpperCase() : '';
+        const searchText = name + ' ' + tags;  // 只搜索标题和标签
+        
+        const matchCat = (currentCat === "all" || searchText.includes(currentCat));
         
         // 🔍 优化：所有关键词都要匹配（顺序无关）
-        const matchSearch = keywords.length === 0 || keywords.every(kw => txt.includes(kw));
+        const matchSearch = keywords.length === 0 || keywords.every(kw => searchText.includes(kw));
         
         // 收藏分区：只显示已收藏的卡片
         if (currentCat === '收藏') {
@@ -2201,6 +2255,7 @@ function addCard() {
                 <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
+            </div>
             <div class="link-wrap">
                 <div class="link-text"></div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
@@ -2280,17 +2335,68 @@ function initImagePreview() {
     });
 }
 
+// 链接区展开/收起功能
 function toggleExpand(btn) {
-    const wrap = btn.parentElement;
+    // 向上查找，直到找到包含 link-wrap 类的元素
+    let element = btn;
+    let wrap = null;
+    
+    while (element && element !== document.body) {
+        if (element.classList && element.classList.contains('link-wrap')) {
+            wrap = element;
+            break;
+        }
+        element = element.parentElement;
+    }
+    
+    if (!wrap) {
+        console.error('toggleExpand: 找不到 link-wrap', btn);
+        return;
+    }
+    
+    const isExpanding = !wrap.classList.contains('expanded');
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起 ▴" : "展开 ▾";
+    
+    // 收起时瞬间滚动到顶部（完全无动画）
+    if (!isExpanding) {
+        const rect = wrap.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetY = rect.top + scrollTop;
+        window.scrollTo(0, targetY);
+    }
 }
 
 // 简介展开/收起功能
 function toggleDescExpand(btn) {
-    const wrap = btn.parentElement;
+    // 向上查找，直到找到包含 desc-wrap 类的元素
+    let element = btn;
+    let wrap = null;
+    
+    while (element && element !== document.body) {
+        if (element.classList && element.classList.contains('desc-wrap')) {
+            wrap = element;
+            break;
+        }
+        element = element.parentElement;
+    }
+    
+    if (!wrap) {
+        console.error('toggleDescExpand: 找不到 desc-wrap', btn);
+        return;
+    }
+    
+    const isExpanding = !wrap.classList.contains('expanded');
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起简介 ▴" : "展开简介 ▾";
+    
+    // 收起时瞬间滚动到顶部（完全无动画）
+    if (!isExpanding) {
+        const rect = wrap.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetY = rect.top + scrollTop;
+        window.scrollTo(0, targetY);
+    }
 }
 
 // � 修复：确保所有卡片都包含简介区域
