@@ -1770,6 +1770,9 @@ async function loadFromGrave() {
                     
                     // 🔧 修复：确保所有卡片都包含简介区域
                     ensureDescriptionAreas();
+
+                    // ✨ 重置所有卡片UI状态：收起展开、图片回第一张
+                    resetAllCardStates();
                     
                     // ✨ v3.4.0：从云端恢复轮播图配置
                     if (content.banner && Array.isArray(content.banner)) {
@@ -1830,6 +1833,8 @@ async function loadFromGrave() {
             const cached = localStorage.getItem("TX_CACHE");
             if (cached) {
                 document.getElementById("box").innerHTML = cached;
+                // ✨ 本地缓存也需要重置UI状态
+                resetAllCardStates();
                 const cardCount = document.querySelectorAll('.card').length;
                 showLoadNotification(`⚠️ 云端连接失败，使用本地缓存 (${cardCount}个)`, false);
             } else {
@@ -1858,6 +1863,9 @@ async function saveToCloud() {
         return;
     }
     
+    // ✨ 保存前先重置所有UI状态，确保存入云端的HTML是干净的
+    resetAllCardStates();
+
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
     // ✨ v3.4.0：同时保存轮播图配置
@@ -2416,6 +2424,35 @@ function ensureDescriptionAreas() {
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             `;
             infoBox.appendChild(descWrap);
+        }
+    });
+}
+
+
+// ✨ 重置所有卡片UI状态（加载云端后调用）
+function resetAllCardStates() {
+    document.querySelectorAll(".card").forEach(card => {
+        // 1. 收起简介
+        const descWrap = card.querySelector(".desc-wrap");
+        if (descWrap) {
+            descWrap.classList.remove("expanded");
+            const btn = descWrap.querySelector(".desc-expand-btn");
+            if (btn) btn.textContent = "展开简介 ▾";
+        }
+        // 2. 收起链接
+        const linkWrap = card.querySelector(".link-wrap");
+        if (linkWrap) {
+            linkWrap.classList.remove("expanded");
+            const btn = linkWrap.querySelector(".expand-btn");
+            if (btn) btn.textContent = "展开 ▾";
+        }
+        // 3. 图片回到第一张
+        const sliderBox = card.querySelector(".slider-box");
+        if (sliderBox) {
+            const imgs = sliderBox.querySelectorAll("img");
+            imgs.forEach((img, i) => img.classList.toggle("active", i === 0));
+            const indexTag = sliderBox.querySelector(".img-index");
+            if (indexTag && imgs.length > 0) indexTag.textContent = "1 / " + imgs.length;
         }
     });
 }
