@@ -1619,6 +1619,7 @@ const VERSION_KEY = "TX_APP_VERSION";
 
 // ===== Cloudflare Worker API =====
 const WORKER_API = "https://api.tianxiao.us.kg/api/data";
+const WORKER_BASE = "https://api.tianxiao.us.kg";
 // ===================================
 
 let isEditMode = false;
@@ -3266,7 +3267,7 @@ async function addShortlink() {
     btn.disabled = true;
 
     try {
-        const res = await fetch(WORKER_API.replace('/api/data', '/dl/add'), {
+        const res = await fetch(`${WORKER_BASE}/dl/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ url: lanzouUrl, label })
@@ -3278,6 +3279,7 @@ async function addShortlink() {
             document.getElementById('slResult').classList.add('show');
             urlInput.value = '';
             labelInput.value = '';
+            _slPage = 1;
             loadShortlinkList();
         } else {
             alert('❌ 生成失败：' + (data.error || '未知错误'));
@@ -3305,47 +3307,77 @@ function copyShortlink() {
     }
 }
 
+let _slPage = 1;
+const _slPageSize = 5;
+let _slAllItems = [];
+
 async function loadShortlinkList() {
     const listEl = document.getElementById('slList');
     if (!listEl) return;
     const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
     if (!token) return;
 
+    listEl.innerHTML = '<div style="color:#bbb;font-size:12px;text-align:center;padding:10px;">加载中...</div>';
+
     try {
-        const res = await fetch(WORKER_API.replace('/api/data', '/dl/list'), {
+        const res = await fetch(`${WORKER_BASE}/dl/list`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (!data.success || data.items.length === 0) {
             listEl.innerHTML = '<div style="color:#bbb;font-size:12px;text-align:center;padding:10px;">暂无短链</div>';
             return;
         }
-        listEl.innerHTML = data.items.map(item => `
-            <div class="sl-item">
-                <div class="sl-item-info">
-                    <div class="sl-item-code">/dl/${item.code}</div>
-                    <div class="sl-item-label">${item.label || item.url}</div>
-                </div>
-                <button class="sl-item-copy" onclick="copyText('${WORKER_API.replace('/api/data', '/dl/' + item.code)}')">复制</button>
-                <button class="sl-item-del" onclick="deleteShortlink('${item.code}')">删除</button>
-            </div>
-        `).join('');
+        _slAllItems = data.items;
+        renderSlPage();
     } catch(e) {
-        listEl.innerHTML = '<div style="color:#f44;font-size:12px;text-align:center;padding:10px;">加载失败</div>';
+        listEl.innerHTML = `<div style="color:#f44;font-size:12px;text-align:center;padding:10px;">加载失败：${e.message}</div>`;
     }
+}
+
+function renderSlPage() {
+    const listEl = document.getElementById('slList');
+    if (!listEl) return;
+    const total = _slAllItems.length;
+    const maxPage = Math.ceil(total / _slPageSize);
+    _slPage = Math.max(1, Math.min(_slPage, maxPage));
+    const start = (_slPage - 1) * _slPageSize;
+    const pageItems = _slAllItems.slice(start, start + _slPageSize);
+
+    const itemsHtml = pageItems.map(item => `
+        <div class="sl-item">
+            <div class="sl-item-info">
+                <div class="sl-item-code">/dl/${item.code}</div>
+                <div class="sl-item-label">${item.label || item.url}</div>
+            </div>
+            <button class="sl-item-copy" onclick="copyText('${WORKER_BASE}/dl/${item.code}')">复制</button>
+            <button class="sl-item-del" onclick="deleteShortlink('${item.code}')">删除</button>
+        </div>
+    `).join('');
+
+    let pageHtml = '';
+    if (maxPage > 1) {
+        pageHtml = `<div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:6px 0;font-size:12px;">
+            <button onclick="_slPage--;renderSlPage()" style="border:none;background:#e1bee7;border-radius:6px;padding:4px 10px;cursor:pointer;" ${_slPage<=1?'disabled':''}>‹</button>
+            <span style="color:#6a1b9a;">${_slPage} / ${maxPage}（共${total}条）</span>
+            <button onclick="_slPage++;renderSlPage()" style="border:none;background:#e1bee7;border-radius:6px;padding:4px 10px;cursor:pointer;" ${_slPage>=maxPage?'disabled':''}>›</button>
+        </div>`;
+    }
+    listEl.innerHTML = itemsHtml + pageHtml;
 }
 
 async function deleteShortlink(code) {
     if (!confirm(`确定删除短链 /dl/${code} 吗？\n删除后卡片里的对应链接将无法使用！`)) return;
     const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
     try {
-        const res = await fetch(WORKER_API.replace('/api/data', '/dl/delete'), {
+        const res = await fetch(`${WORKER_BASE}/dl/delete`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ code })
         });
         const data = await res.json();
-        if (data.success) { showToast('✅ 已删除'); loadShortlinkList(); }
+        if (data.success) { showToast('✅ 已删除'); _slPage = 1; loadShortlinkList(); }
         else alert('删除失败：' + data.error);
     } catch(e) { alert('网络错误：' + e.message); }
 }
