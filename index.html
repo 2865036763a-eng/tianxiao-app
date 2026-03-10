@@ -3276,8 +3276,6 @@ async function addShortlink() {
             document.getElementById('slResult').classList.add('show');
             urlInput.value = '';
             labelInput.value = '';
-            _slPage = 1;
-            loadShortlinkList();
         } else {
             alert('❌ 生成失败：' + (data.error || '未知错误'));
         }
@@ -3304,10 +3302,6 @@ function copyShortlink() {
     }
 }
 
-let _slPage = 1;
-const _slPageSize = 5;
-let _slAllItems = [];
-
 async function deleteShortlink(code) {
     if (!confirm(`确定删除短链 /dl/${code} 吗？\n删除后卡片里的对应链接将无法使用！`)) return;
     const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
@@ -3318,7 +3312,7 @@ async function deleteShortlink(code) {
             body: JSON.stringify({ code })
         });
         const data = await res.json();
-        if (data.success) { showToast('✅ 已删除'); _slPage = 1; loadShortlinkList(); }
+        if (data.success) { showToast('✅ 已删除'); }
         else alert('删除失败：' + data.error);
     } catch(e) { alert('网络错误：' + e.message); }
 }
