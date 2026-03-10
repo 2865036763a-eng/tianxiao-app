@@ -144,6 +144,16 @@
         .link-jump-btn:hover { background: #0056b3; }
         .link-jump-btn:active { transform: scale(0.95); }
         .admin-mode .link-jump-btn { display: none; }
+        /* 直接下载按钮 */
+        .direct-dl-btn { width: calc(100% - 24px); margin: 0 12px 10px 12px; padding: 10px; background: linear-gradient(135deg, #ff6699, #ff4477); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; display: block; text-align: center; }
+        .direct-dl-btn:active { transform: scale(0.97); opacity: 0.9; }
+        .admin-mode .direct-dl-btn { display: none; }
+        /* 管理员编辑直链输入框 */
+        .direct-dl-edit { display: none; margin: 6px 12px; }
+        .admin-mode .direct-dl-edit { display: flex; gap: 6px; align-items: center; }
+        .direct-dl-input { flex: 1; border: 1px dashed #ff6699; border-radius: 6px; padding: 6px 8px; font-size: 11px; outline: none; color: #333; min-width: 0; }
+        .direct-dl-input::placeholder { color: #ccc; }
+        .direct-dl-save { background: #ff6699; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
         .expand-btn { text-align: right; padding: 5px 12px; font-size: 11px; color: var(--primary); cursor: pointer; border-top: 1px solid rgba(0,0,0,0.03); touch-action: manipulation; }
         /* 🐛 修复：确保展开按钮在管理员模式下也可见 */
         .admin-mode .expand-btn { display: block; }
@@ -2375,6 +2385,10 @@ function addCard() {
                 <div class="link-text"></div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
+            <div class="direct-dl-edit">
+                <input class="direct-dl-input" type="text" placeholder="⬇️ 直接下载短链（选填，非管理员不可见）" oninput="updateDirectDl(this)">
+                <button class="direct-dl-save" onclick="updateDirectDl(this.previousElementSibling)">✓</button>
+            </div>
         </div>
     `;
     // 物理插入位置不重要了，因为 refreshUI 会靠 order 强制修正位置
@@ -2631,42 +2645,95 @@ function saveFavorites() {
     localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
 }
 
-// 🔗 为所有卡片添加跳转按钮
+// 🔗 为所有卡片添加跳转按钮 + 直接下载按钮
 function addLinkJumpButtons() {
-    document.querySelectorAll('.link-wrap').forEach(wrap => {
+    document.querySelectorAll('.card').forEach(card => {
+        const wrap = card.querySelector('.link-wrap');
+        if (!wrap) return;
+
         const linkText = wrap.querySelector('.link-text');
         const expandBtn = wrap.querySelector('.expand-btn');
-        
-        if (!linkText || !expandBtn) return;
-        
-        // 🐛 修复：删除旧按钮，重新生成
-        const oldActions = wrap.querySelector('.link-actions');
-        if (oldActions) oldActions.remove();
-        
-        // 提取链接
-        const text = linkText.innerText || linkText.textContent;
-        const urls = extractUrls(text);
-        
-        if (urls.length === 0) return; // 没有链接就不添加按钮
-        
-        // 创建按钮容器
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'link-actions';
-        
-        if (urls.length === 1) {
-            // 单个链接：显示一个跳转按钮（使用智能处理）
-            const processedUrl = processCloudLink(urls[0]);
-            actionsDiv.innerHTML = `<button class="link-jump-btn" onclick="window.open('${processedUrl}', '_blank')">🔗 打开链接</button>`;
-        } else {
-            // 多个链接：显示选择按钮（所有链接都经过智能处理）
-            const processedUrls = urls.map(url => processCloudLink(url));
-            const urlsJson = JSON.stringify(processedUrls).replace(/'/g, "\\'");
-            actionsDiv.innerHTML = `<button class="link-jump-btn" onclick='showLinkSelector(${urlsJson})'>🔗 选择链接 (${urls.length}个)</button>`;
+
+        // ── 选择链接按钮 ──
+        if (linkText && expandBtn) {
+            const oldActions = wrap.querySelector('.link-actions');
+            if (oldActions) oldActions.remove();
+
+            const text = linkText.innerText || linkText.textContent;
+            const urls = extractUrls(text);
+
+            if (urls.length > 0) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'link-actions';
+
+                if (urls.length === 1) {
+                    const processedUrl = processCloudLink(urls[0]);
+                    actionsDiv.innerHTML = `<button class="link-jump-btn" onclick="window.open('${processedUrl}', '_blank')">🔗 打开链接</button>`;
+                } else {
+                    const processedUrls = urls.map(url => processCloudLink(url));
+                    const urlsJson = JSON.stringify(processedUrls).replace(/'/g, "\\'");
+                    actionsDiv.innerHTML = `<button class="link-jump-btn" onclick='showLinkSelector(${urlsJson})'>🔗 选择链接 (${urls.length}个)</button>`;
+                }
+                wrap.insertBefore(actionsDiv, expandBtn);
+            }
         }
-        
-        // 插入到展开按钮之前
-        wrap.insertBefore(actionsDiv, expandBtn);
+
+        // ── 直接下载按钮 ──
+        const infoBox = card.querySelector('.info-box');
+        if (!infoBox) return;
+
+        // 删除旧的，重新生成（防止重复）
+        const oldDlBtn = infoBox.querySelector('.direct-dl-btn');
+        if (oldDlBtn) oldDlBtn.remove();
+
+        // 确保编辑区存在（老卡片没有这个区域，动态补上）
+        let editArea = infoBox.querySelector('.direct-dl-edit');
+        if (!editArea) {
+            editArea = document.createElement('div');
+            editArea.className = 'direct-dl-edit';
+            editArea.innerHTML = `<input class="direct-dl-input" type="text" placeholder="⬇️ 直接下载短链（选填，非管理员不可见）" oninput="updateDirectDl(this)"><button class="direct-dl-save" onclick="updateDirectDl(this.previousElementSibling)">✓</button>`;
+            infoBox.appendChild(editArea);
+        }
+
+        // 同步输入框显示已保存的值
+        const savedUrl = card.dataset.directDownload || '';
+        const input = editArea.querySelector('.direct-dl-input');
+        if (input && savedUrl) input.value = savedUrl;
+
+        // 有直链才显示下载按钮（非管理员才看得到，管理员被CSS隐藏）
+        if (savedUrl) {
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'direct-dl-btn';
+            dlBtn.textContent = '⬇️ 直接下载';
+            dlBtn.onclick = () => window.open(savedUrl, '_blank');
+            infoBox.insertBefore(dlBtn, editArea);
+        }
     });
+}
+
+// 管理员输入直链后更新卡片
+function updateDirectDl(input) {
+    const card = input.closest('.card');
+    if (!card) return;
+    const url = input.value.trim();
+    card.dataset.directDownload = url;
+
+    // 重新渲染这张卡片的下载按钮
+    const infoBox = card.querySelector('.info-box');
+    const oldBtn = infoBox.querySelector('.direct-dl-btn');
+    if (oldBtn) oldBtn.remove();
+
+    if (url) {
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'direct-dl-btn';
+        dlBtn.textContent = '⬇️ 直接下载';
+        dlBtn.onclick = () => window.open(url, '_blank');
+        const editArea = infoBox.querySelector('.direct-dl-edit');
+        infoBox.insertBefore(dlBtn, editArea);
+    }
+
+    autoSave();
+    showToast(url ? '✅ 直链已保存' : '🗑️ 直链已清除');
 }
 
 // 智能处理网盘链接
