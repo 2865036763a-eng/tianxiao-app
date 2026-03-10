@@ -77,6 +77,28 @@
         /* 管理员Banner编辑面板 */
         #bannerEditPanel { display: none; background: #fff8f0; border: 1px dashed #ffb74d; border-radius: 12px; padding: 12px; margin: 0 auto 12px auto; max-width: 550px; }
         #bannerEditPanel.show { display: block; }
+
+        /* 短链管理面板 */
+        #shortlinkPanel { display: none; background: #f8f0ff; border: 1px dashed #9c27b0; border-radius: 12px; padding: 12px; margin: 0 auto 12px auto; max-width: 550px; }
+        #shortlinkPanel.show { display: block; }
+        .sl-title { font-size: 13px; font-weight: bold; color: #6a1b9a; margin-bottom: 10px; }
+        .sl-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .sl-input-row input { flex: 1; border: 1px solid #ce93d8; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; min-width: 0; background: #fff; }
+        .sl-input-row input:focus { border-color: #9c27b0; }
+        .sl-btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+        .sl-btn-add { background: #9c27b0; color: #fff; width: 100%; margin-bottom: 10px; padding: 10px; }
+        .sl-result { background: #fff; border: 1px solid #ce93d8; border-radius: 8px; padding: 10px; margin-bottom: 10px; display: none; }
+        .sl-result.show { display: block; }
+        .sl-result-url { font-size: 12px; color: #333; word-break: break-all; margin-bottom: 6px; }
+        .sl-result-copy { background: #4caf50; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; cursor: pointer; width: 100%; }
+        .sl-list-title { font-size: 12px; color: #9c27b0; font-weight: bold; margin-bottom: 6px; }
+        .sl-list { max-height: 240px; overflow-y: auto; }
+        .sl-item { background: #fff; border: 1px solid #e1bee7; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .sl-item-info { flex: 1; min-width: 0; }
+        .sl-item-code { font-size: 12px; font-weight: bold; color: #6a1b9a; }
+        .sl-item-label { font-size: 11px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sl-item-copy { background: #9c27b0; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
+        .sl-item-del { background: #ff5252; color: #fff; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
         .banner-edit-title { font-size: 13px; font-weight: bold; color: #e65100; margin-bottom: 8px; }
         .banner-slide-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; background: #fff; border-radius: 8px; padding: 8px; border: 1px solid #ffe0b2; }
         .banner-slide-row input { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 6px 8px; font-size: 12px; outline: none; min-width: 0; }
@@ -372,6 +394,7 @@
         <button onclick="addCard()">➕ 新增</button>
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
         <button onclick="toggleBannerEdit()" style="background: #ff9800 !important;">🖼️ 轮播图</button>
+        <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
         <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
@@ -402,6 +425,24 @@
         <div id="bannerSlideList"></div>
         <button class="banner-add-btn" onclick="addBannerSlide()">＋ 添加一张图片</button>
         <button class="banner-save-btn" onclick="saveBannerConfig()">💾 保存轮播图</button>
+    </div>
+
+    <!-- 短链管理面板（仅管理模式显示） -->
+    <div id="shortlinkPanel">
+        <div class="sl-title">🔗 蓝奏云短链管理（隐藏真实链接）</div>
+        <div class="sl-input-row">
+            <input type="text" id="slInputUrl" placeholder="粘贴蓝奏云链接...">
+        </div>
+        <div class="sl-input-row">
+            <input type="text" id="slInputLabel" placeholder="备注（可选，如：A46游戏本体）">
+        </div>
+        <button class="sl-btn sl-btn-add" onclick="addShortlink()">⚡ 生成短链</button>
+        <div class="sl-result" id="slResult">
+            <div class="sl-result-url" id="slResultUrl"></div>
+            <button class="sl-result-copy" onclick="copyShortlink()">📋 复制短链（粘贴到卡片链接里）</button>
+        </div>
+        <div class="sl-list-title">📋 已有短链</div>
+        <div class="sl-list" id="slList"><div style="color:#bbb;font-size:12px;text-align:center;padding:10px;">加载中...</div></div>
     </div>
 
     <div class="grid" id="box"><div class="card active-render" data-card-id="card_1772869619728_n5r0bzwpm" style="order: 0;">
@@ -2211,6 +2252,8 @@ function exitAdmin() {
     document.getElementById("entryBtn").style.visibility = "visible";
     // 隐藏Banner编辑面板
     const bp = document.getElementById("bannerEditPanel"); if(bp) bp.classList.remove("show");
+    // 隐藏短链面板
+    const sp = document.getElementById("shortlinkPanel"); if(sp) sp.classList.remove("show");
     
     // 🔒 清除 Token
     adminToken = null;
@@ -3067,6 +3110,133 @@ window._bannerExitHook = function() {
 document.addEventListener('DOMContentLoaded', () => { initBanner(); });
 // 兜底：若已加载完毕
 if (document.readyState !== 'loading') initBanner();
+
+// ==========================================
+// 🔗 短链管理系统
+// ==========================================
+
+let _slCurrentUrl = '';
+
+function toggleShortlinkPanel() {
+    const panel = document.getElementById('shortlinkPanel');
+    if (!panel) return;
+    const isShow = panel.classList.toggle('show');
+    if (isShow) loadShortlinkList();
+}
+
+async function addShortlink() {
+    const urlInput = document.getElementById('slInputUrl');
+    const labelInput = document.getElementById('slInputLabel');
+    const lanzouUrl = urlInput.value.trim();
+    const label = labelInput.value.trim();
+
+    if (!lanzouUrl) { alert('请先粘贴蓝奏云链接！'); return; }
+
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    if (!token) { alert('请先登录管理员！'); return; }
+
+    const btn = document.querySelector('.sl-btn-add');
+    btn.textContent = '⏳ 生成中...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(WORKER_API.replace('/api/data', '/dl/add'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ url: lanzouUrl, label })
+        });
+        const data = await res.json();
+        if (data.success) {
+            _slCurrentUrl = data.shortUrl;
+            document.getElementById('slResultUrl').textContent = data.shortUrl;
+            document.getElementById('slResult').classList.add('show');
+            urlInput.value = '';
+            labelInput.value = '';
+            loadShortlinkList();
+        } else {
+            alert('❌ 生成失败：' + (data.error || '未知错误'));
+        }
+    } catch(e) {
+        alert('❌ 网络错误：' + e.message);
+    } finally {
+        btn.textContent = '⚡ 生成短链';
+        btn.disabled = false;
+    }
+}
+
+function copyShortlink() {
+    if (!_slCurrentUrl) return;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(_slCurrentUrl).then(() => showToast('✅ 短链已复制！'));
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = _slCurrentUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('✅ 短链已复制！');
+    }
+}
+
+async function loadShortlinkList() {
+    const listEl = document.getElementById('slList');
+    if (!listEl) return;
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    if (!token) return;
+
+    try {
+        const res = await fetch(WORKER_API.replace('/api/data', '/dl/list'), {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success || data.items.length === 0) {
+            listEl.innerHTML = '<div style="color:#bbb;font-size:12px;text-align:center;padding:10px;">暂无短链</div>';
+            return;
+        }
+        listEl.innerHTML = data.items.map(item => `
+            <div class="sl-item">
+                <div class="sl-item-info">
+                    <div class="sl-item-code">/dl/${item.code}</div>
+                    <div class="sl-item-label">${item.label || item.url}</div>
+                </div>
+                <button class="sl-item-copy" onclick="copyText('${WORKER_API.replace('/api/data', '/dl/' + item.code)}')">复制</button>
+                <button class="sl-item-del" onclick="deleteShortlink('${item.code}')">删除</button>
+            </div>
+        `).join('');
+    } catch(e) {
+        listEl.innerHTML = '<div style="color:#f44;font-size:12px;text-align:center;padding:10px;">加载失败</div>';
+    }
+}
+
+async function deleteShortlink(code) {
+    if (!confirm(`确定删除短链 /dl/${code} 吗？\n删除后卡片里的对应链接将无法使用！`)) return;
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    try {
+        const res = await fetch(WORKER_API.replace('/api/data', '/dl/delete'), {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (data.success) { showToast('✅ 已删除'); loadShortlinkList(); }
+        else alert('删除失败：' + data.error);
+    } catch(e) { alert('网络错误：' + e.message); }
+}
+
+function copyText(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制！'));
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('✅ 已复制！');
+    }
+}
 
 </script>
 
