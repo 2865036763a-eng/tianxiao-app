@@ -2172,11 +2172,56 @@ function handleScroll() {
 
 function goTop() { document.getElementById("mainScroll").scrollTo({ top: 0, behavior: 'smooth' }); }
 
-function openLogin() { if(!isEditMode) document.getElementById("loginModal").style.display = "flex"; }
+function openLogin() {
+    if (isEditMode) return;
+    const lockMsg = checkLocked();
+    if (lockMsg) {
+        alert(`🔒 ${lockMsg}`);
+        return;
+    }
+    document.getElementById("loginModal").style.display = "flex";
+}
 function closeLogin() { document.getElementById("loginModal").style.display = "none"; document.getElementById("passInput").value = ""; }
+
+// 🔒 暴力破解防护：最多失败5次，封禁30分钟
+const LOCK_MAX_ATTEMPTS = 5;
+const LOCK_DURATION = 30 * 60 * 1000; // 30分钟
+
+function getLockInfo() {
+    try {
+        return JSON.parse(localStorage.getItem('tianxiao_lock') || '{"attempts":0,"lockedUntil":0}');
+    } catch(e) {
+        return { attempts: 0, lockedUntil: 0 };
+    }
+}
+
+function saveLockInfo(info) {
+    localStorage.setItem('tianxiao_lock', JSON.stringify(info));
+}
+
+function checkLocked() {
+    const info = getLockInfo();
+    const now = Date.now();
+    if (info.lockedUntil && now < info.lockedUntil) {
+        const remain = Math.ceil((info.lockedUntil - now) / 60000);
+        return `封禁中，请 ${remain} 分钟后再试`;
+    }
+    // 封禁已过期，重置
+    if (info.lockedUntil && now >= info.lockedUntil) {
+        saveLockInfo({ attempts: 0, lockedUntil: 0 });
+    }
+    return null;
+}
 
 // 🔒 通过 API 验证密码并获取 Token（密码存在 Cloudflare 环境变量）
 async function checkPass() {
+    // 先检查是否被封禁
+    const lockMsg = checkLocked();
+    if (lockMsg) {
+        alert(`🔒 ${lockMsg}`);
+        return;
+    }
+
     const inputPassword = document.getElementById("passInput").value;
     
     if (!inputPassword) {
@@ -2187,23 +2232,37 @@ async function checkPass() {
     try {
         const response = await fetch(WORKER_API.replace('/api/data', '/api/verify'), {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: inputPassword })
         });
         
         const result = await response.json();
         
         if (result.success && result.token) {
-            // ✅ 验证成功，保存 Token
+            // ✅ 验证成功，清除本地失败记录
+            saveLockInfo({ attempts: 0, lockedUntil: 0 });
             adminToken = result.token;
-            sessionStorage.setItem('ADMIN_TOKEN', result.token); // 存储到 Session
-            
+            sessionStorage.setItem('ADMIN_TOKEN', result.token);
             enterAdmin();
             closeLogin();
+        } else if (result.locked) {
+            // 🔒 Worker 返回 IP 封禁
+            saveLockInfo({ attempts: LOCK_MAX_ATTEMPTS, lockedUntil: Date.now() + LOCK_DURATION });
+            alert(`🔒 ${result.message}`);
+            closeLogin();
         } else {
-            alert("你还想冒充天笑我?去鹿吧你！");
+            // ❌ 密码错误，本地也记录
+            const info = getLockInfo();
+            info.attempts += 1;
+            const remaining = LOCK_MAX_ATTEMPTS - info.attempts;
+            if (info.attempts >= LOCK_MAX_ATTEMPTS) {
+                info.lockedUntil = Date.now() + LOCK_DURATION;
+                saveLockInfo(info);
+                alert(`🔒 密码错误次数过多，已封禁30分钟！`);
+            } else {
+                saveLockInfo(info);
+                alert(`你还想冒充天笑我？去鹿吧你！\n（还剩 ${remaining} 次机会）`);
+            }
             closeLogin();
         }
     } catch (error) {
