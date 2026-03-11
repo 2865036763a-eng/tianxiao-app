@@ -2972,7 +2972,15 @@ function addLinkJumpButtons() {
 
                 if (urls.length === 1) {
                     const processedUrl = processCloudLink(urls[0]);
-                    actionsDiv.innerHTML = `<button class="link-jump-btn" onclick="window.open('${processedUrl}', '_blank')">🔗 打开链接</button>`;
+                    // 使用 data 属性存储URL，避免引号问题
+                    const btn = document.createElement('button');
+                    btn.className = 'link-jump-btn';
+                    btn.textContent = '🔗 打开链接';
+                    btn.setAttribute('data-url', processedUrl);
+                    btn.onclick = function() {
+                        openCloudLink(this.getAttribute('data-url'));
+                    };
+                    actionsDiv.appendChild(btn);
                 } else {
                     const processedUrls = urls.map(url => processCloudLink(url));
                     const urlsJson = JSON.stringify(processedUrls).replace(/'/g, "\\'");
@@ -3100,15 +3108,12 @@ function showLinkSelector(urls) {
     modal.style.display = 'flex';
     
     let linksHtml = urls.map((url, idx) => {
-        // ✨ 不再调用 processCloudLink，直接使用原始 URL
         const shortUrl = url.length > 60 ? url.substring(0, 60) + '...' : url;
-        
-        // ✨ 为每个链接生成唯一 ID
-        const linkId = `link_${idx}_${Date.now()}`;
         
         return `<div style="margin: 12px 0; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background: #f9f9f9;">
             <button class="modal-btn btn-confirm" 
-                    onclick="window.open('${url.replace(/'/g, "\\'")}', '_blank');" 
+                    data-url="${url.replace(/"/g, '&quot;')}"
+                    onclick="openCloudLink(this.getAttribute('data-url'))" 
                     style="width: 100%; text-align: left; padding: 12px; word-break: break-all; margin-bottom: 8px; background: #007bff; color: white;">
                 📱 ${idx + 1}. ${shortUrl}
             </button>
@@ -3140,6 +3145,19 @@ function showLinkSelector(urls) {
             modal.remove();
         }
     });
+}
+
+// 打开云盘链接的专用函数
+function openCloudLink(url) {
+    // 使用创建隐藏a标签的方式打开链接，这是最可靠的方法
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';  // 在新标签打开
+    a.rel = 'noopener noreferrer';  // 安全性
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
 // ✨ 新增：复制链接到剪贴板
