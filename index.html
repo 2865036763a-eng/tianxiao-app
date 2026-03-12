@@ -2249,8 +2249,8 @@ function refreshUI(targetPage) {
         const nameElem = c.querySelector('.g-name');
         const tagsElem = c.querySelector('.g-tags');
         
-        const name = nameElem ? nameElem.innerText.toUpperCase() : '';
-        const tags = tagsElem ? tagsElem.innerText.toUpperCase() : '';
+        const name = nameElem ? nameElem.textContent.toUpperCase() : '';
+        const tags = tagsElem ? tagsElem.textContent.toUpperCase() : '';
         const searchText = name + ' ' + tags;  // 只搜索标题和标签
         
         const matchCat = (currentCat === "all" || searchText.includes(currentCat));
