@@ -1986,6 +1986,9 @@ async function loadFromGrave() {
                     showProgress(90, '正在渲染卡片...');
                     document.getElementById("box").innerHTML = content.cards;
                     
+                    // ✨ 清除云端数据中可能残留的旧紧凑卡片元素（旧版保存时带入的）
+                    stripCompactCardElements();
+                    
                     // 🔧 修复：确保所有卡片都包含简介区域
                     ensureDescriptionAreas();
 
@@ -2083,6 +2086,8 @@ async function saveToCloud() {
     
     // ✨ 保存前先重置所有UI状态，确保存入云端的HTML是干净的
     resetAllCardStates();
+    // ✨ 清除动态生成的紧凑卡片元素，不应存入云端
+    stripCompactCardElements();
 
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
@@ -2187,6 +2192,7 @@ function exportHTML() {
 
 // 本地自动缓存
 function autoSave() {
+    stripCompactCardElements();
     const data = document.getElementById("box").innerHTML;
     localStorage.setItem("TX_CACHE", data);
     // 🐛 修复：保存后重新生成链接按钮，确保按钮指向最新的链接
@@ -2884,6 +2890,23 @@ function ensureDescriptionAreas() {
     });
 }
 
+
+// 清除运行时动态生成的紧凑卡片元素（保存云端前调用）
+// card-thumb / card-preview / card-close-hint 是运行时生成的，不能存入云端
+// 否则下次加载时 generateCompactCardHTML 会因检测到已存在而跳过重新生成，
+// 导致缩略图/标签内容错误（保存时可能是空值或旧值）
+function stripCompactCardElements() {
+    document.querySelectorAll('.card').forEach(card => {
+        const thumb = card.querySelector('.card-thumb');
+        const preview = card.querySelector('.card-preview');
+        const hint = card.querySelector('.card-close-hint');
+        if (thumb) thumb.remove();
+        if (preview) preview.remove();
+        if (hint) hint.remove();
+        // 同时清除运行时标记，确保下次 initCompactCards 重新生成
+        card._cardClickBound = false;
+    });
+}
 
 // ✨ 重置所有卡片UI状态（加载云端后调用）
 function resetAllCardStates() {
