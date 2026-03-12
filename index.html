@@ -2911,6 +2911,8 @@ function stripCompactCardElements() {
 // ✨ 重置所有卡片UI状态（加载云端后调用）
 function resetAllCardStates() {
     document.querySelectorAll(".card").forEach(card => {
+        // 0. 收起卡片（移除展开状态）
+        card.classList.remove("card-expanded");
         // 1. 收起简介
         const descWrap = card.querySelector(".desc-wrap");
         if (descWrap) {
