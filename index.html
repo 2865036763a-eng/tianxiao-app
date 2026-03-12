@@ -2681,6 +2681,8 @@ function initCompactCards() {
         card._cardClickBound = true;
         
         card.addEventListener('click', function(e) {
+            // 管理员模式下不触发展开/收起（避免编辑时跳回卡片顶部）
+            if (isEditMode) return;
             if (e.target.closest('.del-btn, .pin-btn, .fav-btn, .slide-btn, .edit-img-btn, .link-jump-btn, .direct-dl-btn, .expand-btn, .desc-expand-btn')) {
                 return;
             }
