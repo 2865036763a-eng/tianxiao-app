@@ -1986,9 +1986,6 @@ async function loadFromGrave() {
                     showProgress(90, '正在渲染卡片...');
                     document.getElementById("box").innerHTML = content.cards;
                     
-                    // ✨ 清除云端数据中可能残留的旧紧凑卡片元素（旧版保存时带入的）
-                    stripCompactCardElements();
-                    
                     // 🔧 修复：确保所有卡片都包含简介区域
                     ensureDescriptionAreas();
 
@@ -2086,8 +2083,6 @@ async function saveToCloud() {
     
     // ✨ 保存前先重置所有UI状态，确保存入云端的HTML是干净的
     resetAllCardStates();
-    // ✨ 清除动态生成的紧凑卡片元素，不应存入云端
-    stripCompactCardElements();
 
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
@@ -2192,7 +2187,6 @@ function exportHTML() {
 
 // 本地自动缓存
 function autoSave() {
-    stripCompactCardElements();
     const data = document.getElementById("box").innerHTML;
     localStorage.setItem("TX_CACHE", data);
     // 🐛 修复：保存后重新生成链接按钮，确保按钮指向最新的链接
@@ -2228,10 +2222,7 @@ function showToast(msg, duration = 2500) {
 function refreshUI(targetPage) {
     if(targetPage) {
         currentPage = targetPage;
-        // 新增卡片时不跳顶，由addCard自己控制滚动位置
-        if (!window._addingNewCard) {
-            goTop();
-        }
+        goTop();
     }
     const searchVal = document.getElementById("search").value.trim();
     const box = document.getElementById("box");
@@ -2249,8 +2240,8 @@ function refreshUI(targetPage) {
         const nameElem = c.querySelector('.g-name');
         const tagsElem = c.querySelector('.g-tags');
         
-        const name = nameElem ? nameElem.textContent.toUpperCase() : '';
-        const tags = tagsElem ? tagsElem.textContent.toUpperCase() : '';
+        const name = nameElem ? nameElem.innerText.toUpperCase() : '';
+        const tags = tagsElem ? tagsElem.innerText.toUpperCase() : '';
         const searchText = name + ' ' + tags;  // 只搜索标题和标签
         
         const matchCat = (currentCat === "all" || searchText.includes(currentCat));
@@ -2328,10 +2319,10 @@ function refreshUI(targetPage) {
 
     if(isEditMode) autoSave();
     
-    // 🎯 v4.0 初始化紧凑卡片功能
+    // 🎯 v4.0 初始化紧凑卡片功能（必须在addLinkJumpButtons之前，否则cloneNode会清除按钮事件）
     initCompactCards();
     
-    // 🔗 为所有link-wrap添加跳转按钮
+    // 🔗 为所有link-wrap添加跳转按钮（必须在initCompactCards之后）
     addLinkJumpButtons();
 }
 
@@ -2581,10 +2572,8 @@ function addCard() {
     // 物理插入位置不重要了，因为 refreshUI 会靠 order 强制修正位置
     document.getElementById("box").prepend(div);
     
-    // 为新卡片分配ID，并打上标记便于后续定位
-    const newCardId = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    div.dataset.cardId = newCardId;
-    div.dataset.newCard = '1'; // 标记为新卡片
+    // 为新卡片分配ID
+    div.dataset.cardId = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
     // 🔒 安全修复：仅在管理员模式下设置为可编辑
     if (isEditMode) {
@@ -2593,26 +2582,17 @@ function addCard() {
     
     document.getElementById("search").value = ""; 
     
-    // ✨ 新增卡片时不跳顶，用专门的标志位控制
-    window._addingNewCard = true;
+    // ✨ 核心修复：新增后立即刷新以应用最新的 order 权重
     refreshUI(1);
-    window._addingNewCard = false;
     
     // 🖼️ 为新卡片初始化图片预览
     initImagePreview();
 
-    // ✨ 新增后通过data-card-id找到渲染后的真实DOM节点并滚动到它
+    // ✨ 新增后自动滚动到新卡片位置
     setTimeout(() => {
-        const newCard = document.querySelector(`[data-card-id="${newCardId}"]`);
-        if (newCard) {
-            newCard.dataset.newCard = '';
-            const mainScroll = document.getElementById('mainScroll');
-            if (mainScroll) {
-                const cardTop = newCard.offsetTop;
-                mainScroll.scrollTo({ top: cardTop - 70, behavior: 'smooth' });
-            }
-        }
-    }, 150);
+        div.classList.add('active-render');
+        div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
 }
 
 function changeSlide(btn, dir) {
@@ -2670,62 +2650,52 @@ function initImagePreview() {
 
 // 🎯 v4.0 紧凑卡片功能
 function initCompactCards() {
+    // 🐛 修复：不再用 cloneNode 暴力清除事件（会导致偶现点击失效）
+    // 改用 data-click-bound 标记位，避免重复绑定
     document.querySelectorAll('.card.active-render').forEach(card => {
-        // 生成紧凑模式的缩略图和预览（如果还没有）
+        // 生成紧凑模式的HTML（如果还没有）
         if (!card.querySelector('.card-thumb')) {
             generateCompactCardHTML(card);
         }
         
-        // 防止重复绑定点击事件（用标记位代替 cloneNode）
-        if (card._cardClickBound) return;
-        card._cardClickBound = true;
+        // 只在首次绑定点击事件，避免重复绑定导致多次触发
+        if (card.dataset.clickBound === '1') return;
+        card.dataset.clickBound = '1';
         
+        // 添加点击展开事件
         card.addEventListener('click', function(e) {
+            // 管理员模式下不触发展开（避免与编辑操作冲突）
+            if (isEditMode) return;
+            
+            // 如果点击的是管理员按钮、收藏按钮、轮播按钮等，不触发展开
             if (e.target.closest('.del-btn, .pin-btn, .fav-btn, .slide-btn, .edit-img-btn, .link-jump-btn, .direct-dl-btn, .expand-btn, .desc-expand-btn')) {
                 return;
             }
+            
+            // 如果点击的是图片（用于全屏预览），不触发收起
             if (e.target.tagName === 'IMG' && e.target.closest('.slider-box')) {
                 return;
             }
-            // 管理员模式下点击可编辑文本区域时不触发展开/收起
-            if (isEditMode && e.target.closest('.g-name, .g-tags, .desc-text, .link-text')) {
-                return;
-            }
+            
             toggleCardExpand(this);
         });
     });
 }
 
 // 生成紧凑卡片的HTML
-// ⚠️ 核心：用 textContent 读取内容（不依赖布局，display:none 也能读到）
-//    用 getAttribute('src') 读取图片src（不依赖布局）
 function generateCompactCardHTML(card) {
     const sliderBox = card.querySelector('.slider-box');
     const infoBox = card.querySelector('.info-box');
     
     if (!sliderBox || !infoBox) return;
     
+    // 获取数据
     const imgs = sliderBox.querySelectorAll('img');
+    const firstImg = imgs[0];
     const imgCount = imgs.length;
-    
-    // ✅ 用 textContent（不受 display:none 影响）
-    const nameEl = infoBox.querySelector('.g-name');
-    const tagsEl = infoBox.querySelector('.g-tags');
-    const descEl = infoBox.querySelector('.desc-text');
-    const title = (nameEl?.textContent || '').trim() || '未命名';
-    const tags = (tagsEl?.textContent || '').trim();
-    const descText = (descEl?.textContent || '').trim();
-    
-    // ✅ 用 getAttribute('src') 读取图片（不受布局影响）
-    let thumbSrc = '';
-    for (const img of imgs) {
-        const src = img.getAttribute('src') || '';
-        if (src && !src.includes('placeholder') && !src.includes('via.placeholder')) {
-            thumbSrc = src;
-            break;
-        }
-    }
-    if (!thumbSrc && imgs[0]) thumbSrc = imgs[0].getAttribute('src') || '';
+    const title = infoBox.querySelector('.g-name')?.innerText || '未命名';
+    const tags = infoBox.querySelector('.g-tags')?.innerText || '';
+    const descText = infoBox.querySelector('.desc-text')?.innerText || '';
     
     // 创建收起提示（只创建一次）
     if (!card.querySelector('.card-close-hint')) {
@@ -2736,21 +2706,13 @@ function generateCompactCardHTML(card) {
     }
     
     // 创建缩略图
-    if (!card.querySelector('.card-thumb')) {
+    if (firstImg && !card.querySelector('.card-thumb')) {
         const thumb = document.createElement('div');
         thumb.className = 'card-thumb';
-        if (thumbSrc) {
-            thumb.innerHTML = `
-                <img src="${thumbSrc}" loading="lazy" alt="">
-                ${imgCount > 1 ? `<div class="thumb-count">${imgCount}张</div>` : ''}
-            `;
-        } else {
-            // 无有效图片时显示灰色占位
-            thumb.innerHTML = `
-                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:28px;">🖼️</div>
-                ${imgCount > 1 ? `<div class="thumb-count">${imgCount}张</div>` : ''}
-            `;
-        }
+        thumb.innerHTML = `
+            <img src="${firstImg.src}" loading="lazy" alt="${title}">
+            ${imgCount > 1 ? `<div class="thumb-count">${imgCount}张</div>` : ''}
+        `;
         card.insertBefore(thumb, sliderBox);
     }
     
@@ -2834,14 +2796,11 @@ function toggleExpand(btn) {
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起 ▴" : "展开 ▾";
     
-    // 收起时滚动到链接区顶部
+    // 收起时瞬间滚动到顶部
     if (!isExpanding) {
-        const mainScroll = document.getElementById('mainScroll');
-        if (mainScroll) {
-            const rect = wrap.getBoundingClientRect();
-            const containerRect = mainScroll.getBoundingClientRect();
-            mainScroll.scrollTop += rect.top - containerRect.top - 70;
-        }
+        const rect = wrap.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        window.scrollTo(0, rect.top + scrollTop);
     }
 }
 
@@ -2865,18 +2824,15 @@ function toggleDescExpand(btn) {
     wrap.classList.toggle('expanded');
     btn.innerText = wrap.classList.contains('expanded') ? "收起简介 ▴" : "展开简介 ▾";
     
-    // 收起时滚动到简介区顶部
+    // 收起时瞬间滚动到顶部
     if (!isExpanding) {
-        const mainScroll = document.getElementById('mainScroll');
-        if (mainScroll) {
-            const rect = wrap.getBoundingClientRect();
-            const containerRect = mainScroll.getBoundingClientRect();
-            mainScroll.scrollTop += rect.top - containerRect.top - 70;
-        }
+        const rect = wrap.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        window.scrollTo(0, rect.top + scrollTop);
     }
 }
 
-//   修复：确保所有卡片都包含简介区域
+// � 修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -2895,28 +2851,9 @@ function ensureDescriptionAreas() {
 }
 
 
-// 清除运行时动态生成的紧凑卡片元素（保存云端前调用）
-// card-thumb / card-preview / card-close-hint 是运行时生成的，不能存入云端
-// 否则下次加载时 generateCompactCardHTML 会因检测到已存在而跳过重新生成，
-// 导致缩略图/标签内容错误（保存时可能是空值或旧值）
-function stripCompactCardElements() {
-    document.querySelectorAll('.card').forEach(card => {
-        const thumb = card.querySelector('.card-thumb');
-        const preview = card.querySelector('.card-preview');
-        const hint = card.querySelector('.card-close-hint');
-        if (thumb) thumb.remove();
-        if (preview) preview.remove();
-        if (hint) hint.remove();
-        // 同时清除运行时标记，确保下次 initCompactCards 重新生成
-        card._cardClickBound = false;
-    });
-}
-
 // ✨ 重置所有卡片UI状态（加载云端后调用）
 function resetAllCardStates() {
     document.querySelectorAll(".card").forEach(card => {
-        // 0. 收起卡片（移除展开状态）
-        card.classList.remove("card-expanded");
         // 1. 收起简介
         const descWrap = card.querySelector(".desc-wrap");
         if (descWrap) {
@@ -2942,7 +2879,7 @@ function resetAllCardStates() {
     });
 }
 
-//  🐛 修复：处理标签粘贴，清理格式
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
