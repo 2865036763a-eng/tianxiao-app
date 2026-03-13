@@ -3076,7 +3076,10 @@ function addLinkJumpButtons() {
             const dlBtn = document.createElement('button');
             dlBtn.className = 'direct-dl-btn';
             dlBtn.textContent = '⬇️ 直接下载';
-            dlBtn.onclick = () => window.open(savedUrl, '_blank');
+            dlBtn.onclick = () => {
+                const finalUrl = /^https?:\/\//i.test(savedUrl) ? savedUrl : `${WORKER_BASE}/dl/${savedUrl}`;
+                window.open(finalUrl, '_blank');
+            };
             infoBox.insertBefore(dlBtn, editArea);
         }
     });
@@ -3098,7 +3101,10 @@ function updateDirectDl(input) {
         const dlBtn = document.createElement('button');
         dlBtn.className = 'direct-dl-btn';
         dlBtn.textContent = '⬇️ 直接下载';
-        dlBtn.onclick = () => window.open(url, '_blank');
+        dlBtn.onclick = () => {
+            const finalUrl = /^https?:\/\//i.test(url) ? url : `${WORKER_BASE}/dl/${url}`;
+            window.open(finalUrl, '_blank');
+        };
         const editArea = infoBox.querySelector('.direct-dl-edit');
         infoBox.insertBefore(dlBtn, editArea);
     }
