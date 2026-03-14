@@ -1947,6 +1947,7 @@ const ACCESS_PASS = "114514";
 // 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
+const NOTICE_KEY = 'TX_NOTICE_CONTENT';
 const APP_VERSION = "3.3.0"; // 链接复制功能 + 识别所有链接
 const VERSION_KEY = "TX_APP_VERSION";
 
@@ -1958,6 +1959,7 @@ const WORKER_BASE = "https://api.tianxiao.us.kg";
 let isEditMode = false;
 let currentCat = "all";
 let currentPage = 1;
+let noticeText = ''; // 📢 公告内容（内存变量，云端加载后赋值）
 let maxPageCount = 1;
 let favorites = new Set(); // 收藏列表（存储卡片ID）
 let adminToken = null; // 🔐 管理员 Token
@@ -2171,6 +2173,7 @@ async function loadFromGrave() {
                     
                     // 📢 从云端恢复公告内容
                     if (typeof content.notice === 'string') {
+                        noticeText = content.notice;
                         localStorage.setItem(NOTICE_KEY, content.notice);
                     }
                     
@@ -2529,15 +2532,13 @@ function filterTab(cat, el) {
 // ==========================================
 // 📢 公告面板
 // ==========================================
-const NOTICE_KEY = 'TX_NOTICE_CONTENT';
-
 function openNoticePanel() {
     const panel = document.getElementById('noticePanelPage');
     const body = document.getElementById('noticeContentBody');
     const hint = document.getElementById('noticeEditHint');
 
-    // 读取公告内容（优先本地存储）
-    const saved = localStorage.getItem(NOTICE_KEY) || '';
+    // 读取公告内容：内存变量优先（云端已加载），否则回退到 localStorage
+    const saved = noticeText || localStorage.getItem(NOTICE_KEY) || '';
     body.textContent = saved;
 
     if (isEditMode) {
@@ -2570,9 +2571,10 @@ function startNoticeEdit() {
 function saveNoticeContent() {
     const body = document.getElementById('noticeContentBody');
     const content = body.textContent || '';
+    noticeText = content; // 同步内存变量
     localStorage.setItem(NOTICE_KEY, content);
     body.contentEditable = 'false';
-    showToast('✅ 公告已保存！');
+    showToast('✅ 公告已保存！记得点「☁️ 保存云端」同步给所有人');
 }
 
 // ==========================================
@@ -3612,6 +3614,8 @@ function savePage() {
 
 window.onload = async () => { 
     checkForUpdates();
+    // 📢 预加载公告内容（云端加载成功后会覆盖）
+    noticeText = localStorage.getItem(NOTICE_KEY) || '';
     await loadFromGrave();
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
     if (!isEditMode) {
