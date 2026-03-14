@@ -2178,6 +2178,10 @@ async function loadFromGrave() {
                     
                     hideProgress();
                     showLoadNotification(`✅ 已加载 ${cardCount} 个资源`, true);
+                    
+                    // 🚀 云端数据渲染后，把 slider 图片延迟化
+                    initDeferSliderImages();
+                    
                     return true; // 成功
                 }
             } else {
@@ -2779,6 +2783,11 @@ function enterAdmin() {
     // 🎯 v4.0 管理员模式下展开所有卡片
     document.querySelectorAll(".card").forEach(card => {
         card.classList.add("card-expanded");
+        // 🚀 展开时加载延迟图片
+        card.querySelectorAll('.slider-box img[data-src]').forEach(img => {
+            img.src = img.getAttribute('data-src');
+            img.removeAttribute('data-src');
+        });
         
         if (!card.querySelector(".pin-btn")) {
             const pin = document.createElement("div");
@@ -2970,6 +2979,17 @@ function initImagePreview() {
     });
 }
 
+// 🚀 把 slider-box 里的图片 src 延迟化（未展开卡片时不加载）
+function initDeferSliderImages() {
+    document.querySelectorAll('.card:not(.card-expanded) .slider-box img').forEach(img => {
+        const src = img.getAttribute('src');
+        if (src && src !== '' && !src.includes('data:') && !img.getAttribute('data-src')) {
+            img.setAttribute('data-src', src);
+            img.removeAttribute('src');
+        }
+    });
+}
+
 // 🎯 v4.0 紧凑卡片功能
 function initCompactCards() {
     document.querySelectorAll('.card.active-render').forEach(card => {
@@ -3042,18 +3062,23 @@ function generateCompactCardHTML(card) {
         const thumb = document.createElement('div');
         thumb.className = 'card-thumb';
         if (thumbSrc) {
+            // 用 data-src 延迟加载，IntersectionObserver 触发后再赋值 src
             thumb.innerHTML = `
-                <img src="${thumbSrc}" loading="lazy" alt="">
-                ${imgCount > 1 ? `<div class="thumb-count">${imgCount}张</div>` : ''}
+                <img data-src="${thumbSrc}" src="" alt="" style="opacity:0;transition:opacity 0.3s;">
+                <div class="thumb-count" style="display:none;">${imgCount}张</div>
             `;
         } else {
-            // 无有效图片时显示灰色占位
             thumb.innerHTML = `
                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:28px;">🖼️</div>
-                ${imgCount > 1 ? `<div class="thumb-count">${imgCount}张</div>` : ''}
             `;
         }
         card.insertBefore(thumb, sliderBox);
+        
+        // 用 IntersectionObserver 进入视口后才加载缩略图
+        const img = thumb.querySelector('img[data-src]');
+        if (img && window._thumbObserver) {
+            window._thumbObserver.observe(img);
+        }
     }
     
     // 创建预览信息
@@ -3102,6 +3127,15 @@ function toggleCardExpand(card) {
     } else {
         // 展开当前卡片
         card.classList.add('card-expanded');
+        
+        // 展开时才加载 slider-box 里的图片
+        card.querySelectorAll('.slider-box img[data-src]').forEach(img => {
+            if (!img.src || img.getAttribute('src') === '' || img.getAttribute('src') === img.baseURI) {
+                img.src = img.getAttribute('data-src');
+                img.removeAttribute('data-src');
+            }
+        });
+        
         // 滚动到卡片顶部
         setTimeout(() => {
             const cardTop = card.offsetTop;
@@ -3609,7 +3643,39 @@ window.onload = async () => {
     checkForUpdates();
     // 📢 预加载公告内容（云端加载成功后会覆盖）
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
+    
+    // 🚀 初始化缩略图懒加载 Observer（进入视口才加载缩略图）
+    window._thumbObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.getAttribute('data-src');
+                if (src) {
+                    img.src = src;
+                    img.removeAttribute('data-src');
+                    img.onload = () => { img.style.opacity = '1'; };
+                    img.onerror = () => {
+                        img.style.display = 'none';
+                        const thumb = img.closest('.card-thumb');
+                        if (thumb && !thumb.querySelector('.thumb-err')) {
+                            const err = document.createElement('div');
+                            err.className = 'thumb-err';
+                            err.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:28px;';
+                            err.textContent = '🖼️';
+                            thumb.appendChild(err);
+                        }
+                    };
+                }
+                window._thumbObserver.unobserve(img);
+            }
+        });
+    }, { rootMargin: '200px 0px' }); // 提前200px开始加载
+    
     await loadFromGrave();
+    
+    // 🚀 把 slider-box 里所有图片的 src 转成 data-src（未展开时不加载）
+    initDeferSliderImages();
+    
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
     if (!isEditMode) {
         document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
