@@ -2169,6 +2169,11 @@ async function loadFromGrave() {
                         renderBanner();
                     }
                     
+                    // 📢 从云端恢复公告内容
+                    if (typeof content.notice === 'string') {
+                        localStorage.setItem(NOTICE_KEY, content.notice);
+                    }
+                    
                     const cardCount = document.querySelectorAll('.card').length;
                     window._ghSha = json.sha;
                     
@@ -2259,7 +2264,9 @@ async function saveToCloud() {
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
     // ✨ v3.4.0：同时保存轮播图配置
-    const payload = JSON.stringify({ cards, banner: bannerSlides, updated: new Date().toISOString() });
+    // 📢 同时保存公告内容
+    const noticeContent = localStorage.getItem(NOTICE_KEY) || '';
+    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, updated: new Date().toISOString() });
     
     let encoded;
     try {
