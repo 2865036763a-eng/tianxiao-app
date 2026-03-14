@@ -2984,25 +2984,27 @@ function initCompactCards() {
         if (!card.querySelector('.card-thumb')) {
             generateCompactCardHTML(card);
         }
-        
-        // 防止重复绑定点击事件（用标记位代替 cloneNode）
-        if (card._cardClickBound) return;
-        card._cardClickBound = true;
-        
-        card.addEventListener('click', function(e) {
+    });
+    
+    // 事件委托：只绑一次，挂在 #box 上，避免重复绑定导致的bug
+    const box = document.getElementById('box');
+    if (!box._compactClickBound) {
+        box._compactClickBound = true;
+        box.addEventListener('click', function(e) {
+            const card = e.target.closest('.card');
+            if (!card) return;
+            // 管理员模式下不触发
+            if (isEditMode) return;
+            // 点击这些元素时不触发展开
             if (e.target.closest('.del-btn, .pin-btn, .fav-btn, .slide-btn, .edit-img-btn, .link-jump-btn, .direct-dl-btn, .expand-btn, .desc-expand-btn')) {
                 return;
             }
             if (e.target.tagName === 'IMG' && e.target.closest('.slider-box')) {
                 return;
             }
-            // 管理员模式下点击可编辑文本区域时不触发展开/收起
-            if (isEditMode && e.target.closest('.g-name, .g-tags, .desc-text, .link-text')) {
-                return;
-            }
-            toggleCardExpand(this);
+            toggleCardExpand(card);
         });
-    });
+    }
 }
 
 // 生成紧凑卡片的HTML
@@ -3214,8 +3216,6 @@ function stripCompactCardElements() {
         if (thumb) thumb.remove();
         if (preview) preview.remove();
         if (hint) hint.remove();
-        // 同时清除运行时标记，确保下次 initCompactCards 重新生成
-        card._cardClickBound = false;
     });
 }
 
