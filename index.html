@@ -2306,6 +2306,8 @@ async function saveToCloud() {
             window._ghSha = json.content.sha;
             localStorage.setItem("TX_CACHE", cards);
             showToast("✅ 已同步到云端！所有人将看到最新内容");
+            // 保存后重新生成缩略图，恢复正常显示
+            refreshUI();
         } else {
             const err = await res.json();
             
@@ -2819,16 +2821,22 @@ function exitAdmin() {
     adminToken = null;
     sessionStorage.removeItem('ADMIN_TOKEN');
     
-    // 🎯 v4.0 退出管理员模式时收起所有卡片
-    document.querySelectorAll(".card").forEach(card => {
-        card.classList.remove("card-expanded");
-    });
-    
     document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
         el.contentEditable = "false";
         el.removeAttribute("contenteditable");
     });
-    autoSave();
+    
+    // 🎯 先彻底重置所有卡片状态，再保存，确保 DOM 干净
+    resetAllCardStates();
+    stripCompactCardElements();
+    
+    // 保存到本地缓存
+    const data = document.getElementById("box").innerHTML;
+    localStorage.setItem("TX_CACHE", data);
+    addLinkJumpButtons();
+    initImagePreview();
+    
+    // 最后刷新UI（会重新生成缩略图和绑定事件）
     refreshUI();
 }
 
