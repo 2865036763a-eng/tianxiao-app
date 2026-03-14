@@ -2532,11 +2532,14 @@ function openNoticePanel() {
     // 读取公告内容（优先本地存储）
     const saved = localStorage.getItem(NOTICE_KEY) || '';
     body.textContent = saved;
-    body.contentEditable = 'false';
 
     if (isEditMode) {
-        hint.textContent = '✏️ 点击内容区域即可编辑公告';
+        // 管理员模式：直接开启编辑
+        body.contentEditable = 'true';
+        hint.textContent = '✏️ 直接编辑上方内容，完成后点击保存';
+        setTimeout(() => { body.focus(); }, 100);
     } else {
+        body.contentEditable = 'false';
         hint.textContent = '';
     }
 
@@ -2555,13 +2558,6 @@ function startNoticeEdit() {
     const body = document.getElementById('noticeContentBody');
     body.contentEditable = 'true';
     body.focus();
-    // 将光标移到末尾
-    const range = document.createRange();
-    const sel = window.getSelection();
-    range.selectNodeContents(body);
-    range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
 }
 
 function saveNoticeContent() {
