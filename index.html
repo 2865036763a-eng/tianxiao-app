@@ -95,6 +95,8 @@
             position: relative;
             z-index: 1;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            overscroll-behavior: contain;
         }
 
         /* 公告内容区 */
@@ -165,9 +167,9 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; inset: 0; background: #fff; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        #gateKeeper { position: fixed; inset: 0; background: #fff; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
-        .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
         .gate-btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
 
@@ -288,7 +290,9 @@
 
         /* ✨ 样式层不再直接写 order，交给 JS 动态分配 */
         .card.is-pinned { border: 2px solid var(--notice); }
-        .card.is-pinned::before { content: "📌 置顶"; position: absolute; top: 6px; right: 80px; background: var(--notice); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; z-index: 10; font-weight: bold; }
+        .card.is-pinned::before { content: "📌 置顶"; position: absolute; top: 6px; left: 8px; right: auto; background: var(--notice); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; z-index: 10; font-weight: bold; }
+        /* 紧凑模式下置顶标签也要在左上角（缩略图上方） */
+        .card.is-pinned:not(.card-expanded)::before { top: 4px; left: 4px; z-index: 12; }
         
         /* 展开状态的收起提示 */
         .card-close-hint {
@@ -553,10 +557,36 @@
         #rocket { position: fixed; right: 15px; bottom: -60px; width: 45px; height: 45px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,102,153,0.4); cursor: pointer; transition: 0.4s; z-index: 200; font-size: 22px; touch-action: manipulation; }
         #rocket.show { bottom: 100px; }
 
-        #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; }
-        #adminBar button { flex: 1; cursor: pointer; border: none; border-radius: 8px; padding: 12px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; }
+        #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; flex-wrap: wrap; }
+        #adminBar button { flex: 1; cursor: pointer; border: none; border-radius: 8px; padding: 12px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; min-width: calc(33% - 7px); }
         .btn-save { background: #28a745 !important; }
         .btn-exit { background: #666 !important; }
+
+        /* ===== 🏷️ 分类管理面板 ===== */
+        #catPanel {
+            display: none;
+            background: #fff0f8;
+            border: 1px dashed #ff6699;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 0 auto 12px auto;
+            max-width: 550px;
+        }
+        #catPanel.show { display: block; }
+        .cat-panel-title { font-size: 13px; font-weight: bold; color: #c2185b; margin-bottom: 10px; }
+        .cat-add-row { display: flex; gap: 6px; margin-bottom: 10px; }
+        .cat-add-row input { flex: 1; border: 1px solid #f48fb1; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; background: #fff; min-width: 0; }
+        .cat-add-row input:focus { border-color: var(--primary); }
+        .cat-add-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
+        .cat-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        .cat-item { background: #fff; border: 1px solid #f8bbd0; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; }
+        .cat-item.cat-fixed { opacity: 0.6; background: #f5f5f5; }
+        .cat-item-name { flex: 1; font-size: 13px; color: #333; font-weight: 500; }
+        .cat-item-fixed-label { font-size: 10px; color: #aaa; border: 1px solid #ddd; border-radius: 4px; padding: 1px 5px; }
+        .cat-move-btn { background: #eee; border: none; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+        .cat-move-btn:active { background: #ddd; }
+        .cat-del-btn { background: #ff5252; color: #fff; border: none; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+        .cat-save-btn { width: 100%; margin-top: 10px; padding: 10px; background: #28a745; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
 
         .del-btn, .pin-btn, .fav-btn { position: absolute; top: 10px; width: 28px; height: 28px; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 20; cursor: pointer; color: #fff; font-size: 14px; touch-action: manipulation; }
         .del-btn { right: 10px; background: rgba(255,0,0,0.8); }
@@ -620,6 +650,41 @@
         #imagePreviewModal img { max-width: 95%; max-height: 95%; object-fit: contain; }
         #imagePreviewModal .close-btn { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
         #imagePreviewModal .close-btn:active { background: rgba(255,255,255,0.4); }
+
+        /* ✨ 分类管理面板 */
+        #catMgrPanel {
+            display: none;
+            background: #fff8f0;
+            border: 1px dashed #ffb74d;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 0 auto 10px auto;
+            max-width: 550px;
+        }
+        #catMgrPanel.show { display: block; }
+        .cat-mgr-title { font-size: 13px; font-weight: bold; color: #e65100; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .cat-mgr-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .cat-mgr-row {
+            display: flex; align-items: center; gap: 8px;
+            background: #fff; border-radius: 8px; padding: 7px 10px;
+            border: 1px solid #ffe0b2; cursor: grab; user-select: none;
+            transition: box-shadow 0.15s, opacity 0.15s;
+        }
+        .cat-mgr-row.dragging { opacity: 0.45; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+        .cat-mgr-row.drag-over { border: 2px dashed #ff9800; }
+        .cat-drag-handle { font-size: 16px; color: #ccc; flex-shrink: 0; cursor: grab; touch-action: none; }
+        .cat-mgr-label { flex: 1; font-size: 13px; color: #333; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cat-mgr-key { font-size: 11px; color: #999; flex-shrink: 0; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cat-mgr-del { background: #ff5252; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
+        .cat-mgr-del:disabled { background: #ccc; cursor: not-allowed; }
+        .cat-mgr-add-row { display: flex; gap: 8px; }
+        .cat-mgr-add-row input { flex: 1; border: 1px solid #ffcc80; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; min-width: 0; background: #fff; }
+        .cat-mgr-add-row input:focus { border-color: #ff9800; }
+        .cat-mgr-add-btn { background: #ff9800; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
+        .cat-mgr-save-btn { width: 100%; margin-top: 10px; padding: 9px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
+        /* 管理员模式下才显示分类管理按钮 */
+        #catMgrToggleBtn { display: none; }
+        .admin-mode #catMgrToggleBtn { display: inline-block; }
     </style>
 <style>
         @keyframes pulse {
@@ -693,27 +758,28 @@
     </div>
     <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1)">
     <div id="nav">
-        <li class="active" onclick="filterTab('all',this)">🌟 全部</li>
-        <li onclick="filterTab('ACT',this)" class="">ACT</li>
-        <li onclick="filterTab('SLG',this)" class="">SLG</li>
-        <li onclick="filterTab('RPG',this)">RPG</li>
-        <li onclick="filterTab('GAL',this)">GAL</li>
-        <li onclick="filterTab('ADV',this)">ADV</li>
-        <li onclick="filterTab('AZ',this)">AZ</li>
-        <li onclick="filterTab('PC',this)">PC</li>
-        <li onclick="filterTab('动画',this)">🎬 动画</li>
-        <li onclick="filterTab('本子',this)">📚 本子</li>
-        <li onclick="filterTab('其他软件',this)">🛠️ 其他软件</li>
-        <li onclick="filterTab('充电视频',this)" class="video-tab">⚡ 充电视频</li>
+        <!-- 由 renderNav() 动态生成 -->
     </div>
     <div id="adminBar" style="display: none;">
         <button onclick="addCard()">➕ 新增</button>
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
+        <button onclick="toggleCatPanel()" style="background: #e91e63 !important;">🏷️ 分类</button>
         <button onclick="toggleBannerEdit()" style="background: #ff9800 !important;">🖼️ 轮播图</button>
         <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
         <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
+    </div>
+    <!-- 🏷️ 分类管理面板 -->
+    <div id="catPanel">
+        <div class="cat-panel-title">🏷️ 分类管理（拖动排序 / 新增 / 删除）</div>
+        <div class="cat-add-row">
+            <input type="text" id="catEmojiInput" placeholder="🎮 emoji（可选）" style="max-width:90px;">
+            <input type="text" id="catNameInput" placeholder="分类名称（必填）">
+            <button class="cat-add-btn" onclick="addCategory()">＋ 添加</button>
+        </div>
+        <div class="cat-list" id="catList"></div>
+        <button class="cat-save-btn" onclick="saveCategoryOrder()">✅ 保存分类并更新导航</button>
     </div>
 </header>
 
@@ -1873,9 +1939,8 @@
 </div>
 
 <script>
-// ===== 🛡️ 终极防下拉刷新 =====
+// ===== 🛡️ 终极防下拉刷新（修复版：允许弹窗内滚动） =====
 (function() {
-    // 1. 最早期阻止：在任何框架加载前就拦截
     let startY = 0;
     let startX = 0;
 
@@ -1887,36 +1952,79 @@
     document.addEventListener('touchmove', function(e) {
         const dy = e.touches[0].pageY - startY;
         const dx = e.touches[0].pageX - startX;
-        const main = document.getElementById('mainScroll');
 
         // 如果是横向滑动，不干预
         if (Math.abs(dx) > Math.abs(dy)) return;
 
-        // 获取当前滚动容器
-        const target = e.target.closest('#mainScroll') || e.target.closest('#nav');
+        // ✅ 修复：检查触摸目标是否在可滚动的弹窗/容器内
+        const scrollableParent = findScrollableParent(e.target);
 
-        if (target === main) {
-            // 在滚动区域内
-            const atTop = main.scrollTop <= 0;
-            const atBottom = main.scrollTop + main.clientHeight >= main.scrollHeight - 1;
+        if (scrollableParent) {
+            // 在可滚动容器内，检查是否到了边界
+            const atTop = scrollableParent.scrollTop <= 0;
+            const atBottom = scrollableParent.scrollTop + scrollableParent.clientHeight >= scrollableParent.scrollHeight - 1;
 
             if (atTop && dy > 0) {
-                // 在顶部下拉 → 死死阻止
+                // 容器顶部 + 下拉 → 阻止（防系统刷新）
                 e.preventDefault();
-                e.stopPropagation();
             } else if (atBottom && dy < 0) {
-                // 在底部上拉 → 阻止触发系统刷新
+                // 容器底部 + 上拉 → 阻止
                 e.preventDefault();
-                e.stopPropagation();
             }
-        } else {
-            // 在非滚动区域（header等）→ 全部阻止
-            e.preventDefault();
-            e.stopPropagation();
+            // ✅ 其他情况（中间滚动）→ 不干预，允许正常滚动！
+            return;
         }
+
+        // 不在任何可滚动容器内 → 全部阻止
+        e.preventDefault();
+
     }, { passive: false });
 
-    // 2. 阻止 overscroll
+    /**
+     * ✅ 核心修复函数：向上查找最近的可滚动父容器
+     * 支持：#mainScroll、.disclaimer、.fullpage-body、.notice-content-body 等
+     */
+    function findScrollableParent(element) {
+        let el = element;
+        while (el && el !== document.body && el !== document.documentElement) {
+            if (isScrollable(el)) {
+                return el;
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    function isScrollable(el) {
+        const scrollableSelectors = [
+            '#mainScroll',
+            '.disclaimer',
+            '.fullpage-body',
+            '.notice-content-body',
+            '.fav-panel-grid',
+            '.cat-list',
+            '#nav'
+        ];
+
+        for (const selector of scrollableSelectors) {
+            if (selector.startsWith('#')) {
+                if (el.id === selector.slice(1)) return true;
+            } else if (selector.startsWith('.')) {
+                if (el.classList && el.classList.contains(selector.slice(1))) return true;
+            }
+        }
+
+        // 通用检测：元素内容超出且设置了 overflow 滚动
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // 阻止页面级 overscroll
     document.addEventListener('scroll', function() {
         if (window.scrollY !== 0) window.scrollTo(0, 0);
     }, { passive: true });
@@ -1947,6 +2055,7 @@ const ACCESS_PASS = "114514";
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
 const NOTICE_KEY = 'TX_NOTICE_CONTENT';
+const CAT_KEY = 'TX_CATEGORIES'; // 🏷️ 分类配置存储key
 const APP_VERSION = "3.3.0"; // 链接复制功能 + 识别所有链接
 const VERSION_KEY = "TX_APP_VERSION";
 
@@ -1955,8 +2064,120 @@ const WORKER_API = "https://api.tianxiao.us.kg/api/data";
 const WORKER_BASE = "https://api.tianxiao.us.kg";
 // ===================================
 
-let isEditMode = false;
-let currentCat = "all";
+// 🏷️ 默认分类列表（首次加载时使用）
+const DEFAULT_CATEGORIES = [
+    { key: 'ACT',   label: 'ACT',     fixed: false },
+    { key: 'SLG',   label: 'SLG',     fixed: false },
+    { key: 'RPG',   label: 'RPG',     fixed: false },
+    { key: 'GAL',   label: 'GAL',     fixed: false },
+    { key: 'ADV',   label: 'ADV',     fixed: false },
+    { key: 'AZ',    label: 'AZ',      fixed: false },
+    { key: 'PC',    label: 'PC',      fixed: false },
+    { key: '动画',  label: '🎬 动画', fixed: false },
+    { key: '本子',  label: '📚 本子', fixed: false },
+    { key: '其他软件', label: '🛠️ 其他软件', fixed: false },
+    { key: '充电视频', label: '⚡ 充电视频', fixed: false },
+];
+
+// 当前分类列表（运行时变量）
+let categoryList = [];
+
+// 加载分类（优先localStorage，否则用默认值）
+function loadCategories() {
+    try {
+        const saved = localStorage.getItem(CAT_KEY);
+        if (saved) {
+            categoryList = JSON.parse(saved);
+        } else {
+            categoryList = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+        }
+    } catch(e) {
+        categoryList = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+    }
+}
+
+// 保存分类到localStorage
+function persistCategories() {
+    try { localStorage.setItem(CAT_KEY, JSON.stringify(categoryList)); } catch(e) {}
+}
+
+// 渲染顶部导航栏
+function renderNav() {
+    const nav = document.getElementById('nav');
+    if (!nav) return;
+    // 固定项：全部 / 公告 / 收藏
+    let html = `<li class="${currentCat === 'all' ? 'active' : ''}" onclick="filterTab('all',this)">🌟 全部</li>`;
+    categoryList.forEach(cat => {
+        const active = currentCat === cat.key ? 'active' : '';
+        html += `<li class="${active}" onclick="filterTab(${JSON.stringify(cat.key)},this)">${cat.label}</li>`;
+    });
+    // 公告和收藏固定在最后
+    html += `<li class="notice-tab ${currentCat === '__notice__' ? 'active' : ''}" onclick="openNoticePanel()">📢 公告</li>`;
+    html += `<li class="favorite-tab ${currentCat === '收藏' ? 'active' : ''}" onclick="filterTab('收藏',this)">⭐ 收藏</li>`;
+    nav.innerHTML = html;
+}
+
+// ==========================================
+// 🏷️ 分类管理面板 JS
+// ==========================================
+
+function toggleCatPanel() {
+    const panel = document.getElementById('catPanel');
+    if (!panel) return;
+    const showing = panel.classList.toggle('show');
+    if (showing) renderCatPanel();
+}
+
+function renderCatPanel() {
+    const list = document.getElementById('catList');
+    if (!list) return;
+    list.innerHTML = categoryList.map((cat, i) => `
+        <div class="cat-item" data-idx="${i}">
+            <span class="cat-item-name">${cat.label}</span>
+            <button class="cat-move-btn" onclick="moveCat(${i},-1)" title="上移" ${i === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
+            <button class="cat-move-btn" onclick="moveCat(${i},1)" title="下移" ${i === categoryList.length-1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
+            <button class="cat-del-btn" onclick="deleteCat(${i})" title="删除">✕</button>
+        </div>
+    `).join('');
+}
+
+function addCategory() {
+    const nameInput = document.getElementById('catNameInput');
+    const emojiInput = document.getElementById('catEmojiInput');
+    const name = nameInput.value.trim();
+    const emoji = emojiInput.value.trim();
+    if (!name) { showToast('❗ 请填写分类名称'); return; }
+    // 防止重复
+    if (categoryList.some(c => c.key === name)) { showToast('❗ 该分类已存在'); return; }
+    const label = emoji ? emoji + ' ' + name : name;
+    categoryList.push({ key: name, label, fixed: false });
+    nameInput.value = '';
+    emojiInput.value = '';
+    renderCatPanel();
+    showToast('✅ 已添加，记得点"保存分类"');
+}
+
+function deleteCat(idx) {
+    const cat = categoryList[idx];
+    if (!cat) return;
+    if (!confirm(`确定删除分类「${cat.label}」吗？\n（卡片本身不会删除，只是导航里不再显示这个分类）`)) return;
+    categoryList.splice(idx, 1);
+    renderCatPanel();
+    showToast('🗑️ 已删除，记得点"保存分类"');
+}
+
+function moveCat(idx, dir) {
+    const target = idx + dir;
+    if (target < 0 || target >= categoryList.length) return;
+    [categoryList[idx], categoryList[target]] = [categoryList[target], categoryList[idx]];
+    renderCatPanel();
+}
+
+function saveCategoryOrder() {
+    persistCategories();
+    renderNav();
+    showToast('✅ 分类已保存，导航已更新！');
+}
 let currentPage = 1;
 let noticeText = ''; // 📢 公告内容（内存变量，云端加载后赋值）
 let maxPageCount = 1;
@@ -2176,6 +2397,13 @@ async function loadFromGrave() {
                         localStorage.setItem(NOTICE_KEY, content.notice);
                     }
                     
+                    // 🏷️ 从云端恢复分类配置
+                    if (Array.isArray(content.categories) && content.categories.length > 0) {
+                        categoryList = content.categories;
+                        persistCategories();
+                        renderNav();
+                    }
+                    
                     const cardCount = document.querySelectorAll('.card').length;
                     window._ghSha = json.sha;
                     
@@ -2268,7 +2496,7 @@ async function saveToCloud() {
     // ✨ v3.4.0：同时保存轮播图配置
     // 📢 同时保存公告内容
     const noticeContent = localStorage.getItem(NOTICE_KEY) || '';
-    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, updated: new Date().toISOString() });
+    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, updated: new Date().toISOString() });
     
     let encoded;
     try {
@@ -2815,6 +3043,8 @@ function exitAdmin() {
     const bp = document.getElementById("bannerEditPanel"); if(bp) bp.classList.remove("show");
     // 隐藏短链面板
     const sp = document.getElementById("shortlinkPanel"); if(sp) sp.classList.remove("show");
+    // 隐藏分类管理面板
+    const cp = document.getElementById("catPanel"); if(cp) cp.classList.remove("show");
     
     // 🔒 清除 Token
     adminToken = null;
@@ -3621,6 +3851,9 @@ window.onload = async () => {
     checkForUpdates();
     // 📢 预加载公告内容（云端加载成功后会覆盖）
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
+    // 🏷️ 加载分类并渲染导航（云端加载成功后会覆盖）
+    loadCategories();
+    renderNav();
     
     await loadFromGrave();
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
