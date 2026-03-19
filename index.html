@@ -578,7 +578,7 @@
         .cat-add-row input { flex: 1; border: 1px solid #f48fb1; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; background: #fff; min-width: 0; }
         .cat-add-row input:focus { border-color: var(--primary); }
         .cat-add-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
-        .cat-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        .cat-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .cat-item { background: #fff; border: 1px solid #f8bbd0; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; }
         .cat-item.cat-fixed { opacity: 0.6; background: #f5f5f5; }
         .cat-item-name { flex: 1; font-size: 13px; color: #333; font-weight: 500; }
@@ -650,41 +650,6 @@
         #imagePreviewModal img { max-width: 95%; max-height: 95%; object-fit: contain; }
         #imagePreviewModal .close-btn { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
         #imagePreviewModal .close-btn:active { background: rgba(255,255,255,0.4); }
-
-        /* ✨ 分类管理面板 */
-        #catMgrPanel {
-            display: none;
-            background: #fff8f0;
-            border: 1px dashed #ffb74d;
-            border-radius: 12px;
-            padding: 12px 14px;
-            margin: 0 auto 10px auto;
-            max-width: 550px;
-        }
-        #catMgrPanel.show { display: block; }
-        .cat-mgr-title { font-size: 13px; font-weight: bold; color: #e65100; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-        .cat-mgr-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .cat-mgr-row {
-            display: flex; align-items: center; gap: 8px;
-            background: #fff; border-radius: 8px; padding: 7px 10px;
-            border: 1px solid #ffe0b2; cursor: grab; user-select: none;
-            transition: box-shadow 0.15s, opacity 0.15s;
-        }
-        .cat-mgr-row.dragging { opacity: 0.45; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
-        .cat-mgr-row.drag-over { border: 2px dashed #ff9800; }
-        .cat-drag-handle { font-size: 16px; color: #ccc; flex-shrink: 0; cursor: grab; touch-action: none; }
-        .cat-mgr-label { flex: 1; font-size: 13px; color: #333; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .cat-mgr-key { font-size: 11px; color: #999; flex-shrink: 0; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .cat-mgr-del { background: #ff5252; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
-        .cat-mgr-del:disabled { background: #ccc; cursor: not-allowed; }
-        .cat-mgr-add-row { display: flex; gap: 8px; }
-        .cat-mgr-add-row input { flex: 1; border: 1px solid #ffcc80; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; min-width: 0; background: #fff; }
-        .cat-mgr-add-row input:focus { border-color: #ff9800; }
-        .cat-mgr-add-btn { background: #ff9800; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
-        .cat-mgr-save-btn { width: 100%; margin-top: 10px; padding: 9px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
-        /* 管理员模式下才显示分类管理按钮 */
-        #catMgrToggleBtn { display: none; }
-        .admin-mode #catMgrToggleBtn { display: inline-block; }
     </style>
 <style>
         @keyframes pulse {
@@ -2002,7 +1967,6 @@
             '.fullpage-body',
             '.notice-content-body',
             '.fav-panel-grid',
-            '.cat-list',
             '#nav'
         ];
 
@@ -3851,7 +3815,7 @@ window.onload = async () => {
     checkForUpdates();
     // 📢 预加载公告内容（云端加载成功后会覆盖）
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
-    // 🏷️ 加载分类并渲染导航（云端加载成功后会覆盖）
+    // 🏷️ 先渲染导航，不依赖云端，确保导航栏立刻可见
     loadCategories();
     renderNav();
     
