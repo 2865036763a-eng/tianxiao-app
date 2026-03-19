@@ -557,10 +557,26 @@
         #rocket { position: fixed; right: 15px; bottom: -60px; width: 45px; height: 45px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,102,153,0.4); cursor: pointer; transition: 0.4s; z-index: 200; font-size: 22px; touch-action: manipulation; }
         #rocket.show { bottom: 100px; }
 
-        #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; }
-        #adminBar button { flex: 1; cursor: pointer; border: none; border-radius: 8px; padding: 12px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; }
+        #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; flex-wrap: wrap; }
+        #adminBar button { flex: 1; cursor: pointer; border: none; border-radius: 8px; padding: 12px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; min-width: calc(33% - 7px); }
         .btn-save { background: #28a745 !important; }
         .btn-exit { background: #666 !important; }
+
+        /* ===== 🏷️ 分类管理面板 ===== */
+        #catPanel { display: none; background: #fff0f8; border: 1px dashed #ff6699; border-radius: 12px; padding: 12px; margin: 0 auto 12px auto; max-width: 550px; }
+        #catPanel.show { display: block; }
+        .cat-panel-title { font-size: 13px; font-weight: bold; color: #c2185b; margin-bottom: 10px; }
+        .cat-add-row { display: flex; gap: 6px; margin-bottom: 10px; }
+        .cat-add-row input { flex: 1; border: 1px solid #f48fb1; border-radius: 8px; padding: 8px 10px; font-size: 13px; outline: none; background: #fff; min-width: 0; }
+        .cat-add-row input:focus { border-color: var(--primary); }
+        .cat-add-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; touch-action: manipulation; }
+        .cat-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        .cat-item { background: #fff; border: 1px solid #f8bbd0; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; }
+        .cat-item-name { flex: 1; font-size: 13px; color: #333; font-weight: 500; }
+        .cat-move-btn { background: #eee; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+        .cat-move-btn:active { background: #ddd; }
+        .cat-del-btn { background: #ff5252; color: #fff; border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+        .cat-save-btn { width: 100%; margin-top: 10px; padding: 10px; background: #28a745; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
 
         .del-btn, .pin-btn, .fav-btn { position: absolute; top: 10px; width: 28px; height: 28px; border-radius: 50%; display: none; justify-content: center; align-items: center; z-index: 20; cursor: pointer; color: #fff; font-size: 14px; touch-action: manipulation; }
         .del-btn { right: 10px; background: rgba(255,0,0,0.8); }
@@ -697,27 +713,28 @@
     </div>
     <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1)">
     <div id="nav">
-        <li class="active" onclick="filterTab('all',this)">🌟 全部</li>
-        <li onclick="filterTab('ACT',this)" class="">ACT</li>
-        <li onclick="filterTab('SLG',this)" class="">SLG</li>
-        <li onclick="filterTab('RPG',this)">RPG</li>
-        <li onclick="filterTab('GAL',this)">GAL</li>
-        <li onclick="filterTab('ADV',this)">ADV</li>
-        <li onclick="filterTab('AZ',this)">AZ</li>
-        <li onclick="filterTab('PC',this)">PC</li>
-        <li onclick="filterTab('动画',this)">🎬 动画</li>
-        <li onclick="filterTab('本子',this)">📚 本子</li>
-        <li onclick="filterTab('其他软件',this)">🛠️ 其他软件</li>
-        <li onclick="filterTab('充电视频',this)" class="video-tab">⚡ 充电视频</li>
+        <!-- 由 renderNav() 动态生成 -->
     </div>
     <div id="adminBar" style="display: none;">
         <button onclick="addCard()">➕ 新增</button>
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
+        <button onclick="toggleCatPanel()" style="background: #e91e63 !important;">🏷️ 分类</button>
         <button onclick="toggleBannerEdit()" style="background: #ff9800 !important;">🖼️ 轮播图</button>
         <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
         <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
+    </div>
+    <!-- 🏷️ 分类管理面板 -->
+    <div id="catPanel">
+        <div class="cat-panel-title">🏷️ 分类管理（新增 / 排序 / 删除）</div>
+        <div class="cat-add-row">
+            <input type="text" id="catEmojiInput" placeholder="emoji（可选）" style="max-width:80px;">
+            <input type="text" id="catNameInput" placeholder="分类名称（必填）">
+            <button class="cat-add-btn" onclick="addCategory()">＋ 添加</button>
+        </div>
+        <div class="cat-list" id="catList"></div>
+        <button class="cat-save-btn" onclick="saveCategoryOrder()">✅ 保存并更新导航</button>
     </div>
 </header>
 
@@ -2002,6 +2019,104 @@ const WORKER_BASE = "https://api.tianxiao.us.kg";
 
 let isEditMode = false;
 let currentCat = "all";
+
+// ==========================================
+// 🏷️ 分类管理系统
+// ==========================================
+const CAT_KEY = 'TX_CATEGORIES';
+const DEFAULT_CATEGORIES = [
+    { key: 'ACT',    label: 'ACT' },
+    { key: 'SLG',    label: 'SLG' },
+    { key: 'RPG',    label: 'RPG' },
+    { key: 'GAL',    label: 'GAL' },
+    { key: 'ADV',    label: 'ADV' },
+    { key: 'AZ',     label: 'AZ' },
+    { key: 'PC',     label: 'PC' },
+    { key: '动画',   label: '🎬 动画' },
+    { key: '本子',   label: '📚 本子' },
+    { key: '其他软件', label: '🛠️ 其他软件' },
+    { key: '充电视频', label: '⚡ 充电视频' },
+];
+let categoryList = [];
+
+function loadCategories() {
+    try {
+        const saved = localStorage.getItem(CAT_KEY);
+        categoryList = saved ? JSON.parse(saved) : DEFAULT_CATEGORIES.map(c => ({ ...c }));
+    } catch(e) {
+        categoryList = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+    }
+}
+
+function persistCategories() {
+    try { localStorage.setItem(CAT_KEY, JSON.stringify(categoryList)); } catch(e) {}
+}
+
+function renderNav() {
+    const nav = document.getElementById('nav');
+    if (!nav) return;
+    let html = `<li class="${currentCat === 'all' ? 'active' : ''}" onclick="filterTab('all',this)">🌟 全部</li>`;
+    categoryList.forEach(cat => {
+        html += `<li class="${currentCat === cat.key ? 'active' : ''}" onclick="filterTab(${JSON.stringify(cat.key)},this)">${cat.label}</li>`;
+    });
+    html += `<li class="notice-tab" onclick="openNoticePanel()">📢 公告</li>`;
+    html += `<li class="favorite-tab ${currentCat === '收藏' ? 'active' : ''}" onclick="filterTab('收藏',this)">⭐ 收藏</li>`;
+    nav.innerHTML = html;
+}
+
+function toggleCatPanel() {
+    const panel = document.getElementById('catPanel');
+    if (!panel) return;
+    const showing = panel.classList.toggle('show');
+    if (showing) renderCatPanel();
+}
+
+function renderCatPanel() {
+    const list = document.getElementById('catList');
+    if (!list) return;
+    list.innerHTML = categoryList.map((cat, i) => `
+        <div class="cat-item">
+            <span class="cat-item-name">${cat.label}</span>
+            <button class="cat-move-btn" onclick="moveCat(${i},-1)" ${i === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
+            <button class="cat-move-btn" onclick="moveCat(${i},1)" ${i === categoryList.length-1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
+            <button class="cat-del-btn" onclick="deleteCat(${i})">✕</button>
+        </div>
+    `).join('');
+}
+
+function addCategory() {
+    const nameInput = document.getElementById('catNameInput');
+    const emojiInput = document.getElementById('catEmojiInput');
+    const name = nameInput.value.trim();
+    const emoji = emojiInput.value.trim();
+    if (!name) { showToast('❗ 请填写分类名称'); return; }
+    if (categoryList.some(c => c.key === name)) { showToast('❗ 该分类已存在'); return; }
+    const label = emoji ? emoji + ' ' + name : name;
+    categoryList.push({ key: name, label });
+    nameInput.value = ''; emojiInput.value = '';
+    renderCatPanel();
+    showToast('✅ 已添加，记得点"保存并更新导航"');
+}
+
+function deleteCat(idx) {
+    if (!confirm(`确定删除分类「${categoryList[idx].label}」吗？`)) return;
+    categoryList.splice(idx, 1);
+    renderCatPanel();
+    showToast('🗑️ 已删除，记得点"保存并更新导航"');
+}
+
+function moveCat(idx, dir) {
+    const target = idx + dir;
+    if (target < 0 || target >= categoryList.length) return;
+    [categoryList[idx], categoryList[target]] = [categoryList[target], categoryList[idx]];
+    renderCatPanel();
+}
+
+function saveCategoryOrder() {
+    persistCategories();
+    renderNav();
+    showToast('✅ 分类已保存，导航已更新！');
+}
 let currentPage = 1;
 let noticeText = ''; // 📢 公告内容（内存变量，云端加载后赋值）
 let maxPageCount = 1;
@@ -2220,6 +2335,12 @@ async function loadFromGrave() {
                         noticeText = content.notice;
                         localStorage.setItem(NOTICE_KEY, content.notice);
                     }
+                    // 🏷️ 从云端恢复分类配置
+                    if (Array.isArray(content.categories) && content.categories.length > 0) {
+                        categoryList = content.categories;
+                        persistCategories();
+                        renderNav();
+                    }
                     
                     const cardCount = document.querySelectorAll('.card').length;
                     window._ghSha = json.sha;
@@ -2313,7 +2434,7 @@ async function saveToCloud() {
     // ✨ v3.4.0：同时保存轮播图配置
     // 📢 同时保存公告内容
     const noticeContent = localStorage.getItem(NOTICE_KEY) || '';
-    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, updated: new Date().toISOString() });
+    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, updated: new Date().toISOString() });
     
     let encoded;
     try {
@@ -2860,6 +2981,8 @@ function exitAdmin() {
     const bp = document.getElementById("bannerEditPanel"); if(bp) bp.classList.remove("show");
     // 隐藏短链面板
     const sp = document.getElementById("shortlinkPanel"); if(sp) sp.classList.remove("show");
+    // 隐藏分类管理面板
+    const cp = document.getElementById("catPanel"); if(cp) cp.classList.remove("show");
     
     // 🔒 清除 Token
     adminToken = null;
@@ -3664,8 +3787,10 @@ function savePage() {
 
 window.onload = async () => { 
     checkForUpdates();
-    // 📢 预加载公告内容（云端加载成功后会覆盖）
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
+    // 🏷️ 先渲染导航，不依赖云端
+    loadCategories();
+    renderNav();
     
     await loadFromGrave();
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
