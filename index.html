@@ -2057,7 +2057,8 @@ function renderNav() {
     if (!nav) return;
     let html = `<li class="${currentCat === 'all' ? 'active' : ''}" onclick="filterTab('all',this)">🌟 全部</li>`;
     categoryList.forEach(cat => {
-        html += `<li class="${currentCat === cat.key ? 'active' : ''}" onclick="filterTab(${JSON.stringify(cat.key)},this)">${cat.label}</li>`;
+        const key = cat.key.replace(/'/g, "\\'");
+        html += `<li class="${currentCat === cat.key ? 'active' : ''}" onclick="filterTab('${key}',this)">${cat.label}</li>`;
     });
     html += `<li class="notice-tab" onclick="openNoticePanel()">📢 公告</li>`;
     html += `<li class="favorite-tab ${currentCat === '收藏' ? 'active' : ''}" onclick="filterTab('收藏',this)">⭐ 收藏</li>`;
