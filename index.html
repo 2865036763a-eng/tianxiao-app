@@ -20,10 +20,7 @@
             content: '';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('images/bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: var(--bg);
             z-index: 0;
             pointer-events: none;
         }
@@ -45,21 +42,14 @@
             position: fixed;
             inset: 0;
             z-index: 1500;
-            background: var(--bg);
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg.jpg');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             display: flex;
             flex-direction: column;
         }
-        .fullpage-panel::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('images/bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            z-index: 0;
-            pointer-events: none;
-        }
+        .fullpage-panel::before { display: none; }
         .fullpage-panel::after { display: none; }
         .fullpage-header {
             flex-shrink: 0;
@@ -210,7 +200,13 @@
         #nav li.favorite-tab { background: #ffe4f0; color: #ff1493; border: 1px solid #ff69b4; }
         #nav li.favorite-tab.active { background: #ff1493; color: #fff; }
 
-        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y; }
+        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y;
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg.jpg');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            background-attachment: scroll;
+        }
         
         /* ✨ v3.4.0 轮播Banner */
         #bannerSection { max-width: 550px; margin: 0 auto 16px auto; border-radius: 14px; overflow: hidden; position: relative; background: #eee; display: none; }
@@ -4276,11 +4272,21 @@ function copyText(text) {
             <span class="sidebar-item-icon">🔄</span>
             <span>清理缓存</span>
         </div>
+        <div class="sidebar-item" onclick="clearAllData()">
+            <span class="sidebar-item-icon">🗑️</span>
+            <span>清理全部数据</span>
+        </div>
     </div>
 </div>
 
 <script>
-function openSidebar() {
+function clearAllData() {
+    if (!confirm('⚠️ 确定要清理全部本地数据吗？\n\n将清除：本地缓存、收藏、分类配置、公告、轮播图等所有本地存储。\n\n云端数据不受影响，刷新后会重新从云端加载。')) return;
+    localStorage.clear();
+    sessionStorage.clear();
+    closeSidebar();
+    location.reload(true);
+}
     document.getElementById('sidebar').classList.add('show');
     document.getElementById('sidebarOverlay').classList.add('show');
 }
