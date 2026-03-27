@@ -15,12 +15,18 @@
     <style>
         :root { --primary: #ff6699; --bg: #eef0f5; --card: rgba(255,255,255,0.68); --text: #222; --border: #e3e8ec; --video: #fb7299; --notice: #ff9800; }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
-        body { 
-            background: url('images/bg.jpg') center center / cover no-repeat fixed;
-            color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
-            display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none; 
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none; }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('images/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            pointer-events: none;
         }
-        body::before { display: none; }
         
         /* 标题栏图标按钮 */
         .header-icon-btn {
@@ -39,14 +45,21 @@
             position: fixed;
             inset: 0;
             z-index: 1500;
-            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg.jpg');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
+            background: var(--bg);
             display: flex;
             flex-direction: column;
         }
-        .fullpage-panel::before { display: none; }
+        .fullpage-panel::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('images/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            pointer-events: none;
+        }
         .fullpage-panel::after { display: none; }
         .fullpage-header {
             flex-shrink: 0;
@@ -197,7 +210,7 @@
         #nav li.favorite-tab { background: #ffe4f0; color: #ff1493; border: 1px solid #ff69b4; }
         #nav li.favorite-tab.active { background: #ff1493; color: #fff; }
 
-        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y; background: transparent; }
+        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y; }
         
         /* ✨ v3.4.0 轮播Banner */
         #bannerSection { max-width: 550px; margin: 0 auto 16px auto; border-radius: 14px; overflow: hidden; position: relative; background: #eee; display: none; }
@@ -4263,21 +4276,11 @@ function copyText(text) {
             <span class="sidebar-item-icon">🔄</span>
             <span>清理缓存</span>
         </div>
-        <div class="sidebar-item" onclick="clearAllData()">
-            <span class="sidebar-item-icon">🗑️</span>
-            <span>清理全部数据</span>
-        </div>
     </div>
 </div>
 
 <script>
-function clearAllData() {
-    if (!confirm('⚠️ 确定要清理全部本地数据吗？\n\n将清除：本地缓存、收藏、分类配置、公告、轮播图等所有本地存储。\n\n云端数据不受影响，刷新后会重新从云端加载。')) return;
-    localStorage.clear();
-    sessionStorage.clear();
-    closeSidebar();
-    location.reload(true);
-}
+function openSidebar() {
     document.getElementById('sidebar').classList.add('show');
     document.getElementById('sidebarOverlay').classList.add('show');
 }
