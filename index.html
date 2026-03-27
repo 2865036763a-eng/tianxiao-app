@@ -557,6 +557,52 @@
         #rocket { position: fixed; right: 15px; bottom: -60px; width: 45px; height: 45px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,102,153,0.4); cursor: pointer; transition: 0.4s; z-index: 200; font-size: 22px; touch-action: manipulation; }
         #rocket.show { bottom: 100px; }
 
+        /* ===== 🍔 侧边栏菜单 ===== */
+        #sidebarOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            z-index: 1200; display: none; opacity: 0;
+            transition: opacity 0.25s;
+        }
+        #sidebarOverlay.show { display: block; opacity: 1; }
+        #sidebar {
+            position: fixed; top: 0; left: -260px; bottom: 0;
+            width: 240px; background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(12px);
+            z-index: 1201; display: flex; flex-direction: column;
+            transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.12);
+        }
+        #sidebar.show { left: 0; }
+        .sidebar-header {
+            padding: 20px 16px 14px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--primary), #ff99bb);
+        }
+        .sidebar-title {
+            font-size: 16px; font-weight: bold; color: #fff;
+            text-align: center; letter-spacing: 1px;
+        }
+        .sidebar-subtitle {
+            font-size: 11px; color: rgba(255,255,255,0.8);
+            text-align: center; margin-top: 4px;
+        }
+        .sidebar-menu { flex: 1; padding: 10px 0; overflow-y: auto; }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 20px; font-size: 15px; color: #333;
+            cursor: pointer; transition: background 0.15s;
+            touch-action: manipulation;
+        }
+        .sidebar-item:active { background: rgba(255,102,153,0.08); }
+        .sidebar-item.active { color: var(--primary); font-weight: bold; background: rgba(255,102,153,0.06); }
+        .sidebar-item-icon { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+        .sidebar-burger {
+            font-size: 22px; cursor: pointer; padding: 4px 6px;
+            border-radius: 8px; touch-action: manipulation; line-height: 1;
+            color: #555;
+        }
+        .sidebar-burger:active { background: rgba(0,0,0,0.06); }
+
         #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; flex-wrap: wrap; }
         #adminBar button { flex: 1; cursor: pointer; border: none; border-radius: 8px; padding: 12px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; min-width: calc(33% - 7px); }
         .btn-save { background: #28a745 !important; }
@@ -703,10 +749,9 @@
 
 <header>
     <div class="header-top">
-        <button id="clearCacheBtn" class="clear-cache-btn" onclick="clearCacheAndReload()" title="清除缓存并刷新">🔄</button>
+        <div class="sidebar-burger" onclick="openSidebar()">☰</div>
         <div class="site-title">天笑の秘密基地</div>
         <div style="display:flex;align-items:center;gap:6px;">
-            <div class="header-icon-btn" onclick="openNoticePanel()" title="公告">📢</div>
             <div class="header-icon-btn" onclick="openFavoritePanel()" title="我的收藏">💖</div>
             <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
         </div>
@@ -4211,5 +4256,60 @@ function copyText(text) {
 </div>
 
 <script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;a6648af1a52e42bfa20fc3be41d9bad9&quot;,&quot;r&quot;:1,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+
+<!-- 🍔 侧边栏 -->
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-title">天笑の秘密基地</div>
+        <div class="sidebar-subtitle">自由之地 · 资源导航</div>
+    </div>
+    <div class="sidebar-menu">
+        <div class="sidebar-item active" id="sidebarHome" onclick="sidebarGoHome()">
+            <span class="sidebar-item-icon">🏠</span>
+            <span>首页</span>
+        </div>
+        <div class="sidebar-item" id="sidebarNotice" onclick="sidebarGoNotice()">
+            <span class="sidebar-item-icon">📢</span>
+            <span>公告</span>
+        </div>
+        <div class="sidebar-item" onclick="closeSidebar(); clearCacheAndReload();">
+            <span class="sidebar-item-icon">🔄</span>
+            <span>清理缓存</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('show');
+    document.getElementById('sidebarOverlay').classList.add('show');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('show');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+}
+function sidebarGoHome() {
+    closeSidebar();
+    // 关闭公告面板（如果开着）
+    const np = document.getElementById('noticePanelPage');
+    if (np) np.style.display = 'none';
+    document.getElementById('sidebarHome').classList.add('active');
+    document.getElementById('sidebarNotice').classList.remove('active');
+}
+function sidebarGoNotice() {
+    closeSidebar();
+    document.getElementById('sidebarHome').classList.remove('active');
+    document.getElementById('sidebarNotice').classList.add('active');
+    openNoticePanel();
+}
+// 公告面板关闭时把侧边栏高亮还原到首页
+const _origCloseNotice = window.closeNoticePanel;
+window.closeNoticePanel = function() {
+    if (typeof _origCloseNotice === 'function') _origCloseNotice();
+    document.getElementById('sidebarHome').classList.add('active');
+    document.getElementById('sidebarNotice').classList.remove('active');
+};
+</script>
 
 </body></html>
