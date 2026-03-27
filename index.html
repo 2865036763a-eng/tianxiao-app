@@ -3028,7 +3028,7 @@ function deleteCard(btn) {
 function addCard() {
     const div = document.createElement("div");
     div.className = "card";
-    let defaultTag = currentCat === 'all' ? 'ACT' : currentCat;
+    let defaultTag = (currentCat === 'all' || currentCat === '') ? '' : currentCat;
     
     div.innerHTML = `
         <div class="pin-btn" onclick="togglePin(this)">📌</div>
@@ -3046,7 +3046,7 @@ function addCard() {
         </div>
         <div class="info-box">
             <div class="g-name">标题...</div>
-            <div class="g-tags" onpaste="handleTagPaste(event)">标签: ${defaultTag}</div>
+            <div class="g-tags" onpaste="handleTagPaste(event)">${defaultTag ? '标签: ' + defaultTag : '标签:'}</div>
             <div class="desc-wrap">
                 <div class="desc-text"></div>
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
