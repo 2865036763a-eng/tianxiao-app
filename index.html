@@ -15,18 +15,12 @@
     <style>
         :root { --primary: #ff6699; --bg: #eef0f5; --card: rgba(255,255,255,0.68); --text: #222; --border: #e3e8ec; --video: #fb7299; --notice: #ff9800; }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none; }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('images/bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            z-index: 0;
-            pointer-events: none;
+        body { 
+            background: url('images/bg.jpg') center center / cover no-repeat fixed;
+            color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
+            display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none; 
         }
+        body::before { display: none; }
         
         /* 标题栏图标按钮 */
         .header-icon-btn {
@@ -45,21 +39,14 @@
             position: fixed;
             inset: 0;
             z-index: 1500;
-            background: var(--bg);
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg.jpg');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             display: flex;
             flex-direction: column;
         }
-        .fullpage-panel::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('images/bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            z-index: 0;
-            pointer-events: none;
-        }
+        .fullpage-panel::before { display: none; }
         .fullpage-panel::after { display: none; }
         .fullpage-header {
             flex-shrink: 0;
@@ -210,7 +197,7 @@
         #nav li.favorite-tab { background: #ffe4f0; color: #ff1493; border: 1px solid #ff69b4; }
         #nav li.favorite-tab.active { background: #ff1493; color: #fff; }
 
-        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y; }
+        main { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; overscroll-behavior-y: contain; touch-action: pan-y; background: transparent; }
         
         /* ✨ v3.4.0 轮播Banner */
         #bannerSection { max-width: 550px; margin: 0 auto 16px auto; border-radius: 14px; overflow: hidden; position: relative; background: #eee; display: none; }
@@ -436,6 +423,9 @@
         .link-wrap { position: relative; background: #f8f9fb; border-radius: 8px; border: 1px solid #edf0f5; display: flex; flex-direction: column; }
         .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.2; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 1.2em; }
         .link-wrap.expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; white-space: pre-wrap; }
+        /* 非管理员隐藏 KV 占位提示 */
+        .link-text[data-kv-placeholder="1"] { display: none; }
+        .admin-mode .link-text[data-kv-placeholder="1"] { display: block; color: #aaa; font-style: italic; -webkit-line-clamp: initial; max-height: none; white-space: normal; }
         /* 🐛 修复：管理员模式下也支持展开收起 */
         .admin-mode .link-text { -webkit-line-clamp: 1; display: -webkit-box; max-height: 1.2em; overflow-y: visible; white-space: nowrap; text-overflow: ellipsis; line-height: 1.2; }
         .admin-mode .link-wrap.expanded .link-text { -webkit-line-clamp: initial; display: block; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
@@ -2459,6 +2449,43 @@ async function loadFromGrave() {
 }
 
 // 保存到云端（通过Worker，需要 Token 验证）
+// 🔒 把新卡片（data-use-kv=1）的链接上传到 KV，并清空 link-text
+async function uploadNewCardLinksToKV(token) {
+    const newCards = document.querySelectorAll('.card[data-use-kv="1"]');
+    for (const card of newCards) {
+        const cardId = card.dataset.cardId;
+        if (!cardId) continue;
+        const linkText = card.querySelector('.link-text');
+        if (!linkText) continue;
+        const text = linkText.innerText || linkText.textContent || '';
+        // 提取链接
+        const urlPattern = /(https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+)/g;
+        const urls = (text.match(urlPattern) || []).map(u => u.replace(/[,，。.;；!！?？\)）\]】}>》\'"]+$/, '')).filter(u => {
+            try { return new URL(u).hostname.includes('.'); } catch(e) { return false; }
+        }).filter((u, i, a) => a.indexOf(u) === i);
+
+        if (urls.length === 0) continue;
+
+        try {
+            const res = await fetch(`${WORKER_BASE}/api/links/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ cardId, links: urls })
+            });
+            if (res.ok) {
+                // 上传成功：清空 link-text，保留纯文字说明（提取码等），去掉 URL
+                const cleanText = text.replace(/(https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+)/g, '').trim();
+                linkText.textContent = cleanText || '（链接已安全存储）';
+                linkText.removeAttribute('data-kv-placeholder');
+                // 标记已上传，不要重复上传
+                card.dataset.useKv = 'done';
+            }
+        } catch(e) {
+            console.error('链接上传KV失败:', cardId, e);
+        }
+    }
+}
+
 async function saveToCloud() {
     // 🔒 检查 Token
     const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
@@ -2471,6 +2498,9 @@ async function saveToCloud() {
     resetAllCardStates();
     // ✨ 清除动态生成的紧凑卡片元素，不应存入云端
     stripCompactCardElements();
+
+    // 🔒 新卡片链接上传KV：把 data-use-kv="1" 的卡片链接提取并上传，link-text 清空
+    await uploadNewCardLinksToKV(token);
 
     // 确保所有卡片都包含简介区域
     const cards = document.getElementById("box").innerHTML;
@@ -3096,7 +3126,7 @@ function addCard() {
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
             <div class="link-wrap">
-                <div class="link-text"></div>
+                <div class="link-text" data-kv-placeholder="1">（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）</div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="direct-dl-edit">
@@ -3112,6 +3142,7 @@ function addCard() {
     const newCardId = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     div.dataset.cardId = newCardId;
     div.dataset.newCard = '1'; // 标记为新卡片
+    div.dataset.useKv = '1';  // 🔒 新卡片：链接存KV不存DOM
     
     // 🔒 安全修复：仅在管理员模式下设置为可编辑
     if (isEditMode) {
@@ -3553,14 +3584,49 @@ function addLinkJumpButtons() {
             const oldActions = wrap.querySelector('.link-actions');
             if (oldActions) oldActions.remove();
 
+            // 🔒 KV 卡片：按钮点击时从 Worker 取链接
+            const useKv = card.dataset.useKv;
+            if (useKv === '1' || useKv === 'done') {
+                const cardId = card.dataset.cardId;
+                if (cardId) {
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'link-actions';
+                    const btn = document.createElement('button');
+                    btn.className = 'link-jump-btn';
+                    btn.textContent = '🔗 获取链接';
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        btn.textContent = '⏳ 获取中...';
+                        btn.disabled = true;
+                        try {
+                            const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                showLinkSelector(data.links);
+                            } else if (res.status === 429) {
+                                showToast('❌ 请求太频繁，请稍后再试');
+                            } else {
+                                showToast('❌ 链接获取失败，请稍后再试');
+                            }
+                        } catch(err) {
+                            showToast('❌ 网络错误');
+                        }
+                        btn.textContent = '🔗 获取链接';
+                        btn.disabled = false;
+                    });
+                    actionsDiv.appendChild(btn);
+                    wrap.insertBefore(actionsDiv, expandBtn);
+                }
+                return; // KV 卡片不走下面普通逻辑
+            }
+
+            // 普通卡片：从 link-text 提取 URL
             const text = linkText.innerText || linkText.textContent;
             const urls = extractUrls(text);
 
             if (urls.length > 0) {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'link-actions';
-
-                    const processedUrl = processCloudLink(urls[0]);
                 const processedUrls = urls.map(url => processCloudLink(url));
                 const btn = document.createElement('button');
                 btn.className = 'link-jump-btn';
@@ -4276,11 +4342,21 @@ function copyText(text) {
             <span class="sidebar-item-icon">🔄</span>
             <span>清理缓存</span>
         </div>
+        <div class="sidebar-item" onclick="clearAllData()">
+            <span class="sidebar-item-icon">🗑️</span>
+            <span>清理全部数据</span>
+        </div>
     </div>
 </div>
 
 <script>
-function openSidebar() {
+function clearAllData() {
+    if (!confirm('⚠️ 确定要清理全部本地数据吗？\n\n将清除：本地缓存、收藏、分类配置、公告、轮播图等所有本地存储。\n\n云端数据不受影响，刷新后会重新从云端加载。')) return;
+    localStorage.clear();
+    sessionStorage.clear();
+    closeSidebar();
+    location.reload(true);
+}
     document.getElementById('sidebar').classList.add('show');
     document.getElementById('sidebarOverlay').classList.add('show');
 }
