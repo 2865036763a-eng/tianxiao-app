@@ -2379,6 +2379,10 @@ async function loadFromGrave() {
                         persistCategories();
                         renderNav();
                     }
+                    // 💬 从云端恢复评论区链接
+                    if (typeof content.commentUrl === 'string' && content.commentUrl) {
+                        localStorage.setItem(COMMENT_URL_KEY, content.commentUrl);
+                    }
                     
                     const cardCount = document.querySelectorAll('.card').length;
                     window._ghSha = json.sha;
@@ -2512,7 +2516,7 @@ async function saveToCloud() {
     // ✨ v3.4.0：同时保存轮播图配置
     // 📢 同时保存公告内容
     const noticeContent = localStorage.getItem(NOTICE_KEY) || '';
-    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, updated: new Date().toISOString() });
+    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, commentUrl: localStorage.getItem(COMMENT_URL_KEY) || '', updated: new Date().toISOString() });
     
     let encoded;
     try {
@@ -3048,6 +3052,7 @@ function enterAdmin() {
     document.querySelectorAll(".g-tags").forEach(el => {
         el.onpaste = handleTagPaste;
     });
+    updateSidebarAdminUI();
     refreshUI();
 }
 
@@ -3061,6 +3066,7 @@ function exitAdmin() {
     const sp = document.getElementById("shortlinkPanel"); if(sp) sp.classList.remove("show");
     // 隐藏分类管理面板
     const cp = document.getElementById("catPanel"); if(cp) cp.classList.remove("show");
+    updateSidebarAdminUI();
     
     // 🔒 清除 Token
     adminToken = null;
@@ -4449,6 +4455,11 @@ function copyText(text) {
             <span class="sidebar-item-icon">📢</span>
             <span>公告</span>
         </div>
+        <div class="sidebar-item" id="sidebarComment" onclick="sidebarGoComment()">
+            <span class="sidebar-item-icon">💬</span>
+            <span>评论区</span>
+            <span id="sidebarCommentEdit" onclick="event.stopPropagation(); editCommentUrl();" style="display:none; margin-left:auto; font-size:12px; color:#aaa; padding:2px 6px; border-radius:4px; background:#f0f0f0;">⚙️</span>
+        </div>
         <div class="sidebar-item" onclick="closeSidebar(); clearCacheAndReload();">
             <span class="sidebar-item-icon">🔄</span>
             <span>清理缓存</span>
@@ -4467,6 +4478,43 @@ function clearAllData() {
     sessionStorage.clear();
     closeSidebar();
     location.reload(true);
+}
+
+const COMMENT_URL_KEY = 'TX_COMMENT_URL';
+
+function sidebarGoComment() {
+    const url = localStorage.getItem(COMMENT_URL_KEY);
+    if (!url) {
+        if (isEditMode) {
+            editCommentUrl();
+        } else {
+            showToast('💬 评论区链接暂未设置');
+        }
+        return;
+    }
+    closeSidebar();
+    window.open(url, '_blank');
+}
+
+function editCommentUrl() {
+    const current = localStorage.getItem(COMMENT_URL_KEY) || '';
+    const newUrl = prompt('请输入评论区链接（QQ频道或其他）：', current);
+    if (newUrl === null) return;
+    if (newUrl.trim() === '') {
+        localStorage.removeItem(COMMENT_URL_KEY);
+        showToast('🗑️ 评论区链接已清除');
+    } else if (!newUrl.startsWith('http')) {
+        showToast('❌ 请输入有效的链接（http开头）');
+    } else {
+        localStorage.setItem(COMMENT_URL_KEY, newUrl.trim());
+        showToast('✅ 评论区链接已保存');
+    }
+}
+
+// 管理员模式下显示评论区编辑按钮
+function updateSidebarAdminUI() {
+    const editBtn = document.getElementById('sidebarCommentEdit');
+    if (editBtn) editBtn.style.display = isEditMode ? 'inline-block' : 'none';
 }
 function openSidebar() {
     document.getElementById('sidebar').classList.add('show');
