@@ -719,7 +719,22 @@
             overscroll-behavior-y: contain !important;
             -webkit-overflow-scrolling: touch !important;
         }
+        /* Turnstile 验证弹窗 */
+        #turnstileModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 3000; display: none; align-items: center; justify-content: center;
+        }
+        #turnstileModal.show { display: flex; }
+        #turnstileBox {
+            background: #fff; border-radius: 16px; padding: 24px 28px;
+            text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            max-width: 340px; width: 90%;
+        }
+        #turnstileBox .ts-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 6px; }
+        #turnstileBox .ts-sub { font-size: 13px; color: #999; margin-bottom: 16px; }
+        #turnstileBox .ts-cancel { margin-top: 12px; width: 100%; padding: 10px; border: none; border-radius: 8px; background: #f0f0f0; color: #666; font-size: 14px; cursor: pointer; }
     </style></head>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <body class="view-mode">
 
 <div id="gateKeeper" style="display: flex;">
@@ -3671,10 +3686,22 @@ function addLinkJumpButtons() {
                     btn.textContent = '🔗 获取链接';
                     btn.addEventListener('click', async function(e) {
                         e.stopPropagation();
-                        btn.textContent = '⏳ 获取中...';
+                        btn.textContent = '⏳ 验证中...';
                         btn.disabled = true;
                         try {
-                            const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}`);
+                            // 管理员模式跳过 Turnstile，直接用 admin token
+                            let tsToken = '';
+                            if (!isEditMode) {
+                                tsToken = await requestTurnstileToken();
+                            }
+                            btn.textContent = '⏳ 获取中...';
+                            const headers = {};
+                            if (isEditMode) {
+                                const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+                                if (tok) headers['Authorization'] = `Bearer ${tok}`;
+                            }
+                            const urlParam = `${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}${tsToken ? '&token=' + encodeURIComponent(tsToken) : ''}`;
+                            const res = await fetch(urlParam, { headers });
                             if (res.ok) {
                                 const data = await res.json();
                                 showLinkSelector(data.links);
@@ -3684,7 +3711,7 @@ function addLinkJumpButtons() {
                                 showToast('❌ 链接获取失败，请稍后再试');
                             }
                         } catch(err) {
-                            showToast('❌ 网络错误');
+                            if (err.message !== '取消') showToast('❌ ' + (err.message || '网络错误'));
                         }
                         btn.textContent = '🔗 获取链接';
                         btn.disabled = false;
@@ -4545,6 +4572,62 @@ window.closeNoticePanel = function() {
     document.getElementById('sidebarHome').classList.add('active');
     document.getElementById('sidebarNotice').classList.remove('active');
 };
+</script>
+
+<!-- Turnstile 人机验证弹窗 -->
+<div id="turnstileModal">
+    <div id="turnstileBox">
+        <div class="ts-title">🔒 请完成验证</div>
+        <div class="ts-sub">验证通过后即可获取下载链接</div>
+        <div id="turnstileWidget"></div>
+        <button class="ts-cancel" onclick="closeTurnstile()">取消</button>
+    </div>
+</div>
+
+<script>
+const TURNSTILE_SITE_KEY = '0x4AAAAAACxkhwPrw1gO9XFQ';
+let _tsResolve = null;
+let _tsReject = null;
+let _tsWidgetId = null;
+
+// 弹出 Turnstile 验证，返回 Promise<token>
+function requestTurnstileToken() {
+    return new Promise((resolve, reject) => {
+        _tsResolve = resolve;
+        _tsReject = reject;
+        const modal = document.getElementById('turnstileModal');
+        const container = document.getElementById('turnstileWidget');
+        container.innerHTML = '';
+        modal.classList.add('show');
+        // 渲染 Turnstile 组件
+        _tsWidgetId = turnstile.render(container, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'light',
+            callback: function(token) {
+                closeTurnstile();
+                resolve(token);
+            },
+            'error-callback': function() {
+                closeTurnstile();
+                reject(new Error('验证失败'));
+            },
+            'expired-callback': function() {
+                closeTurnstile();
+                reject(new Error('验证已过期'));
+            }
+        });
+    });
+}
+
+function closeTurnstile() {
+    document.getElementById('turnstileModal').classList.remove('show');
+    if (_tsWidgetId !== null && typeof turnstile !== 'undefined') {
+        try { turnstile.remove(_tsWidgetId); } catch(e) {}
+        _tsWidgetId = null;
+    }
+    if (_tsReject) { _tsReject(new Error('取消')); _tsReject = null; }
+    _tsResolve = null;
+}
 </script>
 
 </body></html>
