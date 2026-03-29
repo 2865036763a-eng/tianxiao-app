@@ -1948,6 +1948,56 @@
 </div>
 
 <script>
+// ===== 🔒 Turnstile 人机验证 =====
+const TURNSTILE_SITE_KEY = '0x4AAAAAACxkhwPrw1gO9XFQ';
+let _tsResolve = null;
+let _tsReject = null;
+let _tsWidgetId = null;
+
+function requestTurnstileToken() {
+    return new Promise((resolve, reject) => {
+        _tsResolve = resolve;
+        _tsReject = reject;
+        const modal = document.getElementById('turnstileModal');
+        const container = document.getElementById('turnstileWidget');
+        container.innerHTML = '';
+        modal.classList.add('show');
+        _tsWidgetId = turnstile.render(container, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'light',
+            callback: function(token) {
+                closeTurnstile();
+                resolve(token);
+            },
+            'error-callback': function() {
+                closeTurnstile();
+                reject(new Error('验证失败，请重试'));
+            },
+            'expired-callback': function() {
+                closeTurnstile();
+                reject(new Error('验证已过期，请重试'));
+            }
+        });
+    });
+}
+
+function closeTurnstile() {
+    document.getElementById('turnstileModal').classList.remove('show');
+    if (_tsWidgetId !== null && typeof turnstile !== 'undefined') {
+        try { turnstile.remove(_tsWidgetId); } catch(e) {}
+        _tsWidgetId = null;
+    }
+    _tsResolve = null;
+    _tsReject = null;
+}
+
+function cancelTurnstile() {
+    const rej = _tsReject;
+    closeTurnstile();
+    if (rej) rej(new Error('取消'));
+}
+// ===================================
+
 // ===== 🛡️ 终极防下拉刷新（修复版：允许弹窗内滚动） =====
 (function() {
     let startY = 0;
@@ -4586,55 +4636,5 @@ window.closeNoticePanel = function() {
     </div>
 </div>
 
-<script>
-const TURNSTILE_SITE_KEY = '0x4AAAAAACxkhwPrw1gO9XFQ';
-let _tsResolve = null;
-let _tsReject = null;
-let _tsWidgetId = null;
-
-// 弹出 Turnstile 验证，返回 Promise<token>
-function requestTurnstileToken() {
-    return new Promise((resolve, reject) => {
-        _tsResolve = resolve;
-        _tsReject = reject;
-        const modal = document.getElementById('turnstileModal');
-        const container = document.getElementById('turnstileWidget');
-        container.innerHTML = '';
-        modal.classList.add('show');
-        // 渲染 Turnstile 组件
-        _tsWidgetId = turnstile.render(container, {
-            sitekey: TURNSTILE_SITE_KEY,
-            theme: 'light',
-            callback: function(token) {
-                closeTurnstile();
-                resolve(token);
-            },
-            'error-callback': function() {
-                closeTurnstile();
-                reject(new Error('验证失败'));
-            },
-            'expired-callback': function() {
-                closeTurnstile();
-                reject(new Error('验证已过期'));
-            }
-        });
-    });
-}
-
-function cancelTurnstile() {
-    const reject = _tsReject;
-    closeTurnstile();
-    if (reject) reject(new Error('取消'));
-}
-    document.getElementById('turnstileModal').classList.remove('show');
-    if (_tsWidgetId !== null && typeof turnstile !== 'undefined') {
-        try { turnstile.remove(_tsWidgetId); } catch(e) {}
-        _tsWidgetId = null;
-    }
-    // 只有点取消按钮时才 reject，验证成功时 _tsResolve 已被调用，_tsReject 不应再触发
-    _tsResolve = null;
-    _tsReject = null;
-}
-</script>
 
 </body></html>
