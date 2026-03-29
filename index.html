@@ -4580,7 +4580,7 @@ window.closeNoticePanel = function() {
         <div class="ts-title">🔒 请完成验证</div>
         <div class="ts-sub">验证通过后即可获取下载链接</div>
         <div id="turnstileWidget"></div>
-        <button class="ts-cancel" onclick="closeTurnstile()">取消</button>
+        <button class="ts-cancel" onclick="cancelTurnstile()">取消</button>
     </div>
 </div>
 
@@ -4619,14 +4619,19 @@ function requestTurnstileToken() {
     });
 }
 
-function closeTurnstile() {
+function cancelTurnstile() {
+    const reject = _tsReject;
+    closeTurnstile();
+    if (reject) reject(new Error('取消'));
+}
     document.getElementById('turnstileModal').classList.remove('show');
     if (_tsWidgetId !== null && typeof turnstile !== 'undefined') {
         try { turnstile.remove(_tsWidgetId); } catch(e) {}
         _tsWidgetId = null;
     }
-    if (_tsReject) { _tsReject(new Error('取消')); _tsReject = null; }
+    // 只有点取消按钮时才 reject，验证成功时 _tsResolve 已被调用，_tsReject 不应再触发
     _tsResolve = null;
+    _tsReject = null;
 }
 </script>
 
