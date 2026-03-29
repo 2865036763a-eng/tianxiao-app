@@ -3689,10 +3689,11 @@ function addLinkJumpButtons() {
                         btn.textContent = '⏳ 验证中...';
                         btn.disabled = true;
                         try {
-                            // 管理员模式跳过 Turnstile，直接用 admin token
                             let tsToken = '';
                             if (!isEditMode) {
+                                showToast('⏳ 正在完成人机验证...', 0);
                                 tsToken = await requestTurnstileToken();
+                                showToast('✅ 验证通过，获取链接中...', 0);
                             }
                             btn.textContent = '⏳ 获取中...';
                             const headers = {};
@@ -3708,7 +3709,8 @@ function addLinkJumpButtons() {
                             } else if (res.status === 429) {
                                 showToast('❌ 请求太频繁，请稍后再试');
                             } else {
-                                showToast('❌ 链接获取失败，请稍后再试');
+                                const err = await res.json().catch(() => ({}));
+                                showToast('❌ ' + (err.error || '链接获取失败'));
                             }
                         } catch(err) {
                             if (err.message !== '取消') showToast('❌ ' + (err.message || '网络错误'));
