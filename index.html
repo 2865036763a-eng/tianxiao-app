@@ -3760,17 +3760,26 @@ function addLinkJumpButtons() {
                                 const ltEl = wrap ? wrap.querySelector('.link-text') : null;
                                 const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
                                 // 把纯URL列表转成带说明的对象
+                                // KV卡片link-text里URL已被清除，只保留分卷/提取码等文字
+                                // 用顺序匹配：把非空文本行按顺序分配给每个URL
+                                const ltLines = ltText.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
+                                // 提取所有"分卷X"类标签行和"提取码:xxx"行
+                                const labelLines = []; // 分卷标签
+                                const extraLines = []; // 提取码
+                                const otherLines = []; // 其他注释
+                                ltLines.forEach(l => {
+                                    if (/^(分卷|卷|vol|part|第.卷|链接\s*\d*)[\s\d]*$/i.test(l)) {
+                                        labelLines.push(l);
+                                    } else if (/提取码|密码|解压码|password/i.test(l)) {
+                                        extraLines.push(l);
+                                    } else {
+                                        otherLines.push(l);
+                                    }
+                                });
                                 const itemsWithCtx = data.links.map((url, i) => {
-                                    // 在link-text里找这个URL对应的上下文
-                                    const lines = ltText.split(/\n/);
-                                    let label = '', extra = '';
-                                    lines.forEach((line, li) => {
-                                        if (line.includes(url)) {
-                                            label = lines[li - 1] ? lines[li - 1].trim() : '';
-                                            extra = lines[li + 1] ? lines[li + 1].trim() : '';
-                                        }
-                                    });
-                                    return { url, label: label || `链接 ${i + 1}`, extra };
+                                    const label = labelLines[i] || (otherLines[i] ? otherLines[i] : `链接 ${i + 1}`);
+                                    const extra = extraLines[i] || '';
+                                    return { url, label, extra };
                                 });
                                 showLinkSelector(itemsWithCtx);
                             } else if (res.status === 429) {
