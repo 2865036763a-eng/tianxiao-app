@@ -3755,7 +3755,23 @@ function addLinkJumpButtons() {
                             const res = await fetch(urlParam, { headers });
                             if (res.ok) {
                                 const data = await res.json();
-                                showLinkSelector(data.links);
+                                // 尝试从 link-text 里读取上下文说明（提取码等）
+                                const ltEl = wrap ? wrap.querySelector('.link-text') : null;
+                                const ltText = ltEl ? (ltEl.innerText || ltEl.textContent || '') : '';
+                                // 把纯URL列表转成带说明的对象
+                                const itemsWithCtx = data.links.map((url, i) => {
+                                    // 在link-text里找这个URL对应的上下文
+                                    const lines = ltText.split(/\n/);
+                                    let label = '', extra = '';
+                                    lines.forEach((line, li) => {
+                                        if (line.includes(url)) {
+                                            label = lines[li - 1] ? lines[li - 1].trim() : '';
+                                            extra = lines[li + 1] ? lines[li + 1].trim() : '';
+                                        }
+                                    });
+                                    return { url, label: label || `链接 ${i + 1}`, extra };
+                                });
+                                showLinkSelector(itemsWithCtx);
                             } else if (res.status === 429) {
                                 showToast('❌ 请求太频繁，请稍后再试');
                             } else {
@@ -3816,20 +3832,19 @@ function addLinkJumpButtons() {
                 return; // KV 卡片不走下面普通逻辑
             }
 
-            // 普通卡片：从 link-text 提取 URL
+            // 普通卡片：从 link-text 提取 URL（含上下文说明）
             const text = linkText.innerText || linkText.textContent;
-            const urls = extractUrls(text);
+            const urlItems = extractUrlsWithContext(text);
 
-            if (urls.length > 0) {
+            if (urlItems.length > 0) {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'link-actions';
-                const processedUrls = urls.map(url => processCloudLink(url));
                 const btn = document.createElement('button');
                 btn.className = 'link-jump-btn';
-                btn.textContent = '🔗 选择链接 (' + urls.length + '个)';
+                btn.textContent = '🔗 选择链接 (' + urlItems.length + '个)';
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    showLinkSelector(processedUrls);
+                    showLinkSelector(urlItems);
                 });
                 actionsDiv.appendChild(btn);
                 wrap.insertBefore(actionsDiv, expandBtn);
@@ -3921,25 +3936,46 @@ function processCloudLink(url) {
 
 // 从文本中提取所有URL（改进版：识别所有链接）
 function extractUrls(text) {
-    // 匹配URL，遇到空白、中文、常见分隔符停止
+    return extractUrlsWithContext(text).map(item => item.url);
+}
+
+// 提取URL并附带上下文说明（前面一行的非URL文字）
+function extractUrlsWithContext(text) {
     const urlPattern = /(https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+)/g;
-    const matches = text.match(urlPattern);
-    if (!matches) return [];
-    
-    return matches
-        .map(url => {
-            // 去除末尾常见标点符号
-            return url.replace(/[,，。.;；!！?？\)）\]】}>》\'"]+$/, '');
-        })
-        .filter(url => {
+    const lines = text.split(/\n|<br\s*\/?>/i);
+    const result = [];
+    let pendingLabel = '';
+
+    lines.forEach(line => {
+        const cleanLine = line.replace(/<[^>]+>/g, '').trim();
+        const urlMatch = cleanLine.match(/https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+/);
+        if (urlMatch) {
+            const url = urlMatch[0].replace(/[,，。.;；!！?？\)）\]】}>》\'"]+$/, '');
             try {
                 const urlObj = new URL(url);
-                return urlObj.hostname.length > 0 && urlObj.hostname.includes('.');
-            } catch(e) {
-                return false;
-            }
-        })
-        .filter((url, index, self) => self.indexOf(url) === index);
+                if (urlObj.hostname.includes('.')) {
+                    // 同一行里URL前面的文字也算label
+                    const before = cleanLine.substring(0, cleanLine.indexOf(urlMatch[0])).trim();
+                    const label = (pendingLabel || before || '').trim();
+                    // URL后面的文字（提取码等）
+                    const after = cleanLine.substring(cleanLine.indexOf(urlMatch[0]) + urlMatch[0].length).trim();
+                    result.push({ url, label, extra: after });
+                }
+            } catch(e) {}
+            pendingLabel = '';
+        } else if (cleanLine) {
+            // 非URL行，作为下一个URL的说明
+            pendingLabel = cleanLine;
+        }
+    });
+
+    // 去重
+    const seen = new Set();
+    return result.filter(item => {
+        if (seen.has(item.url)) return false;
+        seen.add(item.url);
+        return true;
+    });
 }
 
 // 显示多链接选择器
@@ -3949,33 +3985,53 @@ function showLinkSelector(urls, event) {
     modal.className = 'modal-overlay';
     modal.style.display = 'flex';
     
-    // 用DOM方式构建，避免URL特殊字符导致的onclick字符串问题
     const linksContainer = document.createElement('div');
     linksContainer.style.cssText = 'max-height: 500px; overflow-y: auto; padding: 10px;';
-    urls.forEach((url, idx) => {
-        const shortUrl = url.length > 60 ? url.substring(0, 60) + '...' : url;
-        const item = document.createElement('div');
-        item.style.cssText = 'margin: 12px 0; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background: #f9f9f9;';
-        
+
+    urls.forEach((item, idx) => {
+        // 兼容纯字符串（旧调用方式）和 {url, label, extra} 对象
+        const url = typeof item === 'string' ? item : item.url;
+        const label = typeof item === 'object' && item.label ? item.label : '';
+        const extra = typeof item === 'object' && item.extra ? item.extra : '';
+        const shortUrl = url.length > 50 ? url.substring(0, 50) + '...' : url;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.style.cssText = 'margin: 12px 0; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background: #f9f9f9;';
+
+        // 说明文字（分卷1/分卷2等）
+        if (label) {
+            const labelEl = document.createElement('div');
+            labelEl.style.cssText = 'font-size: 13px; font-weight: bold; color: #333; margin-bottom: 6px;';
+            labelEl.textContent = label;
+            itemDiv.appendChild(labelEl);
+        }
+
         const openBtn = document.createElement('button');
         openBtn.className = 'modal-btn btn-confirm';
         openBtn.style.cssText = 'width: 100%; text-align: left; padding: 12px; word-break: break-all; margin-bottom: 8px; background: #007bff; color: white;';
         openBtn.textContent = '📱 ' + (idx + 1) + '. ' + shortUrl;
         openBtn.addEventListener('click', function() { window.open(url, '_blank'); });
-        
+
         const copyBtn = document.createElement('button');
         copyBtn.className = 'modal-btn';
         copyBtn.style.cssText = 'width: 100%; text-align: center; padding: 10px; background: #28a745; color: white; font-size: 14px;';
         copyBtn.textContent = '📋 复制链接';
         copyBtn.addEventListener('click', function() { copyLinkToClipboard(url, copyBtn); });
-        
-        item.appendChild(openBtn);
-        item.appendChild(copyBtn);
-        linksContainer.appendChild(item);
+
+        itemDiv.appendChild(openBtn);
+        itemDiv.appendChild(copyBtn);
+
+        // 提取码等额外信息
+        if (extra) {
+            const extraEl = document.createElement('div');
+            extraEl.style.cssText = 'font-size: 12px; color: #888; margin-top: 6px; padding: 4px 6px; background: #f0f0f0; border-radius: 4px;';
+            extraEl.textContent = extra;
+            itemDiv.appendChild(extraEl);
+        }
+
+        linksContainer.appendChild(itemDiv);
     });
-    let linksHtml = ''; // 不再用innerHTML插入链接
-    
-    // 用DOM方式组装modal，linksContainer已经包含所有链接按钮
+
     const modalBox = document.createElement('div');
     modalBox.className = 'modal-box';
     modalBox.style.maxWidth = '500px';
@@ -3997,14 +4053,10 @@ function showLinkSelector(urls, event) {
     modalBox.appendChild(linksContainer);
     modalBox.appendChild(closeDiv);
     modal.appendChild(modalBox);
-    
     document.body.appendChild(modal);
     
-    // 点击背景关闭
     modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
+        if (e.target === modal) modal.remove();
     });
 }
 
