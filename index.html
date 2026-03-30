@@ -3959,36 +3959,40 @@ function getDomTextWithNewlines(el) {
 }
 
 // 提取URL并附带上下文说明（前面一行的非URL文字）
+// 修复：同一行有多个URL时全部提取，不只取第一个
 function extractUrlsWithContext(text) {
-    const urlPattern = /(https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+)/g;
-    const lines = text.split(/\n|<br\s*\/?>/i);
+    const urlRe = /https?:\/\/[A-Za-z0-9\-._~:\/?#\[\]@!$&'()*+,;=%]+/g;
+    const lines = text.split(/\n|<br\s*\/?>/ i);
     const result = [];
     let pendingLabel = '';
 
     lines.forEach(line => {
         const cleanLine = line.replace(/<[^>]+>/g, '').trim();
-        const urlMatch = cleanLine.match(/https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+/);
-        if (urlMatch) {
-            const url = urlMatch[0].replace(/[,，。.;；!！?？\)）\]】}>》\'"]+$/, '');
-            try {
-                const urlObj = new URL(url);
-                if (urlObj.hostname.includes('.')) {
-                    // 同一行里URL前面的文字也算label
-                    const before = cleanLine.substring(0, cleanLine.indexOf(urlMatch[0])).trim();
-                    const label = (pendingLabel || before || '').trim();
-                    // URL后面的文字（提取码等）
-                    const after = cleanLine.substring(cleanLine.indexOf(urlMatch[0]) + urlMatch[0].length).trim();
-                    result.push({ url, label, extra: after });
-                }
-            } catch(e) {}
+        const allMatches = [...cleanLine.matchAll(urlRe)];
+        if (allMatches.length > 0) {
+            allMatches.forEach((m, mi) => {
+                const rawUrl = m[0].replace(/[,\uff0c\u3002.;\uff1b!\uff01?\uff1f\)\uff09\]\u300b}>\u300b\u203a'"]+$/, '');
+                try {
+                    const urlObj = new URL(rawUrl);
+                    if (!urlObj.hostname.includes('.')) return;
+                    const before = mi === 0
+                        ? cleanLine.substring(0, m.index).replace(/https?:\/\/\S+/g, '').trim()
+                        : '';
+                    const label = mi === 0 ? (pendingLabel || before || '').trim() : '';
+                    const afterStart = m.index + m[0].length;
+                    const nextMatch = allMatches[mi + 1];
+                    const afterEnd = nextMatch ? nextMatch.index : cleanLine.length;
+                    const extra = cleanLine.substring(afterStart, afterEnd)
+                        .replace(/https?:\/\/\S+/g, '').trim();
+                    result.push({ url: rawUrl, label, extra });
+                } catch(e) {}
+            });
             pendingLabel = '';
         } else if (cleanLine) {
-            // 非URL行，作为下一个URL的说明
-            pendingLabel = cleanLine;
+            pendingLabel = pendingLabel ? pendingLabel + ' ' + cleanLine : cleanLine;
         }
     });
 
-    // 去重
     const seen = new Set();
     return result.filter(item => {
         if (seen.has(item.url)) return false;
