@@ -3989,7 +3989,7 @@ function extractUrlsWithContext(text) {
             });
             pendingLabel = '';
         } else if (cleanLine) {
-            pendingLabel = pendingLabel ? pendingLabel + ' ' + cleanLine : cleanLine;
+            pendingLabel = cleanLine;
         }
     });
 
