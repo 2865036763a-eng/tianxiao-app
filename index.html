@@ -3712,10 +3712,10 @@ function saveFavorites() {
 function addLinkJumpButtons() {
     document.querySelectorAll('.card').forEach(card => {
         const wrap = card.querySelector('.link-wrap');
-        if (!wrap) return;
+        // 注意：wrap 可能为 null（旧卡片结构），不在这里 return，继续处理兜底逻辑
 
-        const linkText = wrap.querySelector('.link-text');
-        const expandBtn = wrap.querySelector('.expand-btn');
+        const linkText = wrap ? wrap.querySelector('.link-text') : null;
+        const expandBtn = wrap ? wrap.querySelector('.expand-btn') : null;
 
         // ── 选择链接按钮 ──
         // expandBtn 可能不存在（老卡片），但只要有 linkText 就继续
@@ -3858,30 +3858,35 @@ function addLinkJumpButtons() {
         }
 
         // ── 管理员兜底：确保所有有 cardId 的卡片都有「修改链接」按钮 ──
-        // 针对旧卡片（link-text被清成纯文本、没有 data-use-kv、没有URL）的情况
+        // 针对旧卡片（link-text被清成纯文本、没有 data-use-kv、没有URL、甚至没有 link-wrap）的情况
         if (isEditMode) {
             const cardId2 = card.dataset.cardId;
-            if (cardId2 && wrap) {
-                let actionsDiv2 = wrap.querySelector('.link-actions');
-                if (!actionsDiv2) {
-                    // 完全没有按钮区，创建一个
-                    actionsDiv2 = document.createElement('div');
-                    actionsDiv2.className = 'link-actions';
-                    const eb = wrap.querySelector('.expand-btn');
-                    if (eb) wrap.insertBefore(actionsDiv2, eb);
-                    else wrap.appendChild(actionsDiv2);
-                }
-                // 检查是否已有修改链接按钮
-                if (!actionsDiv2.querySelector('.edit-kv-btn')) {
-                    const editBtn2 = document.createElement('button');
-                    editBtn2.className = 'link-jump-btn edit-kv-btn';
-                    editBtn2.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
-                    editBtn2.textContent = '✏️ 修改链接';
-                    editBtn2.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        showKvLinkEditor(cardId2, wrap);
-                    });
-                    actionsDiv2.appendChild(editBtn2);
+            if (cardId2) {
+                // wrap 可能为 null，向 info-box 兜底
+                const infoBox2 = card.querySelector('.info-box');
+                const container2 = wrap || infoBox2;
+                if (container2) {
+                    let actionsDiv2 = container2.querySelector('.link-actions');
+                    if (!actionsDiv2) {
+                        actionsDiv2 = document.createElement('div');
+                        actionsDiv2.className = 'link-actions';
+                        actionsDiv2.style.cssText = 'display:flex; gap:8px; padding:8px 12px; border-top:1px solid rgba(0,0,0,0.03);';
+                        const eb2 = container2.querySelector('.expand-btn');
+                        if (eb2) container2.insertBefore(actionsDiv2, eb2);
+                        else container2.appendChild(actionsDiv2);
+                    }
+                    // 检查是否已有修改链接按钮
+                    if (!actionsDiv2.querySelector('.edit-kv-btn')) {
+                        const editBtn2 = document.createElement('button');
+                        editBtn2.className = 'link-jump-btn edit-kv-btn';
+                        editBtn2.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
+                        editBtn2.textContent = '✏️ 修改链接';
+                        editBtn2.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            showKvLinkEditor(cardId2, wrap || container2);
+                        });
+                        actionsDiv2.appendChild(editBtn2);
+                    }
                 }
             }
         }
