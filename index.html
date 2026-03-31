@@ -3818,18 +3818,38 @@ function addLinkJumpButtons() {
             // 修复：DOM遍历法，块级节点前后插换行，避免文本拼连
             const text = getDomTextWithNewlines(linkText);
             const urlItems = extractUrlsWithContext(text);
+            const cardId = card.dataset.cardId;
 
-            if (urlItems.length > 0) {
+            // 有URL，或管理员模式下有cardId，都需要生成按钮区
+            if (urlItems.length > 0 || (isEditMode && cardId)) {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'link-actions';
-                const btn = document.createElement('button');
-                btn.className = 'link-jump-btn';
-                btn.textContent = '🔗 选择链接 (' + urlItems.length + '个)';
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    showLinkSelector(urlItems);
-                });
-                actionsDiv.appendChild(btn);
+
+                // 有URL才显示选择链接按钮
+                if (urlItems.length > 0) {
+                    const btn = document.createElement('button');
+                    btn.className = 'link-jump-btn';
+                    btn.textContent = '🔗 选择链接 (' + urlItems.length + '个)';
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showLinkSelector(urlItems);
+                    });
+                    actionsDiv.appendChild(btn);
+                }
+
+                // 管理员模式下，有 cardId 的卡片显示「修改链接」按钮（支持上传/修改KV）
+                if (isEditMode && cardId) {
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'link-jump-btn';
+                    editBtn.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
+                    editBtn.textContent = '✏️ 修改链接';
+                    editBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showKvLinkEditor(cardId, wrap);
+                    });
+                    actionsDiv.appendChild(editBtn);
+                }
+
                 wrap.insertBefore(actionsDiv, expandBtn);
             }
         }
@@ -3999,15 +4019,24 @@ async function showKvLinkEditor(cardId, wrap) {
         }
     } catch(e) {}
 
-    // 读取link-text里的分卷/提取码说明
+    // 读取link-text里的分卷/提取码说明（以及可能还存在的URL，用于回填）
     const ltEl = wrap ? wrap.querySelector('.link-text') : null;
     const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
     const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const labelLines = [], extraLines = [];
+    const labelLines = [], extraLines = [], urlsFromLt = [];
     ltLines.forEach(l => {
         if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
         else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+        else {
+            // 该行里所有URL提取出来
+            const found = [...l.matchAll(/https?:\/\/[^\s]+/g)].map(m => m[0].replace(/[,，。.;；!！?？\)）\]】}>》'"]+$/, ''));
+            urlsFromLt.push(...found);
+        }
     });
+    // KV没有链接时，用link-text里的URL作为回填
+    if (currentLinks.length === 0 && urlsFromLt.length > 0) {
+        currentLinks = urlsFromLt;
+    }
 
     // 构建弹窗
     const modal = document.createElement('div');
