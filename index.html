@@ -3718,7 +3718,8 @@ function addLinkJumpButtons() {
         const expandBtn = wrap.querySelector('.expand-btn');
 
         // ── 选择链接按钮 ──
-        if (linkText && expandBtn) {
+        // expandBtn 可能不存在（老卡片），但只要有 linkText 就继续
+        if (linkText) {
             const oldActions = wrap.querySelector('.link-actions');
             if (oldActions) oldActions.remove();
 
@@ -3809,7 +3810,8 @@ function addLinkJumpButtons() {
                         actionsDiv.appendChild(editBtn);
                     }
 
-                    wrap.insertBefore(actionsDiv, expandBtn);
+                    if (expandBtn) wrap.insertBefore(actionsDiv, expandBtn);
+                    else wrap.appendChild(actionsDiv);
                 }
                 return; // KV 卡片不走下面普通逻辑
             }
@@ -3850,7 +3852,8 @@ function addLinkJumpButtons() {
                     actionsDiv.appendChild(editBtn);
                 }
 
-                wrap.insertBefore(actionsDiv, expandBtn);
+                if (expandBtn) wrap.insertBefore(actionsDiv, expandBtn);
+                else wrap.appendChild(actionsDiv);
             }
         }
 
