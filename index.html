@@ -439,6 +439,7 @@
         .link-jump-btn:active { transform: scale(0.95); }
         .admin-mode .link-jump-btn { display: none; }
         .admin-mode .link-jump-btn.edit-kv-btn { display: inline-block; }
+        .admin-mode .link-jump-btn.get-link-btn { display: inline-block; }
         /* 直接下载按钮 */
         .direct-dl-btn { width: calc(100% - 24px); margin: 0 12px 10px 12px; padding: 10px; background: linear-gradient(135deg, #ff6699, #ff4477); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation; display: block; text-align: center; }
         .direct-dl-btn:active { transform: scale(0.97); opacity: 0.9; }
@@ -3743,6 +3744,7 @@ function saveFavorites() {
 }
 
 // 🔗 为所有卡片添加跳转按钮 + 直接下载按钮
+// 统一逻辑：所有有 cardId 的卡片都走同一套流程，不依赖 data-use-kv 属性
 function addLinkJumpButtons() {
     document.querySelectorAll('.card').forEach(card => {
         const cardId = card.dataset.cardId;
@@ -3751,86 +3753,96 @@ function addLinkJumpButtons() {
         const linkText = wrap ? wrap.querySelector('.link-text') : null;
         const expandBtn = wrap ? wrap.querySelector('.expand-btn') : null;
 
-        // ── 清除旧的 link-actions，重新生成 ──
+        // 清除旧的 link-actions，重新生成
         const oldActions = wrap ? wrap.querySelector('.link-actions') : null;
         if (oldActions) oldActions.remove();
 
-        // ── KV 卡片或普通卡片：生成链接按钮 ──
-        if (linkText && wrap) {
-            const useKv = card.dataset.useKv;
+        // 没有 cardId 且没有链接文本就跳过
+        if (!cardId && !linkText) return;
+
+        // ── 统一生成按钮区 ──
+        if (wrap) {
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'link-actions';
 
-            if (useKv === '1' || useKv === 'done') {
-                // KV卡片：获取链接按钮
+            // 从 link-text 提取本地URL（普通卡片可能有，KV卡片没有）
+            const localText = linkText ? getDomTextWithNewlines(linkText) : '';
+            const localUrls = extractUrlsWithContext(localText);
+            const hasLocalUrls = localUrls.length > 0;
+
+            if (cardId) {
+                // 统一显示「获取链接」按钮——先尝试KV，KV没有就用本地URL
                 const btn = document.createElement('button');
-                btn.className = 'link-jump-btn';
+                btn.className = 'link-jump-btn get-link-btn';
                 btn.textContent = '🔗 获取链接';
                 btn.addEventListener('click', async function(e) {
                     e.stopPropagation();
-                    btn.textContent = '⏳ 验证中...';
+                    btn.textContent = '⏳ 获取中...';
                     btn.disabled = true;
                     try {
+                        // 先尝试从KV获取
+                        let kvLinks = null;
                         let tsToken = '';
                         if (!isEditMode) {
                             showToast('⏳ 正在完成人机验证...');
                             tsToken = await requestTurnstileToken();
                             showToast('✅ 验证通过，获取链接中...');
                         }
-                        btn.textContent = '⏳ 获取中...';
                         const headers = {};
                         if (isEditMode) {
                             const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
                             if (tok) headers['Authorization'] = `Bearer ${tok}`;
                         }
                         const urlParam = `${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}${tsToken ? '&token=' + encodeURIComponent(tsToken) : ''}`;
-                        const res = await fetch(urlParam, { headers });
-                        if (res.ok) {
-                            const data = await res.json();
-                            const ltEl = wrap.querySelector('.link-text');
-                            const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
+                        try {
+                            const res = await fetch(urlParam, { headers });
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.links && data.links.length > 0) kvLinks = data.links;
+                            }
+                        } catch(e) {}
+
+                        if (kvLinks) {
+                            // KV有数据，结合link-text里的说明
+                            const ltText = linkText ? getDomTextWithNewlines(linkText) : '';
                             const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                             const labelLines = [], extraLines = [];
                             ltLines.forEach(l => {
                                 if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
                                 else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
                             });
-                            const itemsWithCtx = data.links.map((url, i) => {
-                                const label = labelLines[i] || (extraLines[i] ? '' : `链接 ${i + 1}`);
-                                const extra = extraLines[i] || '';
-                                return { url, label: label || `链接 ${i + 1}`, extra };
-                            });
-                            showLinkSelector(itemsWithCtx);
-                        } else if (res.status === 429) {
-                            showToast('❌ 请求太频繁，请稍后再试');
+                            const items = kvLinks.map((url, i) => ({
+                                url,
+                                label: labelLines[i] || `链接 ${i + 1}`,
+                                extra: extraLines[i] || ''
+                            }));
+                            showLinkSelector(items);
+                        } else if (hasLocalUrls) {
+                            // KV没有，用本地URL
+                            showLinkSelector(localUrls);
                         } else {
-                            const err = await res.json().catch(() => ({}));
-                            showToast('❌ ' + (err.error || '链接获取失败'));
+                            showToast('❌ 该卡片暂无链接');
                         }
                     } catch(err) {
-                        if (err.message !== '取消') showToast('❌ ' + (err.message || '网络错误'));
+                        if (err.message !== '取消') showToast('❌ ' + (err.message || '获取失败'));
                     }
                     btn.textContent = '🔗 获取链接';
                     btn.disabled = false;
                 });
                 actionsDiv.appendChild(btn);
-            } else {
-                // 普通卡片：从 link-text 提取URL
-                const text = getDomTextWithNewlines(linkText);
-                const urlItems = extractUrlsWithContext(text);
-                if (urlItems.length > 0) {
-                    const btn = document.createElement('button');
-                    btn.className = 'link-jump-btn';
-                    btn.textContent = '🔗 选择链接 (' + urlItems.length + '个)';
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        showLinkSelector(urlItems);
-                    });
-                    actionsDiv.appendChild(btn);
-                }
+            } else if (hasLocalUrls) {
+                // 没有 cardId 但有本地URL（极少情况）
+                const btn = document.createElement('button');
+                btn.className = 'link-jump-btn get-link-btn';
+                btn.textContent = `🔗 选择链接 (${localUrls.length}个)`;
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showLinkSelector(localUrls);
+                });
+                actionsDiv.appendChild(btn);
             }
 
-            // 管理员模式下加「修改链接」按钮（KV卡片和普通卡片都加）
+            // 管理员模式下加「修改链接」按钮
             if (isEditMode && cardId) {
                 const editBtn = document.createElement('button');
                 editBtn.className = 'link-jump-btn edit-kv-btn';
@@ -3846,35 +3858,6 @@ function addLinkJumpButtons() {
             if (actionsDiv.children.length > 0) {
                 if (expandBtn) wrap.insertBefore(actionsDiv, expandBtn);
                 else wrap.appendChild(actionsDiv);
-            }
-        }
-
-        // ── 管理员兜底：没有 wrap 或 linkText 时，也在 infoBox 里加「修改链接」 ──
-        if (isEditMode && cardId && infoBox) {
-            // 确认 wrap 里已经有按钮了就不重复加
-            const alreadyHasBtn = wrap && wrap.querySelector('.edit-kv-btn');
-            if (!alreadyHasBtn) {
-                let actionsDiv2 = infoBox.querySelector('.link-actions-fallback');
-                if (!actionsDiv2) {
-                    actionsDiv2 = document.createElement('div');
-                    actionsDiv2.className = 'link-actions link-actions-fallback';
-                    actionsDiv2.style.cssText = 'display:flex; gap:8px; padding:8px 12px;';
-                    // 插到直接下载区前面
-                    const dlEdit = infoBox.querySelector('.direct-dl-edit');
-                    if (dlEdit) infoBox.insertBefore(actionsDiv2, dlEdit);
-                    else infoBox.appendChild(actionsDiv2);
-                }
-                if (!actionsDiv2.querySelector('.edit-kv-btn')) {
-                    const editBtn2 = document.createElement('button');
-                    editBtn2.className = 'link-jump-btn edit-kv-btn';
-                    editBtn2.style.cssText = 'background:#ff9800; padding:8px 12px;';
-                    editBtn2.textContent = '✏️ 修改链接';
-                    editBtn2.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        showKvLinkEditor(cardId, wrap || infoBox);
-                    });
-                    actionsDiv2.appendChild(editBtn2);
-                }
             }
         }
 
@@ -4112,7 +4095,7 @@ async function showKvLinkEditor(cardId, wrap) {
         const extraInput = document.createElement('input');
         extraInput.type = 'text';
         extraInput.placeholder = '提取码（可选，如：abcd）';
-        extraInput.value = extraLines[idx] ? extraLines[idx].replace(/提取码[：:]\s*/i, '') : '';
+        extraInput.value = extraLines[idx] ? extraLines[idx].replace(/^(提取码|解压码|密码)[：:]\s*/i, '') : '';
         extraInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; outline:none;';
         row.appendChild(extraInput);
 
@@ -4170,7 +4153,11 @@ async function showKvLinkEditor(cardId, wrap) {
                     const extra = r._extraInput.value.trim();
                     let part = '';
                     if (label) part += label + '\n';
-                    if (extra) part += '提取码:' + extra;
+                    if (extra) {
+                        // 去掉用户可能已填的前缀，统一格式
+                        const cleanExtra = extra.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
+                        part += '提取码:' + cleanExtra;
+                    }
                     return part.trim();
                 })
                 .filter(p => p.length > 0);
