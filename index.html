@@ -3711,123 +3711,79 @@ function saveFavorites() {
 // 🔗 为所有卡片添加跳转按钮 + 直接下载按钮
 function addLinkJumpButtons() {
     document.querySelectorAll('.card').forEach(card => {
+        const cardId = card.dataset.cardId;
         const wrap = card.querySelector('.link-wrap');
-        // 注意：wrap 可能为 null（旧卡片结构），不在这里 return，继续处理兜底逻辑
-
+        const infoBox = card.querySelector('.info-box');
         const linkText = wrap ? wrap.querySelector('.link-text') : null;
         const expandBtn = wrap ? wrap.querySelector('.expand-btn') : null;
 
-        // ── 选择链接按钮 ──
-        // expandBtn 可能不存在（老卡片），但只要有 linkText 就继续
-        if (linkText) {
-            const oldActions = wrap.querySelector('.link-actions');
-            if (oldActions) oldActions.remove();
+        // ── 清除旧的 link-actions，重新生成 ──
+        const oldActions = wrap ? wrap.querySelector('.link-actions') : null;
+        if (oldActions) oldActions.remove();
 
-            // 🔒 KV 卡片：按钮点击时从 Worker 取链接
+        // ── KV 卡片或普通卡片：生成链接按钮 ──
+        if (linkText && wrap) {
             const useKv = card.dataset.useKv;
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'link-actions';
+
             if (useKv === '1' || useKv === 'done') {
-                const cardId = card.dataset.cardId;
-                if (cardId) {
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.className = 'link-actions';
-
-                    // 获取链接按钮
-                    const btn = document.createElement('button');
-                    btn.className = 'link-jump-btn';
-                    btn.textContent = '🔗 获取链接';
-                    btn.addEventListener('click', async function(e) {
-                        e.stopPropagation();
-                        btn.textContent = '⏳ 验证中...';
-                        btn.disabled = true;
-                        try {
-                            let tsToken = '';
-                            if (!isEditMode) {
-                                showToast('⏳ 正在完成人机验证...');
-                                tsToken = await requestTurnstileToken();
-                                showToast('✅ 验证通过，获取链接中...');
-                            }
-                            btn.textContent = '⏳ 获取中...';
-                            const headers = {};
-                            if (isEditMode) {
-                                const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
-                                if (tok) headers['Authorization'] = `Bearer ${tok}`;
-                            }
-                            const urlParam = `${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}${tsToken ? '&token=' + encodeURIComponent(tsToken) : ''}`;
-                            const res = await fetch(urlParam, { headers });
-                            if (res.ok) {
-                                const data = await res.json();
-                                // 尝试从 link-text 里读取上下文说明（提取码等）
-                                // 修复：DOM遍历法，块级节点前后插换行，避免文本拼连
-                                const ltEl = wrap ? wrap.querySelector('.link-text') : null;
-                                const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
-                                // 把纯URL列表转成带说明的对象
-                                // KV卡片link-text里URL已被清除，只保留分卷/提取码等文字
-                                // 用顺序匹配：把非空文本行按顺序分配给每个URL
-                                const ltLines = ltText.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
-                                // 提取所有"分卷X"类标签行和"提取码:xxx"行
-                                const labelLines = []; // 分卷标签
-                                const extraLines = []; // 提取码
-                                const otherLines = []; // 其他注释
-                                ltLines.forEach(l => {
-                                    if (/^(分卷|卷|vol|part|第.卷|链接\s*\d*)[\s\d]*$/i.test(l)) {
-                                        labelLines.push(l);
-                                    } else if (/提取码|密码|解压码|password/i.test(l)) {
-                                        extraLines.push(l);
-                                    } else {
-                                        otherLines.push(l);
-                                    }
-                                });
-                                const itemsWithCtx = data.links.map((url, i) => {
-                                    const label = labelLines[i] || (otherLines[i] ? otherLines[i] : `链接 ${i + 1}`);
-                                    const extra = extraLines[i] || '';
-                                    return { url, label, extra };
-                                });
-                                showLinkSelector(itemsWithCtx);
-                            } else if (res.status === 429) {
-                                showToast('❌ 请求太频繁，请稍后再试');
-                            } else {
-                                const err = await res.json().catch(() => ({}));
-                                showToast('❌ ' + (err.error || '链接获取失败'));
-                            }
-                        } catch(err) {
-                            if (err.message !== '取消') showToast('❌ ' + (err.message || '网络错误'));
+                // KV卡片：获取链接按钮
+                const btn = document.createElement('button');
+                btn.className = 'link-jump-btn';
+                btn.textContent = '🔗 获取链接';
+                btn.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    btn.textContent = '⏳ 验证中...';
+                    btn.disabled = true;
+                    try {
+                        let tsToken = '';
+                        if (!isEditMode) {
+                            showToast('⏳ 正在完成人机验证...');
+                            tsToken = await requestTurnstileToken();
+                            showToast('✅ 验证通过，获取链接中...');
                         }
-                        btn.textContent = '🔗 获取链接';
-                        btn.disabled = false;
-                    });
-                    actionsDiv.appendChild(btn);
-
-                    // 管理员模式下加「修改链接」按钮
-                    if (isEditMode) {
-                        const editBtn = document.createElement('button');
-                        editBtn.className = 'link-jump-btn';
-                        editBtn.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
-                        editBtn.textContent = '✏️ 修改链接';
-                        editBtn.addEventListener('click', async function(e) {
-                            e.stopPropagation();
-                            showKvLinkEditor(cardId, wrap);
-                        });
-                        actionsDiv.appendChild(editBtn);
+                        btn.textContent = '⏳ 获取中...';
+                        const headers = {};
+                        if (isEditMode) {
+                            const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+                            if (tok) headers['Authorization'] = `Bearer ${tok}`;
+                        }
+                        const urlParam = `${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}${tsToken ? '&token=' + encodeURIComponent(tsToken) : ''}`;
+                        const res = await fetch(urlParam, { headers });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const ltEl = wrap.querySelector('.link-text');
+                            const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
+                            const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                            const labelLines = [], extraLines = [];
+                            ltLines.forEach(l => {
+                                if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
+                                else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+                            });
+                            const itemsWithCtx = data.links.map((url, i) => {
+                                const label = labelLines[i] || (extraLines[i] ? '' : `链接 ${i + 1}`);
+                                const extra = extraLines[i] || '';
+                                return { url, label: label || `链接 ${i + 1}`, extra };
+                            });
+                            showLinkSelector(itemsWithCtx);
+                        } else if (res.status === 429) {
+                            showToast('❌ 请求太频繁，请稍后再试');
+                        } else {
+                            const err = await res.json().catch(() => ({}));
+                            showToast('❌ ' + (err.error || '链接获取失败'));
+                        }
+                    } catch(err) {
+                        if (err.message !== '取消') showToast('❌ ' + (err.message || '网络错误'));
                     }
-
-                    if (expandBtn) wrap.insertBefore(actionsDiv, expandBtn);
-                    else wrap.appendChild(actionsDiv);
-                }
-                return; // KV 卡片不走下面普通逻辑
-            }
-
-            // 普通卡片：从 link-text 提取 URL（含上下文说明）
-            // 修复：DOM遍历法，块级节点前后插换行，避免文本拼连
-            const text = getDomTextWithNewlines(linkText);
-            const urlItems = extractUrlsWithContext(text);
-            const cardId = card.dataset.cardId;
-
-            // 有URL，或管理员模式下有cardId，都需要生成按钮区
-            if (urlItems.length > 0 || (isEditMode && cardId)) {
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'link-actions';
-
-                // 有URL才显示选择链接按钮
+                    btn.textContent = '🔗 获取链接';
+                    btn.disabled = false;
+                });
+                actionsDiv.appendChild(btn);
+            } else {
+                // 普通卡片：从 link-text 提取URL
+                const text = getDomTextWithNewlines(linkText);
+                const urlItems = extractUrlsWithContext(text);
                 if (urlItems.length > 0) {
                     const btn = document.createElement('button');
                     btn.className = 'link-jump-btn';
@@ -3838,68 +3794,61 @@ function addLinkJumpButtons() {
                     });
                     actionsDiv.appendChild(btn);
                 }
+            }
 
-                // 管理员模式下，有 cardId 的卡片显示「修改链接」按钮（支持上传/修改KV）
-                if (isEditMode && cardId) {
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'link-jump-btn';
-                    editBtn.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
-                    editBtn.textContent = '✏️ 修改链接';
-                    editBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        showKvLinkEditor(cardId, wrap);
-                    });
-                    actionsDiv.appendChild(editBtn);
-                }
+            // 管理员模式下加「修改链接」按钮（KV卡片和普通卡片都加）
+            if (isEditMode && cardId) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'link-jump-btn edit-kv-btn';
+                editBtn.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
+                editBtn.textContent = '✏️ 修改链接';
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showKvLinkEditor(cardId, wrap);
+                });
+                actionsDiv.appendChild(editBtn);
+            }
 
+            if (actionsDiv.children.length > 0) {
                 if (expandBtn) wrap.insertBefore(actionsDiv, expandBtn);
                 else wrap.appendChild(actionsDiv);
             }
         }
 
-        // ── 管理员兜底：确保所有有 cardId 的卡片都有「修改链接」按钮 ──
-        // 针对旧卡片（link-text被清成纯文本、没有 data-use-kv、没有URL、甚至没有 link-wrap）的情况
-        if (isEditMode) {
-            const cardId2 = card.dataset.cardId;
-            if (cardId2) {
-                // wrap 可能为 null，向 info-box 兜底
-                const infoBox2 = card.querySelector('.info-box');
-                const container2 = wrap || infoBox2;
-                if (container2) {
-                    let actionsDiv2 = container2.querySelector('.link-actions');
-                    if (!actionsDiv2) {
-                        actionsDiv2 = document.createElement('div');
-                        actionsDiv2.className = 'link-actions';
-                        actionsDiv2.style.cssText = 'display:flex; gap:8px; padding:8px 12px; border-top:1px solid rgba(0,0,0,0.03);';
-                        const eb2 = container2.querySelector('.expand-btn');
-                        if (eb2) container2.insertBefore(actionsDiv2, eb2);
-                        else container2.appendChild(actionsDiv2);
-                    }
-                    // 检查是否已有修改链接按钮
-                    if (!actionsDiv2.querySelector('.edit-kv-btn')) {
-                        const editBtn2 = document.createElement('button');
-                        editBtn2.className = 'link-jump-btn edit-kv-btn';
-                        editBtn2.style.cssText = 'background:#ff9800; flex:0 0 auto; padding:8px 12px;';
-                        editBtn2.textContent = '✏️ 修改链接';
-                        editBtn2.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            showKvLinkEditor(cardId2, wrap || container2);
-                        });
-                        actionsDiv2.appendChild(editBtn2);
-                    }
+        // ── 管理员兜底：没有 wrap 或 linkText 时，也在 infoBox 里加「修改链接」 ──
+        if (isEditMode && cardId && infoBox) {
+            // 确认 wrap 里已经有按钮了就不重复加
+            const alreadyHasBtn = wrap && wrap.querySelector('.edit-kv-btn');
+            if (!alreadyHasBtn) {
+                let actionsDiv2 = infoBox.querySelector('.link-actions-fallback');
+                if (!actionsDiv2) {
+                    actionsDiv2 = document.createElement('div');
+                    actionsDiv2.className = 'link-actions link-actions-fallback';
+                    actionsDiv2.style.cssText = 'display:flex; gap:8px; padding:8px 12px;';
+                    // 插到直接下载区前面
+                    const dlEdit = infoBox.querySelector('.direct-dl-edit');
+                    if (dlEdit) infoBox.insertBefore(actionsDiv2, dlEdit);
+                    else infoBox.appendChild(actionsDiv2);
+                }
+                if (!actionsDiv2.querySelector('.edit-kv-btn')) {
+                    const editBtn2 = document.createElement('button');
+                    editBtn2.className = 'link-jump-btn edit-kv-btn';
+                    editBtn2.style.cssText = 'background:#ff9800; padding:8px 12px;';
+                    editBtn2.textContent = '✏️ 修改链接';
+                    editBtn2.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showKvLinkEditor(cardId, wrap || infoBox);
+                    });
+                    actionsDiv2.appendChild(editBtn2);
                 }
             }
         }
 
         // ── 直接下载按钮 ──
-        const infoBox = card.querySelector('.info-box');
         if (!infoBox) return;
-
-        // 删除旧的，重新生成（防止重复）
         const oldDlBtn = infoBox.querySelector('.direct-dl-btn');
         if (oldDlBtn) oldDlBtn.remove();
 
-        // 确保编辑区存在（老卡片没有这个区域，动态补上）
         let editArea = infoBox.querySelector('.direct-dl-edit');
         if (!editArea) {
             editArea = document.createElement('div');
@@ -3908,12 +3857,10 @@ function addLinkJumpButtons() {
             infoBox.appendChild(editArea);
         }
 
-        // 同步输入框显示已保存的值
         const savedUrl = card.dataset.directDownload || '';
         const input = editArea.querySelector('.direct-dl-input');
         if (input && savedUrl) input.value = savedUrl;
 
-        // 有直链才显示下载按钮（非管理员才看得到，管理员被CSS隐藏）
         if (savedUrl) {
             const dlBtn = document.createElement('button');
             dlBtn.className = 'direct-dl-btn';
