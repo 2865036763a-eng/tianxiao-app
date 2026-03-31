@@ -3804,35 +3804,7 @@ function addLinkJumpButtons() {
                         editBtn.textContent = '✏️ 修改链接';
                         editBtn.addEventListener('click', async function(e) {
                             e.stopPropagation();
-                            // 先拉取现有链接回填
-                            let existing = '';
-                            try {
-                                const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}`);
-                                if (res.ok) {
-                                    const data = await res.json();
-                                    existing = data.links.join('\n');
-                                }
-                            } catch(err) {}
-                            const newVal = prompt('每行一个链接（会覆盖原有链接）：', existing);
-                            if (newVal === null) return; // 取消
-                            const newLinks = newVal.split('\n').map(s => s.trim()).filter(s => s.length > 0);
-                            if (newLinks.length === 0) { showToast('❌ 链接不能为空'); return; }
-                            const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
-                            if (!token) { showToast('❌ 请先登录管理员'); return; }
-                            try {
-                                const res = await fetch(`${WORKER_BASE}/api/links/save`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                    body: JSON.stringify({ cardId, links: newLinks })
-                                });
-                                if (res.ok) {
-                                    showToast('✅ 链接已更新到KV');
-                                } else {
-                                    showToast('❌ 更新失败');
-                                }
-                            } catch(err) {
-                                showToast('❌ 网络错误');
-                            }
+                            showKvLinkEditor(cardId, wrap);
                         });
                         actionsDiv.appendChild(editBtn);
                     }
@@ -4008,6 +3980,187 @@ function extractUrlsWithContext(text) {
         seen.add(item.url);
         return true;
     });
+}
+
+// KV卡片链接编辑弹窗（管理员专用）
+async function showKvLinkEditor(cardId, wrap) {
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    if (!token) { showToast('❌ 请先登录管理员'); return; }
+
+    // 读取当前KV链接
+    let currentLinks = [];
+    try {
+        const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cardId)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            currentLinks = data.links || [];
+        }
+    } catch(e) {}
+
+    // 读取link-text里的分卷/提取码说明
+    const ltEl = wrap ? wrap.querySelector('.link-text') : null;
+    const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
+    const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const labelLines = [], extraLines = [];
+    ltLines.forEach(l => {
+        if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
+        else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+    });
+
+    // 构建弹窗
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'display:flex; z-index:3000;';
+
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+    box.style.cssText = 'max-width:520px; width:95%; max-height:85vh; overflow-y:auto;';
+    box.onclick = e => e.stopPropagation();
+
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = '✏️ 修改KV链接';
+    box.appendChild(title);
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:12px; color:#888; padding:0 12px 10px; line-height:1.6;';
+    hint.textContent = '每组填写：分卷标签（可选）、链接、提取码（可选）。保存后立即生效。';
+    box.appendChild(hint);
+
+    const rowsContainer = document.createElement('div');
+    rowsContainer.style.cssText = 'padding:0 12px;';
+    box.appendChild(rowsContainer);
+
+    // 初始行数：取已有链接数，至少1行
+    const initCount = Math.max(currentLinks.length, 1);
+    
+    function createRow(idx) {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#f8f9fb; border:1px solid #e0e0e0; border-radius:10px; padding:10px 12px; margin-bottom:10px;';
+        
+        const rowTitle = document.createElement('div');
+        rowTitle.style.cssText = 'font-size:12px; font-weight:bold; color:#666; margin-bottom:6px;';
+        rowTitle.textContent = `第 ${idx + 1} 个链接`;
+        row.appendChild(rowTitle);
+
+        // 分卷标签输入
+        const labelInput = document.createElement('input');
+        labelInput.type = 'text';
+        labelInput.placeholder = '分卷标签（如：分卷1）';
+        labelInput.value = labelLines[idx] || (currentLinks.length > 1 ? `分卷${idx + 1}` : '');
+        labelInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; margin-bottom:6px; outline:none;';
+        row.appendChild(labelInput);
+
+        // 链接输入
+        const urlInput = document.createElement('input');
+        urlInput.type = 'text';
+        urlInput.placeholder = '链接（https://...）';
+        urlInput.value = currentLinks[idx] || '';
+        urlInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; margin-bottom:6px; outline:none; word-break:break-all;';
+        row.appendChild(urlInput);
+
+        // 提取码输入
+        const extraInput = document.createElement('input');
+        extraInput.type = 'text';
+        extraInput.placeholder = '提取码（可选，如：abcd）';
+        extraInput.value = extraLines[idx] ? extraLines[idx].replace(/提取码[：:]\s*/i, '') : '';
+        extraInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; outline:none;';
+        row.appendChild(extraInput);
+
+        row.dataset.labelInput = '';
+        row._labelInput = labelInput;
+        row._urlInput = urlInput;
+        row._extraInput = extraInput;
+        return row;
+    }
+
+    const rows = [];
+    for (let i = 0; i < initCount; i++) {
+        const row = createRow(i);
+        rows.push(row);
+        rowsContainer.appendChild(row);
+    }
+
+    // 加行按钮
+    const addRowBtn = document.createElement('button');
+    addRowBtn.style.cssText = 'width:calc(100% - 24px); margin:0 12px 12px; padding:8px; border:1px dashed #ccc; border-radius:8px; background:#fff; color:#666; font-size:13px; cursor:pointer;';
+    addRowBtn.textContent = '➕ 添加一个链接';
+    addRowBtn.onclick = () => {
+        const row = createRow(rows.length);
+        rows.push(row);
+        rowsContainer.appendChild(row);
+        addRowBtn.remove();
+        rowsContainer.after(addRowBtn);
+    };
+    box.appendChild(addRowBtn);
+
+    // 底部按钮
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex; gap:10px; padding:10px 12px 4px;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn btn-cancel';
+    cancelBtn.style.cssText = 'flex:1; padding:12px;';
+    cancelBtn.textContent = '取消';
+    cancelBtn.onclick = () => modal.remove();
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'modal-btn btn-confirm';
+    saveBtn.style.cssText = 'flex:2; padding:12px; background:#ff9800; border:none; border-radius:8px; color:#fff; font-weight:bold; font-size:14px; cursor:pointer;';
+    saveBtn.textContent = '💾 保存到KV';
+    saveBtn.onclick = async () => {
+        const newLinks = rows.map(r => r._urlInput.value.trim()).filter(u => u.length > 0);
+        if (newLinks.length === 0) { showToast('❌ 至少填一个链接'); return; }
+
+        // 更新link-text里的说明文字（分卷标签+提取码）
+        if (ltEl) {
+            const newLtParts = rows
+                .filter(r => r._urlInput.value.trim())
+                .map(r => {
+                    const label = r._labelInput.value.trim();
+                    const extra = r._extraInput.value.trim();
+                    let part = '';
+                    if (label) part += label + '\n';
+                    if (extra) part += '提取码:' + extra;
+                    return part.trim();
+                })
+                .filter(p => p.length > 0);
+            ltEl.textContent = newLtParts.join('\n') || '（链接已安全存储）';
+        }
+
+        saveBtn.textContent = '⏳ 保存中...';
+        saveBtn.disabled = true;
+        try {
+            const res = await fetch(`${WORKER_BASE}/api/links/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ cardId, links: newLinks })
+            });
+            if (res.ok) {
+                showToast('✅ 链接已更新！');
+                modal.remove();
+                // 触发自动保存，把link-text新内容存入云端
+                autoSave();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast('❌ 保存失败：' + (err.error || res.status));
+            }
+        } catch(err) {
+            showToast('❌ 网络错误：' + err.message);
+        }
+        saveBtn.textContent = '💾 保存到KV';
+        saveBtn.disabled = false;
+    };
+
+    btnRow.appendChild(cancelBtn);
+    btnRow.appendChild(saveBtn);
+    box.appendChild(btnRow);
+
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 // 显示多链接选择器
