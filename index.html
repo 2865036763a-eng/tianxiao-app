@@ -776,7 +776,7 @@
         <button onclick="toggleBannerEdit()" style="background: #ff9800 !important;">🖼️ 轮播图</button>
         <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
-        <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
+        <button onclick="debugCardStructure()" style="background:#333;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;">🐛 调试</button> <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
     </div>
     <!-- 🏷️ 分类管理面板 -->
@@ -2694,6 +2694,39 @@ function autoSave() {
 
 // Toast提示（保留）
 let _toastTimer = null;
+
+// 🐛 临时调试：显示所有卡片的DOM结构信息
+function debugCardStructure() {
+    const cards = document.querySelectorAll('.card');
+    let report = `共 ${cards.length} 张卡片\n\n`;
+    cards.forEach((card, i) => {
+        const cardId = card.dataset.cardId || '无';
+        const useKv = card.dataset.useKv || '无';
+        const hasWrap = !!card.querySelector('.link-wrap');
+        const hasLinkText = !!card.querySelector('.link-text');
+        const hasActions = !!card.querySelector('.link-actions');
+        const hasEditBtn = !!card.querySelector('.edit-kv-btn');
+        const name = (card.querySelector('.g-name') || {}).textContent || '?';
+        report += `[${i+1}] ${name.substring(0,15)}\n`;
+        report += `  cardId=${cardId.substring(0,20)}\n`;
+        report += `  useKv=${useKv} wrap=${hasWrap} lt=${hasLinkText}\n`;
+        report += `  actions=${hasActions} editBtn=${hasEditBtn}\n\n`;
+    });
+    // Show in a modal
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;overflow:auto;padding:20px;';
+    const pre = document.createElement('pre');
+    pre.style.cssText = 'background:#fff;padding:15px;border-radius:8px;font-size:11px;white-space:pre-wrap;word-break:break-all;';
+    pre.textContent = report;
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '关闭';
+    closeBtn.style.cssText = 'position:fixed;top:20px;right:20px;padding:10px 20px;background:#ff6699;color:#fff;border:none;border-radius:8px;font-size:14px;z-index:10000;';
+    closeBtn.onclick = () => modal.remove();
+    modal.appendChild(closeBtn);
+    modal.appendChild(pre);
+    document.body.appendChild(modal);
+}
+
 function showToast(msg, duration = 2500) {
     let toast = document.getElementById("_ghToast");
     if (!toast) {
