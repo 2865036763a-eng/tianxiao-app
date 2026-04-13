@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="天笑秘密基地">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes"
     <meta name="theme-color" content="#ff6699">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuWkqeesuOOBrue6geWvhuWfuuWcsyIsCiAgInNob3J0X25hbWUiOiAi5aSp56yY5Z+65ZywIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmNjY5OSIsCiAgImRlc2NyaXB0aW9uIjogIuWkqeesuOOBrue6geWvhuWfuuWcsyAtIOa4uOaIj+S4k+WxnuWIhuS6q+W5s+WPsCIsCiAgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l4TWpnaUlHaGxhV2RvZEQwaU1USTRJajQ4Y21WamRDQjNhV1IwYUQwaU1USTRJaUJvWldsbmFIUTlJakV5T0NJZ2NuZzlJakl3SWlCbWFXeHNQU0lqWm1ZMk5qazVJaTgrUEM5eVpXTjBQangwWlhoMElIZzlJall5SWlCNVBTSTJOQ0lnWm05dWRDMXphWHBsUFNJME1DSWdabWxzYkQwaUkyWm1abVptWmlJK/CfjIY8TDNSbGVIUStQQzl6ZG1jKyIsCiAgICAgICJzaXplcyI6ICIxMjh4MTI4IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsCiAgICAgICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIKICAgIH0KICBdCn0=">
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjIwIiBmaWxsPSIjZmY2Njk5Ii8+PHRleHQgeD0iNjQiIHk9IjcwIiBmb250LXNpemU9IjUwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj7wn4yGPC90ZXh0Pjwvc3ZnPg==">
@@ -184,7 +184,82 @@
             transform: rotate(360deg);
         }
 
+        /* 🚫 过滤面板 */
+        #filterPanel {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.45);
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        .filter-box {
+            background: #fff; width: 100%; max-width: 550px;
+            border-radius: 18px 18px 0 0;
+            padding: 20px 16px 32px;
+            max-height: 75vh; overflow-y: auto;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+        }
+        .filter-title {
+            font-size: 16px; font-weight: bold; color: #222;
+            margin-bottom: 6px;
+        }
+        .filter-hint {
+            font-size: 12px; color: #999; margin-bottom: 14px;
+        }
+        .filter-input-row {
+            display: flex; gap: 8px; margin-bottom: 14px;
+        }
+        .filter-input-row input {
+            flex: 1; border: 1px solid #ddd; border-radius: 8px;
+            padding: 10px 12px; font-size: 14px; outline: none;
+        }
+        .filter-input-row input:focus { border-color: var(--primary); }
+        .filter-input-row button {
+            padding: 10px 16px; background: var(--primary); color: #fff;
+            border: none; border-radius: 8px; font-size: 14px;
+            font-weight: bold; cursor: pointer; flex-shrink: 0;
+            touch-action: manipulation;
+        }
+        .filter-tags-wrap {
+            display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px;
+        }
+        .filter-tag {
+            display: flex; align-items: center; gap: 4px;
+            background: #fff0f5; border: 1px solid #ffb3cc;
+            color: #d6336c; border-radius: 20px;
+            padding: 5px 10px 5px 12px; font-size: 13px;
+        }
+        .filter-tag-del {
+            background: none; border: none; color: #d6336c;
+            font-size: 15px; cursor: pointer; padding: 0 0 0 2px;
+            line-height: 1; touch-action: manipulation;
+        }
+        .filter-empty { color: #ccc; font-size: 13px; padding: 6px 0; }
+        .filter-close-btn {
+            width: 100%; margin-top: 16px; padding: 12px;
+            background: #f5f5f5; border: none; border-radius: 10px;
+            font-size: 14px; color: #555; cursor: pointer;
+            touch-action: manipulation;
+        }
+        /* 过滤激活时按钮高亮 */
+        #filterBtn.active {
+            background: #fff0f5 !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+        /* 顶部标签栏显示已屏蔽标签 */
+        .filter-tag-pill {
+            display: inline-flex; align-items: center; gap: 3px;
+            background: #fff0f5; border: 1px solid #ffb3cc;
+            color: #d6336c; border-radius: 20px;
+            padding: 3px 8px 3px 10px; font-size: 12px;
+        }
+        .filter-tag-pill-del {
+            background: none; border: none; color: #d6336c;
+            font-size: 13px; cursor: pointer; padding: 0;
+            line-height: 1; touch-action: manipulation;
+        }
+
         #search { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #f9f9f9; outline: none; box-sizing: border-box; margin-bottom: 10px; touch-action: manipulation; }
+        .search-row #search { width: auto; flex: 1; margin-bottom: 0; }
         
         #nav { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         #nav::-webkit-scrollbar { display: none; }
@@ -767,7 +842,11 @@
             <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
         </div>
     </div>
-    <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1)">
+    <div class="search-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1)" style="margin-bottom:0;flex:1;">
+        <button id="filterBtn" onclick="openFilterPanel()" style="flex-shrink:0;padding:9px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;color:#555;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:all 0.2s;" title="设置屏蔽标签">🚫 过滤</button>
+    </div>
+    <div id="filterTagsBar" style="display:none;flex-wrap:wrap;gap:6px;padding:0 0 8px;"></div>
     <div id="nav">
         <!-- 由 renderNav() 动态生成 -->
     </div>
@@ -793,6 +872,24 @@
         <div class="cat-list" id="catList"></div>
         <button class="cat-save-btn" onclick="saveCategoryOrder()">✅ 保存并更新导航</button>
     </div>
+
+<!-- 🚫 过滤面板 -->
+<div id="filterPanel" style="display:none;" onclick="if(event.target===this)closeFilterPanel()">
+    <div class="filter-box">
+        <div class="filter-title">🚫 屏蔽标签设置</div>
+        <div class="filter-hint">添加不想看到的标签，搜索时自动过滤含这些标签的资源</div>
+        <div class="filter-input-row">
+            <input type="text" id="filterInput" placeholder="输入标签，如：福瑞" maxlength="30"
+                onkeydown="if(event.key==='Enter')addBlockedTag()">
+            <button onclick="addBlockedTag()">＋ 添加</button>
+        </div>
+        <div class="filter-tags-wrap" id="filterTagsList">
+            <div class="filter-empty" id="filterEmpty">暂无屏蔽标签</div>
+        </div>
+        <button class="filter-close-btn" onclick="closeFilterPanel()">完成</button>
+    </div>
+</div>
+
 </header>
 
 <!-- ☁️ 云端连接进度条 -->
@@ -2862,6 +2959,13 @@ function refreshUI(targetPage) {
             return cardId && favorites.has(cardId) && matchSearch;
         }
         
+        // 🚫 屏蔽标签过滤
+        const blockedTags = getBlockedTags();
+        if (blockedTags.length > 0) {
+            const hasBlocked = blockedTags.some(tag => searchText.includes(tag.toUpperCase()));
+            if (hasBlocked) return false;
+        }
+        
         return matchCat && matchSearch;
     });
 
@@ -4433,6 +4537,100 @@ function savePage() {
     if(was) enterAdmin();
 }
 
+
+// ==========================================
+// 🚫 屏蔽标签功能
+// ==========================================
+const BLOCKED_TAGS_KEY = 'TX_BLOCKED_TAGS';
+
+function getBlockedTags() {
+    try { return JSON.parse(localStorage.getItem(BLOCKED_TAGS_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveBlockedTags(tags) {
+    localStorage.setItem(BLOCKED_TAGS_KEY, JSON.stringify(tags));
+}
+
+function openFilterPanel() {
+    document.getElementById('filterPanel').style.display = 'flex';
+    renderFilterTags();
+    setTimeout(() => document.getElementById('filterInput').focus(), 100);
+}
+
+function closeFilterPanel() {
+    document.getElementById('filterPanel').style.display = 'none';
+    updateFilterBar();
+    refreshUI(1);
+}
+
+function addBlockedTag() {
+    const input = document.getElementById('filterInput');
+    const tag = input.value.trim();
+    if (!tag) return;
+    const tags = getBlockedTags();
+    if (tags.map(t => t.toUpperCase()).includes(tag.toUpperCase())) {
+        showToast('⚠️ 该标签已在屏蔽列表中');
+        return;
+    }
+    tags.push(tag);
+    saveBlockedTags(tags);
+    input.value = '';
+    renderFilterTags();
+    showToast(`🚫 已屏蔽「${tag}」`);
+}
+
+function removeBlockedTag(tag) {
+    const tags = getBlockedTags().filter(t => t !== tag);
+    saveBlockedTags(tags);
+    renderFilterTags();
+    updateFilterBar();
+    refreshUI(1);
+}
+
+function renderFilterTags() {
+    const tags = getBlockedTags();
+    const list = document.getElementById('filterTagsList');
+    const empty = document.getElementById('filterEmpty');
+    if (!list) return;
+    // 清除旧标签（保留 empty 提示）
+    list.querySelectorAll('.filter-tag').forEach(el => el.remove());
+    if (tags.length === 0) {
+        if (empty) empty.style.display = 'block';
+    } else {
+        if (empty) empty.style.display = 'none';
+        tags.forEach(tag => {
+            const div = document.createElement('div');
+            div.className = 'filter-tag';
+            div.innerHTML = `<span>${tag}</span><button class="filter-tag-del" onclick="removeBlockedTag('${tag.replace(/'/g, "\'")}')">×</button>`;
+            list.appendChild(div);
+        });
+    }
+    // 更新过滤按钮状态
+    const btn = document.getElementById('filterBtn');
+    if (btn) btn.classList.toggle('active', tags.length > 0);
+}
+
+function updateFilterBar() {
+    const tags = getBlockedTags();
+    const bar = document.getElementById('filterTagsBar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    if (tags.length === 0) {
+        bar.style.display = 'none';
+        return;
+    }
+    bar.style.display = 'flex';
+    tags.forEach(tag => {
+        const pill = document.createElement('span');
+        pill.className = 'filter-tag-pill';
+        pill.innerHTML = `🚫 ${tag}<button class="filter-tag-pill-del" onclick="removeBlockedTag('${tag.replace(/'/g, "\'")}')">×</button>`;
+        bar.appendChild(pill);
+    });
+    // 更新过滤按钮状态
+    const btn = document.getElementById('filterBtn');
+    if (btn) btn.classList.toggle('active', tags.length > 0);
+}
+
 window.onload = async () => { 
     checkForUpdates();
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
@@ -4441,6 +4639,7 @@ window.onload = async () => {
     renderNav();
     
     await loadFromGrave();
+    updateFilterBar(); // 🚫 初始化屏蔽标签栏
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
     if (!isEditMode) {
         document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => {
@@ -4457,16 +4656,12 @@ window.onload = async () => {
         navigator.serviceWorker.register(createServiceWorkerBlob()).then(function(registration) {
             console.log('✅ PWA已激活！可以添加到主屏幕了');
             
-            // 监听Service Worker更新
+            // 静默更新：发现新版本自动接管，无需用户确认
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 newWorker.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // 有新版本可用
-                        if (confirm('🎉 发现新版本！是否立即更新？')) {
-                            newWorker.postMessage({ action: 'skipWaiting' });
-                            window.location.reload();
-                        }
+                        newWorker.postMessage({ action: 'skipWaiting' });
                     }
                 });
             });
@@ -4487,7 +4682,7 @@ window.onload = async () => {
 // 创建内联Service Worker
 function createServiceWorkerBlob() {
     const swCode = `
-        const CACHE_NAME = 'tianxiao-cache-v1';
+        const CACHE_NAME = 'tianxiao-cache-v2';
         const urlsToCache = ['/'];
         
         self.addEventListener('install', event => {
