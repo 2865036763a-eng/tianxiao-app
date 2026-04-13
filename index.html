@@ -839,6 +839,7 @@
         <div class="site-title">天笑の秘密基地</div>
         <div style="display:flex;align-items:center;gap:6px;">
             <div class="header-icon-btn" onclick="openFavoritePanel()" title="我的收藏">💖</div>
+            <div class="header-icon-btn" onclick="randomGame()" title="随机抽游戏" style="font-size:18px;">🎲</div>
             <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
         </div>
     </div>
@@ -4630,6 +4631,52 @@ function updateFilterBar() {
     // 更新过滤按钮状态
     const btn = document.getElementById('filterBtn');
     if (btn) btn.classList.toggle('active', tags.length > 0);
+}
+
+
+// 🎲 随机抽游戏
+function randomGame() {
+    // 取所有卡片（排除置顶工具卡等无实际内容的）
+    const allCards = Array.from(document.querySelectorAll('#box .card'));
+    const gameCards = allCards.filter(c => {
+        const name = c.querySelector('.g-name');
+        return name && name.textContent.trim().length > 0;
+    });
+    if (gameCards.length === 0) { showToast('❌ 暂无游戏卡片'); return; }
+
+    // 随机选一张
+    const pick = gameCards[Math.floor(Math.random() * gameCards.length)];
+    const name = pick.querySelector('.g-name');
+    const title = name ? name.textContent.trim() : '未知游戏';
+
+    // 先把所有卡片收起
+    document.querySelectorAll('#box .card.card-expanded').forEach(c => {
+        if (c !== pick) c.classList.remove('card-expanded');
+    });
+
+    // 切换到全部分类确保卡片可见
+    if (currentCat !== 'all') {
+        currentCat = 'all';
+        document.querySelectorAll('#nav li').forEach(li => li.classList.remove('active'));
+        const allTab = document.querySelector('#nav li[data-cat="all"]') || document.querySelector('#nav li');
+        if (allTab) allTab.classList.add('active');
+        refreshUI(1);
+    }
+
+    // 展开选中卡片
+    pick.classList.add('card-expanded');
+    pick.classList.add('active-render');
+
+    // 滚动到卡片
+    setTimeout(() => {
+        pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 高亮闪烁效果
+        pick.style.transition = 'box-shadow 0.3s';
+        pick.style.boxShadow = '0 0 0 3px var(--primary)';
+        setTimeout(() => { pick.style.boxShadow = ''; }, 1200);
+    }, 100);
+
+    showToast(`🎲 抽到了：${title.substring(0, 20)}`);
 }
 
 window.onload = async () => { 
