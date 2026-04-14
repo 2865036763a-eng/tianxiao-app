@@ -4640,7 +4640,16 @@ function updateFilterBar() {
 
 // 🎲 随机抽游戏
 function randomGame() {
-    // 取所有卡片（排除置顶工具卡等无实际内容的）
+    // 先切换到全部分类
+    currentCat = 'all';
+    document.querySelectorAll('#nav li').forEach(li => li.classList.remove('active'));
+    const allTab = document.querySelector('#nav li[data-cat="all"]') || document.querySelector('#nav li');
+    if (allTab) allTab.classList.add('active');
+
+    // 收起所有展开的卡片
+    document.querySelectorAll('#box .card.card-expanded').forEach(c => c.classList.remove('card-expanded'));
+
+    // 取所有有内容的卡片
     const allCards = Array.from(document.querySelectorAll('#box .card'));
     const gameCards = allCards.filter(c => {
         const name = c.querySelector('.g-name');
@@ -4653,32 +4662,24 @@ function randomGame() {
     const name = pick.querySelector('.g-name');
     const title = name ? name.textContent.trim() : '未知游戏';
 
-    // 先把所有卡片收起
-    document.querySelectorAll('#box .card.card-expanded').forEach(c => {
-        if (c !== pick) c.classList.remove('card-expanded');
-    });
+    // 找出这张卡片在第几页
+    const filtered = gameCards; // 全部分类下所有卡片
+    const idx = filtered.indexOf(pick);
+    const targetPage = Math.floor(idx / PAGE_SIZE) + 1;
 
-    // 切换到全部分类确保卡片可见
-    if (currentCat !== 'all') {
-        currentCat = 'all';
-        document.querySelectorAll('#nav li').forEach(li => li.classList.remove('active'));
-        const allTab = document.querySelector('#nav li[data-cat="all"]') || document.querySelector('#nav li');
-        if (allTab) allTab.classList.add('active');
-        refreshUI(1);
-    }
+    // 跳转到对应页，让 refreshUI 正确渲染
+    refreshUI(targetPage);
 
-    // 展开选中卡片
-    pick.classList.add('card-expanded');
-    pick.classList.add('active-render');
-
-    // 滚动到卡片
+    // 展开卡片并滚动
     setTimeout(() => {
-        pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // 高亮闪烁效果
-        pick.style.transition = 'box-shadow 0.3s';
-        pick.style.boxShadow = '0 0 0 3px var(--primary)';
-        setTimeout(() => { pick.style.boxShadow = ''; }, 1200);
-    }, 100);
+        pick.classList.add('card-expanded');
+        setTimeout(() => {
+            pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            pick.style.transition = 'box-shadow 0.3s';
+            pick.style.boxShadow = '0 0 0 3px var(--primary)';
+            setTimeout(() => { pick.style.boxShadow = ''; }, 1200);
+        }, 100);
+    }, 50);
 
     showToast(`🎲 抽到了：${title.substring(0, 20)}`);
 }
