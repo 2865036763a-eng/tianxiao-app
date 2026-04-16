@@ -16,7 +16,8 @@
         :root { --primary: #ff6699; --bg: #eef0f5; --card: rgba(255,255,255,0.68); --text: #222; --border: #e3e8ec; --video: #fb7299; --notice: #ff9800; }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
         body { 
-            background: url('images/bg.jpg') center center / cover no-repeat fixed;
+            background: url('images/bg.jpg') center center / cover no-repeat;
+            background-attachment: scroll;
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
             display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none; 
         }
@@ -4764,6 +4765,25 @@ function showSearchImageEgg(src) {
     overlay.addEventListener('click', () => overlay.remove());
     document.body.appendChild(overlay);
 }
+
+
+// 🎨 视差滚动背景
+(function() {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+        // 移动端保持 fixed 背景（性能更好）
+        document.body.style.backgroundAttachment = 'fixed';
+        return;
+    }
+    // PC端用视差
+    const main = document.querySelector('main');
+    if (!main) return;
+    main.addEventListener('scroll', function() {
+        const scrollY = main.scrollTop;
+        const speed = 0.35;
+        document.body.style.backgroundPositionY = `calc(50% + ${scrollY * speed}px)`;
+    }, { passive: true });
+})();
 
 window.onload = async () => { 
     checkForUpdates();
