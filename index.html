@@ -2211,7 +2211,7 @@ function cancelTurnstile() {
 })();
 // ================================
 
-const ACCESS_PASS = "350234"; 
+const ACCESS_PASS = "114514"; 
 // 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 10;
 const FAV_KEY = "TX_FAVORITES";
@@ -4741,7 +4741,7 @@ function triggerEasterEgg() {
 let _searchEggShown = false;
 function checkSearchEgg(val) {
     if (_searchEggShown) return;
-    if (val.trim().includes('幼女')) {
+    if (val.trim().includes('良子')) {
         _searchEggShown = true;
         showSearchImageEgg('images/ryoko.jpg');
         setTimeout(() => { _searchEggShown = false; }, 5000);
@@ -4837,18 +4837,67 @@ window.onload = async () => {
 function createServiceWorkerBlob() {
     const swCode = `
         const CACHE_NAME = 'tianxiao-cache-v2';
-        const urlsToCache = ['/'];
-        
+
+        // 离线备用页面 HTML
+        const OFFLINE_HTML = \`<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>天笑の秘密基地</title>
+<style>
+  body { margin:0; background:#1a1a2e; display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; font-family:system-ui,sans-serif; color:#fff; }
+  .icon { font-size:64px; margin-bottom:16px; }
+  h2 { margin:0 0 8px; font-size:20px; }
+  p { margin:0; color:rgba(255,255,255,0.5); font-size:14px; }
+  button { margin-top:24px; padding:10px 24px; background:#ff6699; color:#fff; border:none; border-radius:20px; font-size:14px; cursor:pointer; }
+</style>
+</head>
+<body>
+  <div class="icon">📡</div>
+  <h2>网络连接已断开</h2>
+  <p>请检查网络后重试</p>
+  <button onclick="location.reload()">重新连接</button>
+</body>
+</html>\`;
+
         self.addEventListener('install', event => {
             event.waitUntil(
-                caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+                caches.open(CACHE_NAME).then(cache => cache.addAll(['/']))
+                .then(() => self.skipWaiting())
             );
         });
-        
+
+        self.addEventListener('activate', event => {
+            event.waitUntil(self.clients.claim());
+        });
+
         self.addEventListener('fetch', event => {
+            // 只处理页面请求
+            if (event.request.mode === 'navigate') {
+                event.respondWith(
+                    fetch(event.request)
+                        .then(res => {
+                            // 成功则缓存并返回
+                            const clone = res.clone();
+                            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                            return res;
+                        })
+                        .catch(() => {
+                            // 断网：先尝试缓存，缓存也没有就显示自定义离线页
+                            return caches.match(event.request).then(cached => {
+                                return cached || new Response(OFFLINE_HTML, {
+                                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                                });
+                            });
+                        })
+                );
+                return;
+            }
+            // 其他资源：缓存优先
             event.respondWith(
-                caches.match(event.request).then(response => {
-                    return response || fetch(event.request);
+                caches.match(event.request).then(cached => {
+                    return cached || fetch(event.request).catch(() => new Response('', { status: 503 }));
                 })
             );
         });
