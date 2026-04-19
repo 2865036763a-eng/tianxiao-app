@@ -501,7 +501,8 @@
         .g-tags { font-size: 12px; color: var(--primary); margin-bottom: 12px; outline: none; word-break: break-word; max-height: 40px; overflow-y: auto; }
 
         .link-wrap { position: relative; background: #f8f9fb; border-radius: 8px; border: 1px solid #edf0f5; display: flex; flex-direction: column; }
-        .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.2; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 1.2em; }
+        .link-text { display: none; }
+        .admin-mode .link-text { font-size: 13px; padding: 12px; color: #333; word-break: break-all; line-height: 1.2; outline: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 1.2em; }
         .link-wrap.expanded .link-text { -webkit-line-clamp: initial; display: block; overflow-y: auto; max-height: 300px; color: #333; white-space: pre-wrap; }
         /* 非管理员隐藏 KV 占位提示 */
         .link-text[data-kv-placeholder="1"] { display: none; }
@@ -627,6 +628,9 @@
 
         #rocket { position: fixed; right: 15px; bottom: -60px; width: 45px; height: 45px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(255,102,153,0.4); cursor: pointer; transition: 0.4s; z-index: 200; font-size: 22px; touch-action: manipulation; }
         #rocket.show { bottom: 100px; }
+        #azBall { position: fixed; right: 15px; bottom: -60px; width: 45px; height: 45px; background: #4caf50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(76,175,80,0.4); cursor: pointer; transition: 0.4s; z-index: 200; font-size: 15px; font-weight: bold; touch-action: manipulation; }
+        #azBall.show { bottom: 155px; }
+        #azBall.active { background: #e53935; box-shadow: 0 4px 12px rgba(229,57,53,0.4); }
 
         /* ===== 🍔 侧边栏菜单 ===== */
         #sidebarOverlay {
@@ -2007,6 +2011,7 @@
                 <span>/ 共 4 页</span>
             </div></div>
     <div id="rocket" onclick="goTop()" class="">🚀</div>
+    <div id="azBall" onclick="toggleAZMode()" title="安卓模式">AZ</div>
     <div id="prevPageBtn" class="side-nav-btn" onclick="navPage(-1)">‹</div>
     <div id="nextPageBtn" class="side-nav-btn show" onclick="navPage(1)">›</div>
 </main>
@@ -2968,7 +2973,10 @@ function refreshUI(targetPage) {
             const hasBlocked = blockedTags.some(tag => searchText.includes(tag.toUpperCase()));
             if (hasBlocked) return false;
         }
-        
+
+        // 📱 AZ模式：只显示含AZ标签的卡片
+        if (window._azMode && !searchText.includes('AZ')) return false;
+
         return matchCat && matchSearch;
     });
 
@@ -3206,6 +3214,11 @@ function handleScroll() {
     const rocket = document.getElementById("rocket");
     if (main.scrollTop > 300) rocket.classList.add("show");
     else rocket.classList.remove("show");
+    const azBall = document.getElementById("azBall");
+    if (azBall) {
+        if (main.scrollTop > 300) azBall.classList.add("show");
+        else azBall.classList.remove("show");
+    }
 }
 
 function goTop() { document.getElementById("mainScroll").scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -4849,6 +4862,23 @@ function showSearchImageEgg(src) {
         document.body.style.backgroundPositionY = `calc(50% + ${scrollY * speed}px)`;
     }, { passive: true });
 })();
+
+
+// 📱 AZ安卓模式悬浮球
+function toggleAZMode() {
+    const ball = document.getElementById('azBall');
+    window._azMode = !window._azMode;
+    if (window._azMode) {
+        ball.classList.add('active');
+        ball.title = '安卓模式已开启（点击关闭）';
+        showToast('📱 安卓模式已开启，仅显示AZ游戏');
+    } else {
+        ball.classList.remove('active');
+        ball.title = '安卓模式';
+        showToast('✅ 安卓模式已关闭');
+    }
+    refreshUI(1);
+}
 
 window.onload = async () => { 
     checkForUpdates();
