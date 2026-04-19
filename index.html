@@ -4389,84 +4389,137 @@ async function showKvLinkEditor(cardId, wrap) {
 }
 
 // 显示多链接选择器
+// 识别网盘类型
+function detectDrive(url) {
+    if (/pan\.baidu\.com|yun\.baidu/i.test(url))   return { name: '百度网盘',   icon: '🔵', color: '#2468f2' };
+    if (/pan\.quark\.cn|quark/i.test(url))          return { name: '夸克网盘',   icon: '🟣', color: '#6c35de' };
+    if (/aliyundrive|alipan\.com/i.test(url))       return { name: '阿里云盘',   icon: '🟠', color: '#ff6a00' };
+    if (/lanzou|lanzoui|lanzoux|ilanzou/i.test(url))return { name: '蓝奏云',     icon: '🔷', color: '#1e90ff' };
+    if (/drive\.uc\.cn|uc\.cn/i.test(url))          return { name: 'UC网盘',     icon: '🟡', color: '#f5a623' };
+    if (/yun\.139\.com|caiyun/i.test(url))          return { name: '中国移动云盘',icon: '🟢', color: '#00b140' };
+    if (/mega\.nz|mega\.io/i.test(url))             return { name: 'MEGA',       icon: '⚫', color: '#d9272e' };
+    if (/drive\.google/i.test(url))                 return { name: 'Google Drive',icon: '🌈', color: '#4285f4' };
+    if (/onedrive|1drv/i.test(url))                 return { name: 'OneDrive',   icon: '☁️', color: '#0078d4' };
+    if (/dropbox/i.test(url))                       return { name: 'Dropbox',    icon: '📦', color: '#0061fe' };
+    if (/189\.cn|cloud\.189/i.test(url))            return { name: '天翼云盘',   icon: '🔴', color: '#e60012' };
+    return { name: '网盘链接', icon: '🔗', color: '#555' };
+}
+
 function showLinkSelector(urls, event) {
     if (event) { event.stopPropagation(); }
+
+    // 按网盘类型分组
+    const groups = {};
+    urls.forEach((item) => {
+        const url   = typeof item === 'string' ? item : item.url;
+        const label = typeof item === 'object' && item.label ? item.label : '';
+        const extra = typeof item === 'object' && item.extra ? item.extra : '';
+        const drive = detectDrive(url);
+        const key   = drive.name;
+        if (!groups[key]) groups[key] = { drive, items: [] };
+        groups[key].items.push({ url, label, extra });
+    });
+
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.style.display = 'flex';
-    
-    const linksContainer = document.createElement('div');
-    linksContainer.style.cssText = 'max-height: 500px; overflow-y: auto; padding: 10px;';
-
-    urls.forEach((item, idx) => {
-        // 兼容纯字符串（旧调用方式）和 {url, label, extra} 对象
-        const url = typeof item === 'string' ? item : item.url;
-        const label = typeof item === 'object' && item.label ? item.label : '';
-        const extra = typeof item === 'object' && item.extra ? item.extra : '';
-        const shortUrl = url.length > 50 ? url.substring(0, 50) + '...' : url;
-
-        const itemDiv = document.createElement('div');
-        itemDiv.style.cssText = 'margin: 12px 0; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background: #f9f9f9;';
-
-        // 说明文字（分卷1/分卷2等）
-        if (label) {
-            const labelEl = document.createElement('div');
-            labelEl.style.cssText = 'font-size: 13px; font-weight: bold; color: #333; margin-bottom: 6px;';
-            labelEl.textContent = label;
-            itemDiv.appendChild(labelEl);
-        }
-
-        const openBtn = document.createElement('button');
-        openBtn.className = 'modal-btn btn-confirm';
-        openBtn.style.cssText = 'width: 100%; text-align: left; padding: 12px; word-break: break-all; margin-bottom: 8px; background: #007bff; color: white;';
-        openBtn.textContent = '📱 ' + (idx + 1) + '. ' + shortUrl;
-        openBtn.addEventListener('click', function() { window.open(url, '_blank'); });
-
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'modal-btn';
-        copyBtn.style.cssText = 'width: 100%; text-align: center; padding: 10px; background: #28a745; color: white; font-size: 14px;';
-        copyBtn.textContent = '📋 复制链接';
-        copyBtn.addEventListener('click', function() { copyLinkToClipboard(url, copyBtn); });
-
-        itemDiv.appendChild(openBtn);
-        itemDiv.appendChild(copyBtn);
-
-        // 提取码等额外信息
-        if (extra) {
-            const extraEl = document.createElement('div');
-            extraEl.style.cssText = 'font-size: 12px; color: #888; margin-top: 6px; padding: 4px 6px; background: #f0f0f0; border-radius: 4px;';
-            extraEl.textContent = extra;
-            itemDiv.appendChild(extraEl);
-        }
-
-        linksContainer.appendChild(itemDiv);
-    });
 
     const modalBox = document.createElement('div');
     modalBox.className = 'modal-box';
-    modalBox.style.maxWidth = '500px';
-    
-    const title = document.createElement('div');
-    title.className = 'modal-title';
-    title.textContent = '🔗 选择链接操作 (共' + urls.length + '个)';
-    
+    modalBox.style.cssText = 'max-width:500px; width:95%; padding:0; overflow:hidden;';
+    modalBox.onclick = e => e.stopPropagation();
+
+    const groupCount = Object.keys(groups).length;
+    const totalCount = urls.length;
+
+    // 标题
+    const titleEl = document.createElement('div');
+    titleEl.className = 'modal-title';
+    titleEl.style.cssText = 'padding:16px; border-bottom:1px solid #f0f0f0; margin:0;';
+    titleEl.textContent = `🔗 选择网盘 (${groupCount}个)`;
+    modalBox.appendChild(titleEl);
+
+    const body = document.createElement('div');
+    body.style.cssText = 'max-height:65vh; overflow-y:auto; padding:12px;';
+
+    // 统一效果：所有情况都先显示网盘按钮，点击后展示链接
+    Object.values(groups).forEach(({ drive, items }) => {
+        const driveBtn = document.createElement('button');
+        driveBtn.style.cssText = `width:100%; margin-bottom:10px; padding:16px; border:none; border-radius:12px; background:${drive.color}; color:#fff; font-size:16px; font-weight:bold; cursor:pointer; text-align:center; touch-action:manipulation;`;
+        driveBtn.textContent = drive.icon + ' ' + drive.name + (items.length > 1 ? ` (${items.length}个)` : '');
+        driveBtn.addEventListener('click', () => {
+            body.innerHTML = '';
+            const backBtn = document.createElement('button');
+            backBtn.style.cssText = 'width:100%; margin-bottom:12px; padding:10px; border:1px solid #ddd; border-radius:8px; background:#f5f5f5; color:#555; font-size:13px; cursor:pointer;';
+            backBtn.textContent = '← 返回网盘列表';
+            backBtn.addEventListener('click', () => { modal.remove(); showLinkSelector(urls, event); });
+            body.appendChild(backBtn);
+            titleEl.textContent = drive.icon + ' ' + drive.name + ` (${items.length}个链接)`;
+            renderLinkItems(body, items);
+        });
+        body.appendChild(driveBtn);
+    });
+
+    modalBox.appendChild(body);
+
     const closeDiv = document.createElement('div');
-    closeDiv.style.cssText = 'margin-top: 15px; padding: 0 10px;';
+    closeDiv.style.cssText = 'padding:10px 12px 16px;';
     const closeBtn = document.createElement('button');
     closeBtn.className = 'modal-btn btn-cancel';
     closeBtn.style.width = '100%';
     closeBtn.textContent = '关闭';
-    closeBtn.addEventListener('click', function() { modal.remove(); });
+    closeBtn.addEventListener('click', () => modal.remove());
     closeDiv.appendChild(closeBtn);
-    
-    modalBox.appendChild(title);
-    modalBox.appendChild(linksContainer);
     modalBox.appendChild(closeDiv);
+
     modal.appendChild(modalBox);
     document.body.appendChild(modal);
-    
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) modal.remove();
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function renderLinkItems(container, items) {
+    items.forEach((item, idx) => {
+        const { url, label, extra } = item;
+        const drive = detectDrive(url);
+
+        const itemDiv = document.createElement('div');
+        itemDiv.style.cssText = 'margin-bottom:12px; border:1px solid #e8e8e8; border-radius:10px; padding:12px; background:#fafafa;';
+
+        if (label) {
+            const labelEl = document.createElement('div');
+            labelEl.style.cssText = 'font-size:13px; font-weight:bold; color:#333; margin-bottom:8px;';
+            labelEl.textContent = label + '链接:';
+            itemDiv.appendChild(labelEl);
+        }
+
+        const openBtn = document.createElement('button');
+        openBtn.style.cssText = `width:100%; padding:12px; border:none; border-radius:8px; background:${drive.color}; color:#fff; font-size:14px; font-weight:bold; cursor:pointer; margin-bottom:8px; touch-action:manipulation;`;
+        openBtn.textContent = drive.icon + ' 打开 ' + drive.name;
+        openBtn.addEventListener('click', () => window.open(url, '_blank'));
+        itemDiv.appendChild(openBtn);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.style.cssText = 'width:100%; padding:10px; border:none; border-radius:8px; background:#28a745; color:#fff; font-size:13px; cursor:pointer; touch-action:manipulation;';
+        copyBtn.textContent = '📋 复制链接';
+        copyBtn.addEventListener('click', () => copyLinkToClipboard(url, copyBtn));
+        itemDiv.appendChild(copyBtn);
+
+        if (extra) {
+            const extraEl = document.createElement('div');
+            const code = extra.replace(/^提取码[：:]\s*/i, '');
+            extraEl.style.cssText = 'margin-top:8px; padding:8px 10px; background:#fff; border:1px solid #e0e0e0; border-radius:6px; display:flex; align-items:center; justify-content:space-between;';
+            extraEl.innerHTML = `<span style="font-size:13px;color:#555;">提取码：<b style="color:#333;letter-spacing:2px;">${code}</b></span>`;
+            const copyCodeBtn = document.createElement('button');
+            copyCodeBtn.style.cssText = 'padding:4px 10px; border:none; border-radius:6px; background:#ff6699; color:#fff; font-size:12px; cursor:pointer;';
+            copyCodeBtn.textContent = '复制';
+            copyCodeBtn.addEventListener('click', () => {
+                navigator.clipboard ? navigator.clipboard.writeText(code).then(() => showToast('✅ 提取码已复制')) : (() => { const t = document.createElement('textarea'); t.value = code; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); showToast('✅ 提取码已复制'); })();
+            });
+            extraEl.appendChild(copyCodeBtn);
+            itemDiv.appendChild(extraEl);
+        }
+
+        container.appendChild(itemDiv);
     });
 }
 
