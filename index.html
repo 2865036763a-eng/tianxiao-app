@@ -3067,7 +3067,8 @@ function openNoticePanel() {
 
     // 读取公告内容：内存变量优先（云端已加载），否则回退到 localStorage
     const saved = noticeText || localStorage.getItem(NOTICE_KEY) || '';
-    body.textContent = saved;
+    // 用 innerText 赋值保留换行（textContent 会丢失换行显示）
+    body.innerText = saved;
 
     if (isEditMode) {
         // 管理员模式：直接开启编辑
@@ -3098,9 +3099,20 @@ function startNoticeEdit() {
 
 function saveNoticeContent() {
     const body = document.getElementById('noticeContentBody');
-    const content = body.textContent || '';
-    noticeText = content; // 同步内存变量
+    // contentEditable 里换行是 <br> 或 <div>，需转成 \n 再存储
+    const html = body.innerHTML || '';
+    const content = html
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<div>/gi, '\n')
+        .replace(/<\/div>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+    noticeText = content;
     localStorage.setItem(NOTICE_KEY, content);
+    body.innerText = content; // 重新渲染确保显示正确
     body.contentEditable = 'false';
     showToast('✅ 公告已保存！记得点「☁️ 保存云端」同步给所有人');
 }
@@ -5381,10 +5393,4 @@ window.closeNoticePanel = function() {
 </div>
 
 
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
-</script>
 </body></html>
