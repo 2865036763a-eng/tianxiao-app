@@ -4070,8 +4070,16 @@ function addLinkJumpButtons() {
             const localUrls = extractUrlsWithContext(localText);
             const hasLocalUrls = localUrls.length > 0;
 
-            // 有 cardId 的卡片统一显示获取链接按钮，点击时再判断是否有数据
-            if (cardId) {
+            // 判断是否有链接：本地有URL、KV卡片标记、或link-text有实质内容（分卷/提取码说明）
+            const useKv = card.dataset.useKv;
+            const isKvCard = (useKv === 'done' || useKv === '1');
+            const ltRaw = linkText ? (linkText.textContent || '').trim() : '';
+            const ltMeaningful = ltRaw.length > 0
+                && ltRaw !== '（链接已安全存储）'
+                && ltRaw !== '（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）';
+            const hasAnyLink = hasLocalUrls || isKvCard || ltMeaningful;
+
+            if (cardId && hasAnyLink) {
                 // 统一显示「获取链接」按钮——先尝试KV，KV没有就用本地URL
                 const btn = document.createElement('button');
                 btn.className = 'link-jump-btn get-link-btn';
