@@ -547,7 +547,8 @@
         .direct-dl-input { flex: 1; border: 1px dashed #ff6699; border-radius: 6px; padding: 6px 8px; font-size: 11px; outline: none; color: #333; min-width: 0; }
         .direct-dl-input::placeholder { color: #ccc; }
         .direct-dl-save { background: #ff6699; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
-        .expand-btn { text-align: right; padding: 5px 12px; font-size: 11px; color: var(--primary); cursor: pointer; border-top: 1px solid rgba(0,0,0,0.03); touch-action: manipulation; }
+        .expand-btn { display: none; }
+        .admin-mode .expand-btn { display: block; text-align: right; padding: 5px 12px; font-size: 11px; color: var(--primary); cursor: pointer; border-top: 1px solid rgba(0,0,0,0.03); touch-action: manipulation; }
         /* 🐛 修复：确保展开按钮在管理员模式下也可见 */
         .admin-mode .expand-btn { display: block; }
 
@@ -4069,7 +4070,11 @@ function addLinkJumpButtons() {
             const localUrls = extractUrlsWithContext(localText);
             const hasLocalUrls = localUrls.length > 0;
 
-            if (cardId) {
+            // 问题2：只有有链接可能的卡片才显示获取按钮
+            // KV卡片（useKv=done/1）或本地有URL的卡片才显示
+            const useKv = card.dataset.useKv;
+            const hasKvLinks = (useKv === 'done' || useKv === '1');
+            if (cardId && (hasKvLinks || hasLocalUrls)) {
                 // 统一显示「获取链接」按钮——先尝试KV，KV没有就用本地URL
                 const btn = document.createElement('button');
                 btn.className = 'link-jump-btn get-link-btn';
@@ -4181,7 +4186,20 @@ function addLinkJumpButtons() {
             const dlBtn = document.createElement('button');
             dlBtn.className = 'direct-dl-btn';
             dlBtn.textContent = '⬇️ 直接下载';
-            dlBtn.onclick = () => window.open(savedUrl, '_blank');
+            dlBtn.onclick = async function(e) {
+                e.stopPropagation();
+                dlBtn.textContent = '⏳ 验证中...';
+                dlBtn.disabled = true;
+                try {
+                    await requestTurnstileToken();
+                    window.open(savedUrl, '_blank');
+                } catch(err) {
+                    if (err.message !== '取消') showToast('❌ 验证失败，请重试');
+                } finally {
+                    dlBtn.textContent = '⬇️ 直接下载';
+                    dlBtn.disabled = false;
+                }
+            };
             infoBox.insertBefore(dlBtn, editArea);
         }
     });
@@ -4510,7 +4528,7 @@ function detectDrive(url) {
     if (/onedrive|1drv/i.test(url))                 return { name: 'OneDrive',   icon: '☁️', color: '#0078d4' };
     if (/dropbox/i.test(url))                       return { name: 'Dropbox',    icon: '📦', color: '#0061fe' };
     if (/189\.cn|cloud\.189/i.test(url))            return { name: '天翼云盘',   icon: '🔴', color: '#e60012' };
-    return { name: '网盘链接', icon: '🔗', color: '#555' };
+    return { name: '其他链接', icon: '🔗', color: '#43a047' };
 }
 
 function showLinkSelector(urls, event) {
