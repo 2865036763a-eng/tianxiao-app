@@ -4070,11 +4070,8 @@ function addLinkJumpButtons() {
             const localUrls = extractUrlsWithContext(localText);
             const hasLocalUrls = localUrls.length > 0;
 
-            // 问题2：只有有链接可能的卡片才显示获取按钮
-            // KV卡片（useKv=done/1）或本地有URL的卡片才显示
-            const useKv = card.dataset.useKv;
-            const hasKvLinks = (useKv === 'done' || useKv === '1');
-            if (cardId && (hasKvLinks || hasLocalUrls)) {
+            // 有 cardId 的卡片统一显示获取链接按钮，点击时再判断是否有数据
+            if (cardId) {
                 // 统一显示「获取链接」按钮——先尝试KV，KV没有就用本地URL
                 const btn = document.createElement('button');
                 btn.className = 'link-jump-btn get-link-btn';
