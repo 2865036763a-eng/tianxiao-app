@@ -864,6 +864,7 @@
         <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
         <button onclick="migrateAllLinksToKV()" style="background: #c62828 !important;">🔒 迁移链接</button>
+        <button onclick="batchReplaceAZTag()" style="background: #7b1fa2 !important;">🔁 AZ→安卓</button>
         <button onclick="debugCardStructure()" style="background:#333;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;">🐛 调试</button> <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
     </div>
@@ -2242,7 +2243,7 @@ const DEFAULT_CATEGORIES = [
     { key: 'RPG',    label: 'RPG' },
     { key: 'GAL',    label: 'GAL' },
     { key: 'ADV',    label: 'ADV' },
-    { key: 'AZ',     label: 'AZ' },
+    { key: '安卓',     label: '安卓' },
     { key: 'PC',     label: 'PC' },
     { key: '动画',   label: '🎬 动画' },
     { key: '本子',   label: '📚 本子' },
@@ -2975,7 +2976,7 @@ function refreshUI(targetPage) {
         }
 
         // 📱 AZ模式：只显示含AZ标签的卡片
-        if (window._azMode && !searchText.includes('AZ')) return false;
+        if (window._azMode && !searchText.includes('AZ') && !searchText.includes('安卓')) return false;
 
         return matchCat && matchSearch;
     });
@@ -4878,6 +4879,30 @@ function toggleAZMode() {
         showToast('✅ 安卓模式已关闭');
     }
     refreshUI(1);
+}
+
+
+// 🔁 批量把AZ标签改成安卓
+function batchReplaceAZTag() {
+    const allCards = document.querySelectorAll('#box .card');
+    let count = 0;
+    allCards.forEach(card => {
+        const tagsEl = card.querySelector('.g-tags');
+        if (!tagsEl) return;
+        const original = tagsEl.textContent;
+        // 匹配独立的AZ（前后是空格、冒号、行首行尾），不误改AZ开头的游戏名
+        const replaced = tagsEl.innerHTML.replace(/(?<=[\s:：,，]|^)AZ(?=[\s,，]|$)/g, '安卓');
+        if (replaced !== tagsEl.innerHTML) {
+            tagsEl.innerHTML = replaced;
+            count++;
+        }
+    });
+    if (count === 0) {
+        showToast('⚠️ 没有找到需要替换的AZ标签');
+        return;
+    }
+    autoSave();
+    showToast(`✅ 已将 ${count} 张卡片的AZ标签改为安卓，记得保存云端`);
 }
 
 window.onload = async () => { 
