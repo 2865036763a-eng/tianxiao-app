@@ -25,6 +25,9 @@
         }
         [data-theme="dark"] body {
             background-color: #0e0e10;
+            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('images/bg.jpg') !important;
+            background-size: cover !important;
+            background-position: center center !important;
             filter: none;
         }
         [data-theme="dark"] header {
@@ -3342,20 +3345,9 @@ function openFavoritePanel() {
             };
         });
 
-        // 点击卡片切换展开/收起（用 touch 坐标区分滑动和点击）
-        let _favTouchStartY = 0;
-        clone.addEventListener('touchstart', function(e) {
-            _favTouchStartY = e.touches[0].clientY;
-        }, { passive: true });
-        clone.addEventListener('touchend', function(e) {
-            const dy = Math.abs(e.changedTouches[0].clientY - _favTouchStartY);
-            if (dy > 8) return; // 滑动超过8px不算点击
-            if (e.target.closest('.fav-btn, .link-jump-btn, .desc-expand-btn, .slide-btn')) return;
-            const expanded = clone.classList.contains('card-expanded');
-            grid.querySelectorAll('.card.card-expanded').forEach(c => c.classList.remove('card-expanded'));
-            if (!expanded) clone.classList.add('card-expanded');
-        }, { passive: true });
+        // 收藏页：卡片完全不拦截触摸，展开/收起通过专用按钮
         clone.onclick = null;
+        clone.style.cursor = 'default';
 
         // 重新绑定按钮
         clone.querySelectorAll('.desc-expand-btn').forEach(btn => {
@@ -3384,7 +3376,16 @@ function openFavoritePanel() {
                     lb.textContent = '⏳ 获取中...'; lb.disabled = true;
                     try {
                         let tsToken = '';
-                        if (!isEditMode) { tsToken = await requestTurnstileToken(); }
+                        if (!isEditMode) {
+                            try {
+                                tsToken = await requestTurnstileToken();
+                            } catch(tsErr) {
+                                if (tsErr.message === '取消') { lb.textContent = '🔗 获取链接'; lb.disabled = false; return; }
+                                showToast('❌ 验证失败：' + tsErr.message);
+                                lb.textContent = '🔗 获取链接'; lb.disabled = false;
+                                return;
+                            }
+                        }
                         const headers = {};
                         if (isEditMode) { const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN'); if (tok) headers['Authorization'] = `Bearer ${tok}`; }
                         const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cid)}${tsToken ? '&token='+encodeURIComponent(tsToken) : ''}`, { headers });
@@ -3400,15 +3401,45 @@ function openFavoritePanel() {
                                     else if (/提取码|密码|解压码/i.test(l)) extraLines.push(l);
                                 });
                                 showLinkSelector(data.links.map((url, i) => ({ url, label: labelLines[i] || `链接 ${i+1}`, extra: extraLines[i] || '' })));
-                            } else { showToast('❌ 暂无链接'); }
+                            } else {
+                                showToast('❌ 该卡片暂无链接');
+                            }
+                        } else {
+                            const errData = await res.json().catch(() => ({}));
+                            showToast('❌ 获取失败：' + (errData.error || res.status));
                         }
-                    } catch(err) { if (err.message !== '取消') showToast('❌ ' + (err.message || '获取失败')); }
+                    } catch(err) {
+                        showToast('❌ ' + (err.message || '网络错误'));
+                    }
                     lb.textContent = '🔗 获取链接'; lb.disabled = false;
                 };
                 actDiv.appendChild(lb);
                 if (expandBtn) wrap.insertBefore(actDiv, expandBtn);
                 else wrap.appendChild(actDiv);
             }
+        }
+
+        // 在 info-box 顶部插入展开/收起按钮
+        const infoBox2 = clone.querySelector('.info-box');
+        if (infoBox2) {
+            const toggleBar = document.createElement('div');
+            toggleBar.style.cssText = 'text-align:center; padding:6px 0 2px; cursor:pointer; color:var(--primary); font-size:12px; user-select:none;';
+            toggleBar.textContent = '▼ 展开详情';
+            toggleBar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const expanded = clone.classList.contains('card-expanded');
+                grid.querySelectorAll('.card.card-expanded').forEach(c => {
+                    c.classList.remove('card-expanded');
+                    const bar = c.querySelector('.fav-toggle-bar');
+                    if (bar) bar.textContent = '▼ 展开详情';
+                });
+                if (!expanded) {
+                    clone.classList.add('card-expanded');
+                    toggleBar.textContent = '▲ 收起';
+                }
+            });
+            toggleBar.className = 'fav-toggle-bar';
+            infoBox2.insertBefore(toggleBar, infoBox2.firstChild);
         }
 
         grid.appendChild(clone);
