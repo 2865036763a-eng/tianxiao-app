@@ -15,193 +15,130 @@
     <style>
         :root { --primary: #ff6699; --bg: #eef0f5; --card: rgba(255,255,255,0.68); --text: #222; --border: #e3e8ec; --video: #fb7299; --notice: #ff9800; }
 
-        /* 🌙 夜间模式 */
+        /* 🌙 夜间模式 - B站风格深色 */
         [data-theme="dark"] {
-            --bg: #0f0f13;
-            --card: rgba(30,30,40,0.92);
-            --text: #e0e0e0;
-            --border: #2a2a3a;
+            --bg: #0e0e10;
+            --card: #18181b;
+            --text: #e3e3e3;
+            --border: #2a2a2e;
             --primary: #ff6699;
         }
         [data-theme="dark"] body {
-            background-color: #0f0f13;
-            background-blend-mode: multiply;
-            filter: brightness(0.85);
+            background-color: #0e0e10;
+            filter: none;
         }
         [data-theme="dark"] header {
-            background: rgba(20,20,28,0.95) !important;
-            border-bottom-color: #2a2a3a !important;
+            background: rgba(18,18,20,0.97) !important;
+            border-bottom-color: #2a2a2e !important;
         }
+        [data-theme="dark"] main { background: transparent; }
+        [data-theme="dark"] .card {
+            background: #18181b !important;
+            border-color: #2a2a2e !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        [data-theme="dark"] .card.is-pinned { border-color: #ff9800 !important; }
+        [data-theme="dark"] .info-box {
+            background: #18181b !important;
+        }
+        [data-theme="dark"] .g-name { color: #e3e3e3 !important; }
+        [data-theme="dark"] .g-tags { color: var(--primary); }
+        [data-theme="dark"] .tag-pill {
+            background: #27272a;
+            border-color: #3f3f46;
+            color: #d4d4d8;
+        }
+        [data-theme="dark"] .tag-prefix { color: #71717a; }
+        [data-theme="dark"] .desc-wrap {
+            background: #27272a !important;
+            border-color: #3f3f46 !important;
+            box-shadow: none !important;
+        }
+        [data-theme="dark"] .desc-text { color: #d4d4d8 !important; }
+        [data-theme="dark"] .desc-expand-btn { color: var(--primary); }
+        [data-theme="dark"] .link-wrap {
+            background: #27272a !important;
+            border-color: #3f3f46 !important;
+        }
+        [data-theme="dark"] .link-actions { border-top-color: #3f3f46; }
+        [data-theme="dark"] .link-jump-btn { background: #3f3f8a; }
+        [data-theme="dark"] #search {
+            background: #27272a !important;
+            border-color: #3f3f46 !important;
+            color: #e3e3e3 !important;
+        }
+        [data-theme="dark"] #search::placeholder { color: #71717a; }
         [data-theme="dark"] #nav li {
-            background: #1e1e28;
-            color: #bbb;
+            background: #27272a;
+            color: #a1a1aa;
         }
         [data-theme="dark"] #nav li.active {
             background: var(--primary);
             color: #fff;
         }
-        [data-theme="dark"] .card {
-            background: rgba(25,25,35,0.95);
-            border-color: #2a2a3a;
-        }
-        [data-theme="dark"] .info-box {
-            background: rgba(20,20,30,0.8);
-        }
-        [data-theme="dark"] .g-name { color: #e8e8e8; }
-        [data-theme="dark"] .desc-text { color: #aaa; }
-        [data-theme="dark"] .link-wrap {
-            background: #1a1a28;
-            border-color: #2a2a3a;
-        }
-        [data-theme="dark"] .link-jump-btn { background: #2a2a6e; }
-        [data-theme="dark"] .link-jump-btn:hover { background: #3a3a8e; }
-        [data-theme="dark"] #search {
-            background: #1a1a28;
-            border-color: #2a2a3a;
-            color: #e0e0e0;
-        }
-        [data-theme="dark"] .modal-box {
-            background: #1e1e2e;
-            color: #e0e0e0;
-        }
-        [data-theme="dark"] .modal-title { color: #e0e0e0; }
-        [data-theme="dark"] .tag-pill {
-            background: #1e1e2e;
-            border-color: #3a3a4a;
-            color: #bbb;
-        }
-        [data-theme="dark"] .tag-prefix { color: #666; }
-        [data-theme="dark"] .desc-wrap {
-            background: rgba(20,20,30,0.6);
-            border-color: #2a2a3a;
-        }
-        [data-theme="dark"] .fullpage-panel {
-            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/bg.jpg');
-        }
-        [data-theme="dark"] .fullpage-header {
-            background: rgba(20,20,28,0.95) !important;
-        }
-        [data-theme="dark"] .notice-content-wrap {
-            background: rgba(25,25,35,0.95);
-            border-color: #2a2a3a;
-        }
-        [data-theme="dark"] .notice-content-body { color: #ccc; }
-        /* 侧边栏 */
-        [data-theme="dark"] #sidebar {
-            background: #16161e;
-        }
+        [data-theme="dark"] #sidebar { background: #18181b; }
         [data-theme="dark"] .sidebar-header {
-            background: linear-gradient(135deg, #2a1020, #1a1028);
+            background: linear-gradient(135deg, #2d1520, #1a1028) !important;
         }
-        [data-theme="dark"] .sidebar-item {
-            color: #ccc;
-        }
-        [data-theme="dark"] .sidebar-item:hover,
-        [data-theme="dark"] .sidebar-item:active {
-            background: rgba(255,102,153,0.1);
-        }
+        [data-theme="dark"] .sidebar-item { color: #d4d4d8; }
         [data-theme="dark"] .sidebar-item.active {
             color: var(--primary);
-            background: rgba(255,102,153,0.08);
+            background: rgba(255,102,153,0.1);
         }
-        /* 导航栏标签 */
-        [data-theme="dark"] #nav li {
-            background: #1e1e2a;
-            color: #aaa;
-        }
-        /* 过滤面板 */
-        [data-theme="dark"] .filter-box {
-            background: #1e1e2e;
-        }
+        [data-theme="dark"] .filter-box { background: #18181b; }
+        [data-theme="dark"] .filter-title { color: #e3e3e3; }
+        [data-theme="dark"] .filter-hint { color: #71717a; }
         [data-theme="dark"] .filter-input-row input {
-            background: #16161e;
-            border-color: #2a2a3a;
-            color: #e0e0e0;
+            background: #27272a;
+            border-color: #3f3f46;
+            color: #e3e3e3;
         }
         [data-theme="dark"] .filter-tag {
-            background: #2a1020;
-            border-color: #5a2030;
-            color: #ff9999;
+            background: #3d1a22;
+            border-color: #7f2d3a;
+            color: #fca5a5;
         }
         [data-theme="dark"] .filter-close-btn {
-            background: #1a1a28;
-            color: #aaa;
+            background: #27272a;
+            color: #a1a1aa;
         }
-        [data-theme="dark"] .filter-title,
-        [data-theme="dark"] .filter-hint { color: #ccc; }
-        /* 全屏面板（公告/收藏） */
-        [data-theme="dark"] .fullpage-panel {
-            background: #0f0f13;
+        [data-theme="dark"] .fullpage-header {
+            background: rgba(18,18,20,0.97) !important;
+            border-bottom-color: #2a2a2e !important;
         }
-        [data-theme="dark"] .fullpage-body {
-            background: transparent;
+        [data-theme="dark"] .fullpage-panel { background: #0e0e10; }
+        [data-theme="dark"] .notice-content-wrap {
+            background: #18181b;
+            border-color: #3f3f46;
         }
-        /* 弹窗 */
-        [data-theme="dark"] .modal-overlay {
-            background: rgba(0,0,0,0.7);
-        }
+        [data-theme="dark"] .notice-content-body { color: #d4d4d8; }
         [data-theme="dark"] .modal-box {
-            background: #1e1e2e;
+            background: #18181b;
+            color: #e3e3e3;
         }
-        [data-theme="dark"] .modal-btn {
-            background: #2a2a3a;
-            color: #ddd;
+        [data-theme="dark"] .modal-title { color: #e3e3e3; }
+        [data-theme="dark"] .modal-btn.btn-cancel {
+            background: #27272a;
+            color: #a1a1aa;
         }
-        [data-theme="dark"] .modal-btn.btn-confirm {
-            background: #1a3a6e;
+        [data-theme="dark"] .card-preview-title { color: #e3e3e3 !important; }
+        [data-theme="dark"] .card-preview-desc { color: #a1a1aa !important; }
+        [data-theme="dark"] .card-preview-tags { color: var(--primary) !important; }
+        [data-theme="dark"] .card-expand-hint { color: #71717a; }
+        [data-theme="dark"] .direct-dl-edit input {
+            background: #27272a;
+            border-color: #3f3f46;
+            color: #e3e3e3;
         }
-        /* 描述区 */
-        [data-theme="dark"] .desc-wrap {
-            background: rgba(20,20,30,0.7);
-            border-color: #2a2a3a;
-        }
-        [data-theme="dark"] .desc-expand-btn { color: var(--primary); }
-        /* link-wrap */
-        [data-theme="dark"] .link-wrap {
-            background: #16161e;
-            border-color: #2a2a3a;
-        }
-        [data-theme="dark"] .link-actions {
-            border-top-color: #2a2a3a;
-        }
-        /* 搜索栏行 */
         [data-theme="dark"] .search-row button {
-            background: #1e1e2a !important;
-            border-color: #2a2a3a !important;
-            color: #aaa !important;
+            background: #27272a !important;
+            border-color: #3f3f46 !important;
+            color: #a1a1aa !important;
         }
         [data-theme="dark"] .search-row button.active {
-            background: #2a1020 !important;
+            background: #3d1a22 !important;
             border-color: var(--primary) !important;
             color: var(--primary) !important;
-        }
-        /* fav面板空提示 */
-        [data-theme="dark"] .fav-panel-empty { color: #666; }
-
-        /* 夜间模式文字颜色全面修复 */
-        [data-theme="dark"] .g-name { color: #e8e8e8 !important; }
-        [data-theme="dark"] .desc-text { color: #c0c0c0 !important; }
-        [data-theme="dark"] .desc-wrap {
-            background: rgba(20,20,35,0.85) !important;
-            border-color: #2a2a4a !important;
-        }
-        [data-theme="dark"] .card-preview-title { color: #e0e0e0 !important; }
-        [data-theme="dark"] .card-preview-desc { color: #aaa !important; }
-        [data-theme="dark"] .card-preview-tags { color: var(--primary) !important; }
-        [data-theme="dark"] .card-preview { background: transparent; }
-        [data-theme="dark"] .card-expand-hint { color: #666; }
-        [data-theme="dark"] .g-tags { color: var(--primary); }
-        [data-theme="dark"] .info-box { color: #e0e0e0; }
-        [data-theme="dark"] .direct-dl-edit input { 
-            background: #1a1a2a; 
-            border-color: #3a3a5a; 
-            color: #e0e0e0; 
-        }
-        [data-theme="dark"] #gateKeeper { background: #0f0f13; }
-        [data-theme="dark"] .gate-input { 
-            background: #1a1a2a; 
-            border-color: #2a2a3a; 
-            color: #e0e0e0; 
         }
         /* 夜间模式切换按钮动画 */
         #darkModeBtn { transition: transform 0.4s; }
@@ -3405,14 +3342,20 @@ function openFavoritePanel() {
             };
         });
 
-        // 点击卡片切换展开/收起
-        clone.onclick = function(e) {
+        // 点击卡片切换展开/收起（用 touch 坐标区分滑动和点击）
+        let _favTouchStartY = 0;
+        clone.addEventListener('touchstart', function(e) {
+            _favTouchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        clone.addEventListener('touchend', function(e) {
+            const dy = Math.abs(e.changedTouches[0].clientY - _favTouchStartY);
+            if (dy > 8) return; // 滑动超过8px不算点击
             if (e.target.closest('.fav-btn, .link-jump-btn, .desc-expand-btn, .slide-btn')) return;
             const expanded = clone.classList.contains('card-expanded');
-            // 先收起所有
             grid.querySelectorAll('.card.card-expanded').forEach(c => c.classList.remove('card-expanded'));
             if (!expanded) clone.classList.add('card-expanded');
-        };
+        }, { passive: true });
+        clone.onclick = null;
 
         // 重新绑定按钮
         clone.querySelectorAll('.desc-expand-btn').forEach(btn => {
