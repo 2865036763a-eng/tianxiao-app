@@ -14,6 +14,172 @@
     <title>天笑の秘密基地</title>
     <style>
         :root { --primary: #ff6699; --bg: #eef0f5; --card: rgba(255,255,255,0.68); --text: #222; --border: #e3e8ec; --video: #fb7299; --notice: #ff9800; }
+
+        /* 🌙 夜间模式 */
+        [data-theme="dark"] {
+            --bg: #0f0f13;
+            --card: rgba(30,30,40,0.92);
+            --text: #e0e0e0;
+            --border: #2a2a3a;
+            --primary: #ff6699;
+        }
+        [data-theme="dark"] body {
+            background-color: #0f0f13;
+            background-blend-mode: multiply;
+            filter: brightness(0.85);
+        }
+        [data-theme="dark"] header {
+            background: rgba(20,20,28,0.95) !important;
+            border-bottom-color: #2a2a3a !important;
+        }
+        [data-theme="dark"] #nav li {
+            background: #1e1e28;
+            color: #bbb;
+        }
+        [data-theme="dark"] #nav li.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        [data-theme="dark"] .card {
+            background: rgba(25,25,35,0.95);
+            border-color: #2a2a3a;
+        }
+        [data-theme="dark"] .info-box {
+            background: rgba(20,20,30,0.8);
+        }
+        [data-theme="dark"] .g-name { color: #e8e8e8; }
+        [data-theme="dark"] .desc-text { color: #aaa; }
+        [data-theme="dark"] .link-wrap {
+            background: #1a1a28;
+            border-color: #2a2a3a;
+        }
+        [data-theme="dark"] .link-jump-btn { background: #2a2a6e; }
+        [data-theme="dark"] .link-jump-btn:hover { background: #3a3a8e; }
+        [data-theme="dark"] #search {
+            background: #1a1a28;
+            border-color: #2a2a3a;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .modal-box {
+            background: #1e1e2e;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .modal-title { color: #e0e0e0; }
+        [data-theme="dark"] .tag-pill {
+            background: #1e1e2e;
+            border-color: #3a3a4a;
+            color: #bbb;
+        }
+        [data-theme="dark"] .tag-prefix { color: #666; }
+        [data-theme="dark"] .desc-wrap {
+            background: rgba(20,20,30,0.6);
+            border-color: #2a2a3a;
+        }
+        [data-theme="dark"] .fullpage-panel {
+            background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/bg.jpg');
+        }
+        [data-theme="dark"] .fullpage-header {
+            background: rgba(20,20,28,0.95) !important;
+        }
+        [data-theme="dark"] .notice-content-wrap {
+            background: rgba(25,25,35,0.95);
+            border-color: #2a2a3a;
+        }
+        [data-theme="dark"] .notice-content-body { color: #ccc; }
+        /* 侧边栏 */
+        [data-theme="dark"] #sidebar {
+            background: #16161e;
+        }
+        [data-theme="dark"] .sidebar-header {
+            background: linear-gradient(135deg, #2a1020, #1a1028);
+        }
+        [data-theme="dark"] .sidebar-item {
+            color: #ccc;
+        }
+        [data-theme="dark"] .sidebar-item:hover,
+        [data-theme="dark"] .sidebar-item:active {
+            background: rgba(255,102,153,0.1);
+        }
+        [data-theme="dark"] .sidebar-item.active {
+            color: var(--primary);
+            background: rgba(255,102,153,0.08);
+        }
+        /* 导航栏标签 */
+        [data-theme="dark"] #nav li {
+            background: #1e1e2a;
+            color: #aaa;
+        }
+        /* 过滤面板 */
+        [data-theme="dark"] .filter-box {
+            background: #1e1e2e;
+        }
+        [data-theme="dark"] .filter-input-row input {
+            background: #16161e;
+            border-color: #2a2a3a;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .filter-tag {
+            background: #2a1020;
+            border-color: #5a2030;
+            color: #ff9999;
+        }
+        [data-theme="dark"] .filter-close-btn {
+            background: #1a1a28;
+            color: #aaa;
+        }
+        [data-theme="dark"] .filter-title,
+        [data-theme="dark"] .filter-hint { color: #ccc; }
+        /* 全屏面板（公告/收藏） */
+        [data-theme="dark"] .fullpage-panel {
+            background: #0f0f13;
+        }
+        [data-theme="dark"] .fullpage-body {
+            background: transparent;
+        }
+        /* 弹窗 */
+        [data-theme="dark"] .modal-overlay {
+            background: rgba(0,0,0,0.7);
+        }
+        [data-theme="dark"] .modal-box {
+            background: #1e1e2e;
+        }
+        [data-theme="dark"] .modal-btn {
+            background: #2a2a3a;
+            color: #ddd;
+        }
+        [data-theme="dark"] .modal-btn.btn-confirm {
+            background: #1a3a6e;
+        }
+        /* 描述区 */
+        [data-theme="dark"] .desc-wrap {
+            background: rgba(20,20,30,0.7);
+            border-color: #2a2a3a;
+        }
+        [data-theme="dark"] .desc-expand-btn { color: var(--primary); }
+        /* link-wrap */
+        [data-theme="dark"] .link-wrap {
+            background: #16161e;
+            border-color: #2a2a3a;
+        }
+        [data-theme="dark"] .link-actions {
+            border-top-color: #2a2a3a;
+        }
+        /* 搜索栏行 */
+        [data-theme="dark"] .search-row button {
+            background: #1e1e2a !important;
+            border-color: #2a2a3a !important;
+            color: #aaa !important;
+        }
+        [data-theme="dark"] .search-row button.active {
+            background: #2a1020 !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+        }
+        /* fav面板空提示 */
+        [data-theme="dark"] .fav-panel-empty { color: #666; }
+        /* 夜间模式切换按钮动画 */
+        #darkModeBtn { transition: transform 0.4s; }
+        [data-theme="dark"] #darkModeBtn { transform: rotate(180deg); }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
         body { 
             background: url('images/bg.jpg') center center / cover no-repeat;
@@ -864,8 +1030,8 @@
         <div class="sidebar-burger" onclick="openSidebar()">☰</div>
         <div class="site-title">天笑の秘密基地</div>
         <div style="display:flex;align-items:center;gap:6px;">
-            <div class="header-icon-btn" onclick="openFavoritePanel()" title="我的收藏">💖</div>
             <div class="header-icon-btn" onclick="randomGame()" title="随机抽游戏" style="font-size:18px;">🎲</div>
+            <div id="darkModeBtn" class="header-icon-btn" onclick="toggleDarkMode()" title="夜间模式" style="font-size:18px;">🌙</div>
             <div id="entryBtn" class="login-icon" onclick="openLogin()" style="visibility: visible;">🔒</div>
         </div>
     </div>
@@ -3158,7 +3324,6 @@ function openFavoritePanel() {
     const grid = document.getElementById('favPanelGrid');
     grid.innerHTML = '';
 
-    // 找出所有已收藏的卡片，克隆展示
     const allCards = document.querySelectorAll('#box .card');
     let favCount = 0;
 
@@ -3166,62 +3331,109 @@ function openFavoritePanel() {
         const cardId = card.dataset.cardId;
         if (!cardId || !favorites.has(cardId)) return;
 
-        // 克隆卡片并重置为展开状态展示
+        // 紧凑卡片行（默认收起，点击展开）
         const clone = card.cloneNode(true);
-        // 移除管理员专属元素
         const pinBtn = clone.querySelector('.pin-btn');
         const delBtn = clone.querySelector('.del-btn');
         if (pinBtn) pinBtn.style.display = 'none';
         if (delBtn) delBtn.style.display = 'none';
-        // 确保展开状态
-        clone.classList.add('card-expanded');
-        clone.classList.remove('active-render');
+
+        // 默认收起状态
+        clone.classList.remove('card-expanded', 'active-render');
         clone.style.display = 'flex';
         clone.style.order = '';
-        // 移除运行时生成的紧凑元素
-        const thumb = clone.querySelector('.card-thumb');
-        const preview = clone.querySelector('.card-preview');
-        const hint = clone.querySelector('.card-close-hint');
-        if (thumb) thumb.remove();
-        if (preview) preview.remove();
-        if (hint) hint.remove();
-        // 收藏按钮改为已收藏状态，点击可取消
+        clone.style.cursor = 'pointer';
+        clone.style.marginBottom = '10px';
+
+        // 移除紧凑元素，重新生成
+        ['.card-thumb', '.card-preview', '.card-close-hint'].forEach(sel => {
+            const el = clone.querySelector(sel);
+            if (el) el.remove();
+        });
+
+        // 收藏按钮
         clone.querySelectorAll('.fav-btn').forEach(btn => {
             btn.innerHTML = '💖';
             btn.classList.add('favorited');
             btn.onclick = function(e) {
                 e.stopPropagation();
-                toggleFavorite(btn.closest('.card') || card);
-                // 取消收藏后从面板移除这张卡片
-                const gridItem = btn.closest('[data-card-id]');
-                if (gridItem) gridItem.remove();
-                // 检查是否还有收藏
-                if (grid.querySelectorAll('[data-card-id]').length === 0) {
+                toggleFavorite(card);
+                clone.remove();
+                if (grid.querySelectorAll('.card').length === 0) {
                     grid.innerHTML = '<div class="fav-panel-empty">💔 还没有收藏任何游戏哦~</div>';
                 }
             };
         });
-        // 禁止点击展开/收起
-        clone._cardClickBound = false;
-        clone.onclick = null;
-        // 展开按钮保留原始功能（重新绑定）
-        clone.querySelectorAll('.expand-btn').forEach(btn => {
-            btn.onclick = function(e) { e.stopPropagation(); toggleExpand(btn); };
-        });
+
+        // 点击卡片切换展开/收起
+        clone.onclick = function(e) {
+            if (e.target.closest('.fav-btn, .link-jump-btn, .desc-expand-btn, .slide-btn')) return;
+            const expanded = clone.classList.contains('card-expanded');
+            // 先收起所有
+            grid.querySelectorAll('.card.card-expanded').forEach(c => c.classList.remove('card-expanded'));
+            if (!expanded) clone.classList.add('card-expanded');
+        };
+
+        // 重新绑定按钮
         clone.querySelectorAll('.desc-expand-btn').forEach(btn => {
             btn.onclick = function(e) { e.stopPropagation(); toggleDescExpand(btn); };
         });
-        // 链接跳转按钮保留（重新绑定防事件丢失）
-        clone.querySelectorAll('.link-jump-btn').forEach(btn => {
-            const urlsAttr = btn.getAttribute('onclick');
-            if (urlsAttr) {
-                btn.onclick = function(e) { e.stopPropagation(); eval(urlsAttr); };
-            }
+        clone.querySelectorAll('.slide-btn').forEach(btn => {
+            const dir = btn.classList.contains('prev') ? -1 : 1;
+            btn.onclick = function(e) { e.stopPropagation(); changeSlide(btn, dir); };
         });
+
+        // 重新生成link-actions
+        const wrap = clone.querySelector('.link-wrap');
+        if (wrap) {
+            const oldAct = wrap.querySelector('.link-actions');
+            if (oldAct) oldAct.remove();
+            const expandBtn = wrap.querySelector('.expand-btn');
+            const cid = clone.dataset.cardId;
+            if (cid) {
+                const actDiv = document.createElement('div');
+                actDiv.className = 'link-actions';
+                const lb = document.createElement('button');
+                lb.className = 'link-jump-btn get-link-btn';
+                lb.textContent = '🔗 获取链接';
+                lb.onclick = async function(e) {
+                    e.stopPropagation();
+                    lb.textContent = '⏳ 获取中...'; lb.disabled = true;
+                    try {
+                        let tsToken = '';
+                        if (!isEditMode) { tsToken = await requestTurnstileToken(); }
+                        const headers = {};
+                        if (isEditMode) { const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN'); if (tok) headers['Authorization'] = `Bearer ${tok}`; }
+                        const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cid)}${tsToken ? '&token='+encodeURIComponent(tsToken) : ''}`, { headers });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.links && data.links.length > 0) {
+                                const ltEl = wrap.querySelector('.link-text');
+                                const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
+                                const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                                const labelLines = [], extraLines = [];
+                                ltLines.forEach(l => {
+                                    if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
+                                    else if (/提取码|密码|解压码/i.test(l)) extraLines.push(l);
+                                });
+                                showLinkSelector(data.links.map((url, i) => ({ url, label: labelLines[i] || `链接 ${i+1}`, extra: extraLines[i] || '' })));
+                            } else { showToast('❌ 暂无链接'); }
+                        }
+                    } catch(err) { if (err.message !== '取消') showToast('❌ ' + (err.message || '获取失败')); }
+                    lb.textContent = '🔗 获取链接'; lb.disabled = false;
+                };
+                actDiv.appendChild(lb);
+                if (expandBtn) wrap.insertBefore(actDiv, expandBtn);
+                else wrap.appendChild(actDiv);
+            }
+        }
 
         grid.appendChild(clone);
         favCount++;
     });
+
+    // 初始化紧凑卡片
+    grid.querySelectorAll('.card').forEach(c => generateCompactCardHTML(c));
 
     if (favCount === 0) {
         grid.innerHTML = '<div class="fav-panel-empty">💔 还没有收藏任何游戏哦~</div>';
@@ -5022,6 +5234,37 @@ function batchReplaceAZTag() {
     showToast(`✅ 已将 ${count} 张卡片的AZ标签改为安卓，记得保存云端`);
 }
 
+
+// 🌙 夜间模式
+const DARK_KEY = 'TX_DARK_MODE';
+
+function initDarkMode() {
+    const saved = localStorage.getItem(DARK_KEY);
+    // 没有设置时跟随系统
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved !== null ? saved === '1' : prefersDark;
+    if (isDark) applyDarkMode(true, false);
+}
+
+function applyDarkMode(dark, save = true) {
+    const html = document.documentElement;
+    const btn = document.getElementById('darkModeBtn');
+    if (dark) {
+        html.setAttribute('data-theme', 'dark');
+        if (btn) btn.textContent = '☀️';
+    } else {
+        html.removeAttribute('data-theme');
+        if (btn) btn.textContent = '🌙';
+    }
+    if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
+}
+
+function toggleDarkMode() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyDarkMode(!isDark);
+    showToast(isDark ? '☀️ 已切换日间模式' : '🌙 已切换夜间模式');
+}
+
 window.onload = async () => { 
     checkForUpdates();
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
@@ -5029,6 +5272,7 @@ window.onload = async () => {
     loadCategories();
     renderNav();
     
+    initDarkMode(); // 🌙 初始化夜间模式
     await loadFromGrave();
     updateFilterBar(); // 🚫 初始化屏蔽标签栏
     // 🔒 安全修复：页面加载时确保非管理员模式下所有元素不可编辑
@@ -5517,6 +5761,10 @@ function copyText(text) {
             <span>评论区</span>
             <span id="sidebarCommentEdit" onclick="event.stopPropagation(); editCommentUrl();" style="display:none; margin-left:auto; font-size:12px; color:#aaa; padding:2px 6px; border-radius:4px; background:#f0f0f0;">⚙️</span>
         </div>
+        <div class="sidebar-item" id="sidebarFavorite" onclick="sidebarGoFavorite()">
+            <span class="sidebar-item-icon">💖</span>
+            <span>我的收藏</span>
+        </div>
         <div class="sidebar-item" onclick="closeSidebar(); clearCacheAndReload();">
             <span class="sidebar-item-icon">🔄</span>
             <span>清理缓存</span>
@@ -5541,6 +5789,12 @@ function clearAllData() {
 }
 
 const COMMENT_URL_KEY = 'TX_COMMENT_URL';
+
+function sidebarGoFavorite() {
+    closeSidebar();
+    document.getElementById('sidebarHome').classList.remove('active');
+    openFavoritePanel();
+}
 
 function sidebarGoComment() {
     const url = localStorage.getItem(COMMENT_URL_KEY);
