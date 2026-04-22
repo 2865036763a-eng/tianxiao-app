@@ -3496,37 +3496,108 @@ function exportFavorites() {
 }
 
 function showExportModal(json, blob, fileName, count) {
-    // 移除旧弹窗
     const old = document.getElementById('_exportModal');
     if (old) old.remove();
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e3e3e3' : '#222';
+    const subColor  = isDark ? '#a1a1aa' : '#888';
+    const btnBg     = isDark ? '#27272a' : '#f5f5f5';
+    const boxBg     = isDark ? '#18181b' : '#fff';
 
     const overlay = document.createElement('div');
     overlay.id = '_exportModal';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
-    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 
     const box = document.createElement('div');
-    box.style.cssText = 'background:#fff;width:100%;max-width:550px;border-radius:20px 20px 0 0;padding:20px 20px 32px;box-sizing:border-box;';
+    box.style.cssText = `background:${boxBg};width:100%;max-width:550px;border-radius:20px 20px 0 0;padding:20px 20px 36px;box-sizing:border-box;`;
     box.onclick = e => e.stopPropagation();
 
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark) box.style.background = '#18181b';
-    const textColor = isDark ? '#e3e3e3' : '#222';
-    const subColor = isDark ? '#a1a1aa' : '#888';
-    const btnBg = isDark ? '#27272a' : '#f5f5f5';
+    // 判断运行环境
+    const isWebView = /wv|WebView/.test(navigator.userAgent) ||
+                      (window.Android !== undefined) ||
+                      (!window.chrome && /Android/.test(navigator.userAgent));
+
+    // 复制功能（最兼容，APK/网页均可用）
+    function doCopy() {
+        const succeed = () => { overlay.remove(); showToast('✅ 已复制到剪贴板！粘贴到记事本、QQ、微信文件助手均可保存', 5000); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(json).then(succeed).catch(() => execCopy());
+        } else {
+            execCopy();
+        }
+        function execCopy() {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = json; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+                document.body.appendChild(ta); ta.focus(); ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                succeed();
+            } catch(e) { showToast('❌ 复制失败，请换用其他方式'); }
+        }
+    }
+
+    // 下载功能（网页端有效，APK 内可能无效）
+    function doDownload() {
+        try {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = fileName;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            overlay.remove();
+            showToast('✅ 文件已下载，在手机「下载」文件夹中查找', 5000);
+        } catch(e) {
+            showToast('❌ 下载失败，请改用「复制数据」方式保存');
+        }
+    }
+
+    // 分享功能
+    async function doShare() {
+        // 尝试文件分享
+        if (navigator.share && navigator.canShare) {
+            try {
+                const file = new File([blob], fileName, { type: 'application/json' });
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: '天笑收藏备份' });
+                    overlay.remove(); return;
+                }
+            } catch(e) { if (e.name === 'AbortError') return; }
+        }
+        // 尝试文本分享
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: '天笑收藏备份', text: json });
+                overlay.remove(); return;
+            } catch(e) { if (e.name === 'AbortError') return; }
+        }
+        // 都不支持，提示用复制
+        showToast('⚠️ 分享不可用，已自动改用复制');
+        doCopy();
+    }
+
+    // APK 环境：复制置顶并加醒目提示
+    const apkTip = isWebView
+        ? `<div style="background:#fff8e1;border:1px solid #ffcc02;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7a6000;line-height:1.6;">
+               💡 检测到 App 环境，推荐使用「复制数据」：<br>复制后粘贴到 <b>QQ / 微信文件助手 / 备忘录</b> 保存即可
+           </div>`
+        : '';
 
     box.innerHTML = `
         <div style="font-size:16px;font-weight:bold;color:${textColor};margin-bottom:4px;">💾 导出收藏（${count} 个游戏）</div>
-        <div style="font-size:12px;color:${subColor};margin-bottom:18px;">选择保存方式</div>
-
-        <button id="_expShare" style="width:100%;padding:13px;margin-bottom:10px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;touch-action:manipulation;">
-            📤 分享 / 保存到其他 App
+        <div style="font-size:12px;color:${subColor};margin-bottom:14px;">选择保存方式</div>
+        ${apkTip}
+        <button id="_expCopy" style="width:100%;padding:13px;margin-bottom:10px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;touch-action:manipulation;">
+            📋 复制收藏数据
         </button>
-        <button id="_expDownload" style="width:100%;padding:13px;margin-bottom:10px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
-            ⬇️ 直接下载到本机
+        <button id="_expShare" style="width:100%;padding:13px;margin-bottom:10px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
+            📤 分享到其他 App
         </button>
-        <button id="_expCopy" style="width:100%;padding:13px;margin-bottom:16px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
-            📋 复制收藏数据（粘贴到记事本/QQ保存）
+        <button id="_expDownload" style="width:100%;padding:13px;margin-bottom:16px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
+            ⬇️ 下载到本机（网页端）
         </button>
         <button id="_expCancel" style="width:100%;padding:11px;background:none;color:${subColor};border:none;font-size:14px;cursor:pointer;touch-action:manipulation;">取消</button>
     `;
@@ -3534,62 +3605,10 @@ function showExportModal(json, blob, fileName, count) {
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
-    // 分享按钮
-    document.getElementById('_expShare').onclick = async function() {
-        if (navigator.share && navigator.canShare) {
-            const file = new File([blob], fileName, { type: 'application/json' });
-            if (navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({ files: [file], title: '天笑收藏备份' });
-                    overlay.remove();
-                    return;
-                } catch(e) {
-                    if (e.name === 'AbortError') return;
-                }
-            }
-        }
-        // 不支持文件分享则改为分享文本
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: '天笑收藏备份', text: json });
-                overlay.remove();
-                return;
-            } catch(e) {}
-        }
-        showToast('⚠️ 当前浏览器不支持分享，请用「直接下载」或「复制数据」');
-    };
-
-    // 下载按钮
-    document.getElementById('_expDownload').onclick = function() {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = fileName; a.click();
-        URL.revokeObjectURL(url);
-        overlay.remove();
-        showToast('✅ 已下载！文件在浏览器「下载」文件夹中', 4000);
-    };
-
-    // 复制按钮
-    document.getElementById('_expCopy').onclick = function() {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(json).then(() => {
-                overlay.remove();
-                showToast('✅ 已复制！粘贴到记事本/QQ文件助手保存即可', 4000);
-            });
-        } else {
-            const ta = document.createElement('textarea');
-            ta.value = json;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            overlay.remove();
-            showToast('✅ 已复制！粘贴到记事本/QQ文件助手保存即可', 4000);
-        }
-    };
-
-    // 取消
-    document.getElementById('_expCancel').onclick = () => overlay.remove();
+    document.getElementById('_expCopy').onclick     = doCopy;
+    document.getElementById('_expShare').onclick    = doShare;
+    document.getElementById('_expDownload').onclick = doDownload;
+    document.getElementById('_expCancel').onclick   = () => overlay.remove();
 }
 
 // ──────────────────────────────────────────────
