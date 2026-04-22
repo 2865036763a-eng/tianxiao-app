@@ -3469,10 +3469,7 @@ function closeFavoritePanel() {
 //    绝对不含任何网盘链接
 // ──────────────────────────────────────────────
 function exportFavorites() {
-    if (favorites.size === 0) {
-        showToast('❌ 暂无收藏，无法导出');
-        return;
-    }
+    if (favorites.size === 0) { showToast('❌ 暂无收藏，无法导出'); return; }
 
     const allCards = Array.from(document.querySelectorAll('#box .card'));
     const exportData = {
@@ -3482,23 +3479,44 @@ function exportFavorites() {
         note: '此文件仅含收藏列表，不含任何下载链接。导入后将自动恢复收藏状态。',
         favorites: []
     };
-
     favorites.forEach(cardId => {
         const card = allCards.find(c => c.dataset.cardId === cardId);
-        const name = card ? (card.querySelector('.g-name') || {}).textContent?.trim() || '未知游戏' : '（游戏已不存在）';
+        const name = card ? (card.querySelector('.g-name') || {}).textContent?.trim() || '未知游戏' : '（游戏已下架）';
         const tags = card ? (card.querySelector('.g-tags') || {}).textContent?.replace(/^标签[：:]\s*/, '').trim() || '' : '';
         exportData.favorites.push({ cardId, name, tags });
     });
 
     const json = JSON.stringify(exportData, null, 2);
+    const fileName = '天笑收藏_' + new Date().toLocaleDateString('zh-CN').replace(/\//g, '-') + '.json';
     const blob = new Blob([json], { type: 'application/json' });
+
+    // 优先使用 Web Share API（调用系统分享菜单，可选存到任意 App/云盘）
+    if (navigator.share && navigator.canShare) {
+        const file = new File([blob], fileName, { type: 'application/json' });
+        if (navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: '天笑收藏备份',
+                text: '我的天笑の秘密基地收藏列表'
+            }).catch(err => {
+                if (err.name !== 'AbortError') fallbackDownload(blob, fileName);
+            });
+            showToast('✅ 已导出 ' + exportData.favorites.length + ' 个收藏');
+            return;
+        }
+    }
+    // 不支持分享 API 时回退到直接下载
+    fallbackDownload(blob, fileName);
+    showToast('✅ 已导出 ' + exportData.favorites.length + ' 个收藏');
+}
+
+function fallbackDownload(blob, fileName) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = '天笑收藏_' + new Date().toLocaleDateString('zh-CN').replace(/\//g, '-') + '.json';
+    a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('✅ 收藏已导出！共 ' + exportData.favorites.length + ' 个游戏');
 }
 
 // ──────────────────────────────────────────────
