@@ -25,7 +25,7 @@
         }
         [data-theme="dark"] body {
             background-color: #0e0e10;
-            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('images/bg.jpg') !important;
+            background-image: url('images/bg_night.jpg') !important;
             background-size: cover !important;
             background-position: center center !important;
             filter: none;
@@ -109,7 +109,10 @@
             background: rgba(18,18,20,0.97) !important;
             border-bottom-color: #2a2a2e !important;
         }
-        [data-theme="dark"] .fullpage-panel { background: #0e0e10; }
+        [data-theme="dark"] .fullpage-panel {
+            background-color: #0e0e10;
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('images/bg_night.jpg') !important;
+        }
         [data-theme="dark"] .notice-content-wrap {
             background: #18181b;
             border-color: #3f3f46;
@@ -151,7 +154,12 @@
             background: url('images/bg.jpg') center center / cover no-repeat;
             background-attachment: scroll;
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
-            display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none; 
+            display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
+            transition: background-image 0.6s ease;
+        }
+        /* 夜间模式背景图 */
+        [data-theme="dark"] body {
+            background-image: url('images/bg_night.jpg') !important;
         }
         body::before { display: none; }
         
@@ -173,6 +181,7 @@
             inset: 0;
             z-index: 1500;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg.jpg');
+            transition: background-image 0.6s ease;
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
