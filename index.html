@@ -3304,154 +3304,108 @@ function openFavoritePanel() {
     const grid = document.getElementById('favPanelGrid');
     grid.innerHTML = '';
 
-    const allCards = document.querySelectorAll('#box .card');
-    let favCount = 0;
+    const allCards = Array.from(document.querySelectorAll('#box .card'));
+    const favCards = allCards.filter(c => c.dataset.cardId && favorites.has(c.dataset.cardId));
 
-    allCards.forEach(card => {
-        const cardId = card.dataset.cardId;
-        if (!cardId || !favorites.has(cardId)) return;
-
-        // 紧凑卡片行（默认收起，点击展开）
-        const clone = card.cloneNode(true);
-        const pinBtn = clone.querySelector('.pin-btn');
-        const delBtn = clone.querySelector('.del-btn');
-        if (pinBtn) pinBtn.style.display = 'none';
-        if (delBtn) delBtn.style.display = 'none';
-
-        // 默认收起状态
-        clone.classList.remove('card-expanded', 'active-render');
-        clone.style.display = 'flex';
-        clone.style.order = '';
-        clone.style.cursor = 'pointer';
-        clone.style.marginBottom = '10px';
-
-        // 移除紧凑元素，重新生成
-        ['.card-thumb', '.card-preview', '.card-close-hint'].forEach(sel => {
-            const el = clone.querySelector(sel);
-            if (el) el.remove();
-        });
-
-        // 收藏按钮
-        clone.querySelectorAll('.fav-btn').forEach(btn => {
-            btn.innerHTML = '💖';
-            btn.classList.add('favorited');
-            btn.onclick = function(e) {
-                e.stopPropagation();
-                toggleFavorite(card);
-                clone.remove();
-                if (grid.querySelectorAll('.card').length === 0) {
-                    grid.innerHTML = '<div class="fav-panel-empty">💔 还没有收藏任何游戏哦~</div>';
-                }
-            };
-        });
-
-        // 收藏页：卡片完全不拦截触摸，展开/收起通过专用按钮
-        clone.onclick = null;
-        clone.style.cursor = 'default';
-
-        // 重新绑定按钮
-        clone.querySelectorAll('.desc-expand-btn').forEach(btn => {
-            btn.onclick = function(e) { e.stopPropagation(); toggleDescExpand(btn); };
-        });
-        clone.querySelectorAll('.slide-btn').forEach(btn => {
-            const dir = btn.classList.contains('prev') ? -1 : 1;
-            btn.onclick = function(e) { e.stopPropagation(); changeSlide(btn, dir); };
-        });
-
-        // 重新生成link-actions
-        const wrap = clone.querySelector('.link-wrap');
-        if (wrap) {
-            const oldAct = wrap.querySelector('.link-actions');
-            if (oldAct) oldAct.remove();
-            const expandBtn = wrap.querySelector('.expand-btn');
-            const cid = clone.dataset.cardId;
-            if (cid) {
-                const actDiv = document.createElement('div');
-                actDiv.className = 'link-actions';
-                const lb = document.createElement('button');
-                lb.className = 'link-jump-btn get-link-btn';
-                lb.textContent = '🔗 获取链接';
-                lb.onclick = async function(e) {
-                    e.stopPropagation();
-                    lb.textContent = '⏳ 获取中...'; lb.disabled = true;
-                    try {
-                        let tsToken = '';
-                        if (!isEditMode) {
-                            try {
-                                tsToken = await requestTurnstileToken();
-                            } catch(tsErr) {
-                                if (tsErr.message === '取消') { lb.textContent = '🔗 获取链接'; lb.disabled = false; return; }
-                                showToast('❌ 验证失败：' + tsErr.message);
-                                lb.textContent = '🔗 获取链接'; lb.disabled = false;
-                                return;
-                            }
-                        }
-                        const headers = {};
-                        if (isEditMode) { const tok = adminToken || sessionStorage.getItem('ADMIN_TOKEN'); if (tok) headers['Authorization'] = `Bearer ${tok}`; }
-                        const res = await fetch(`${WORKER_BASE}/api/links/get?cardId=${encodeURIComponent(cid)}${tsToken ? '&token='+encodeURIComponent(tsToken) : ''}`, { headers });
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data.links && data.links.length > 0) {
-                                const ltEl = wrap.querySelector('.link-text');
-                                const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
-                                const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                                const labelLines = [], extraLines = [];
-                                ltLines.forEach(l => {
-                                    if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
-                                    else if (/提取码|密码|解压码/i.test(l)) extraLines.push(l);
-                                });
-                                showLinkSelector(data.links.map((url, i) => ({ url, label: labelLines[i] || `链接 ${i+1}`, extra: extraLines[i] || '' })));
-                            } else {
-                                showToast('❌ 该卡片暂无链接');
-                            }
-                        } else {
-                            const errData = await res.json().catch(() => ({}));
-                            showToast('❌ 获取失败：' + (errData.error || res.status));
-                        }
-                    } catch(err) {
-                        showToast('❌ ' + (err.message || '网络错误'));
-                    }
-                    lb.textContent = '🔗 获取链接'; lb.disabled = false;
-                };
-                actDiv.appendChild(lb);
-                if (expandBtn) wrap.insertBefore(actDiv, expandBtn);
-                else wrap.appendChild(actDiv);
-            }
-        }
-
-        // 在 info-box 顶部插入展开/收起按钮
-        const infoBox2 = clone.querySelector('.info-box');
-        if (infoBox2) {
-            const toggleBar = document.createElement('div');
-            toggleBar.style.cssText = 'text-align:center; padding:6px 0 2px; cursor:pointer; color:var(--primary); font-size:12px; user-select:none;';
-            toggleBar.textContent = '▼ 展开详情';
-            toggleBar.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const expanded = clone.classList.contains('card-expanded');
-                grid.querySelectorAll('.card.card-expanded').forEach(c => {
-                    c.classList.remove('card-expanded');
-                    const bar = c.querySelector('.fav-toggle-bar');
-                    if (bar) bar.textContent = '▼ 展开详情';
-                });
-                if (!expanded) {
-                    clone.classList.add('card-expanded');
-                    toggleBar.textContent = '▲ 收起';
-                }
-            });
-            toggleBar.className = 'fav-toggle-bar';
-            infoBox2.insertBefore(toggleBar, infoBox2.firstChild);
-        }
-
-        grid.appendChild(clone);
-        favCount++;
-    });
-
-    // 初始化紧凑卡片
-    grid.querySelectorAll('.card').forEach(c => generateCompactCardHTML(c));
-
-    if (favCount === 0) {
+    if (favCards.length === 0) {
         grid.innerHTML = '<div class="fav-panel-empty">💔 还没有收藏任何游戏哦~</div>';
+        panel.style.display = 'flex';
+        return;
     }
+
+    favCards.forEach(card => {
+        const cardId = card.dataset.cardId;
+        const nameEl = card.querySelector('.g-name');
+        const tagsEl = card.querySelector('.g-tags');
+        const descEl = card.querySelector('.desc-text');
+        const imgEl  = card.querySelector('.slider-box img');
+
+        const name = nameEl ? nameEl.textContent.trim() : '未知游戏';
+        const tags = tagsEl ? tagsEl.textContent.replace(/^标签[：:]\s*/, '').trim() : '';
+        const desc = descEl ? descEl.textContent.trim() : '';
+        const thumb = imgEl ? imgEl.getAttribute('src') : '';
+
+        // 简单行布局
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; margin-bottom:10px; cursor:pointer; -webkit-tap-highlight-color:transparent;';
+
+        // 缩略图
+        if (thumb) {
+            const img = document.createElement('img');
+            img.src = thumb;
+            img.style.cssText = 'width:70px; height:70px; object-fit:cover; border-radius:8px; flex-shrink:0;';
+            img.onerror = () => img.style.display = 'none';
+            row.appendChild(img);
+        }
+
+        // 文字区
+        const info = document.createElement('div');
+        info.style.cssText = 'flex:1; min-width:0; overflow:hidden;';
+
+        const title = document.createElement('div');
+        title.style.cssText = 'font-size:13px; font-weight:bold; color:var(--text); margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+        title.textContent = name;
+        info.appendChild(title);
+
+        if (tags) {
+            const tagEl = document.createElement('div');
+            tagEl.style.cssText = 'font-size:11px; color:var(--primary); margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+            tagEl.textContent = tags;
+            info.appendChild(tagEl);
+        }
+
+        if (desc) {
+            const descDiv = document.createElement('div');
+            descDiv.style.cssText = 'font-size:11px; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+            descDiv.textContent = desc;
+            info.appendChild(descDiv);
+        }
+        row.appendChild(info);
+
+        // 取消收藏按钮
+        const unfavBtn = document.createElement('button');
+        unfavBtn.style.cssText = 'flex-shrink:0; background:none; border:none; font-size:20px; cursor:pointer; padding:4px; line-height:1;';
+        unfavBtn.textContent = '💖';
+        unfavBtn.title = '取消收藏';
+        unfavBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleFavorite(card);
+            row.remove();
+            if (grid.children.length === 0) {
+                grid.innerHTML = '<div class="fav-panel-empty">💔 还没有收藏任何游戏哦~</div>';
+            }
+        });
+        row.appendChild(unfavBtn);
+
+        // 点击跳转到主页卡片
+        row.addEventListener('click', function() {
+            closeFavoritePanel();
+            // 切到全部分类
+            currentCat = 'all';
+            document.querySelectorAll('#nav li').forEach(l => l.classList.remove('active'));
+            const allTab = document.querySelector('#nav li');
+            if (allTab) allTab.classList.add('active');
+            // 找到该卡片在第几页
+            const filtered = Array.from(document.querySelectorAll('#box .card')).filter(c => {
+                const n = (c.querySelector('.g-name')||{}).textContent||'';
+                const t = (c.querySelector('.g-tags')||{}).textContent||'';
+                return true; // 全部显示
+            });
+            const idx = filtered.indexOf(card);
+            if (idx >= 0) {
+                const targetPage = Math.floor(idx / PAGE_SIZE) + 1;
+                refreshUI(targetPage);
+            }
+            setTimeout(() => {
+                card.classList.add('card-expanded');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.style.boxShadow = '0 0 0 3px var(--primary)';
+                setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+            }, 150);
+        });
+
+        grid.appendChild(row);
+    });
 
     panel.style.display = 'flex';
 }
