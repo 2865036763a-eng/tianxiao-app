@@ -192,7 +192,7 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(8px);
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
         .fullpage-header-title {
             font-size: 17px;
@@ -209,16 +209,18 @@
             color: var(--primary);
         }
         .fullpage-body {
-            flex: 1;
-            min-height: 0; /* 关键：让 flex 子元素可以收缩到比内容更小，触发内部滚动 */
+            position: absolute;
+            top: 57px;   /* 与 fullpage-header 高度对齐，脱离 flex 布局 */
+            left: 0;
+            right: 0;
+            bottom: 0;
             overflow-y: scroll;
             -webkit-overflow-scrolling: touch;
             padding: 16px;
-            position: relative;
             z-index: 1;
             touch-action: pan-y;
             overscroll-behavior-y: contain;
-            will-change: scroll-position;
+            box-sizing: border-box;
         }
 
         /* 公告内容区 */
@@ -3284,6 +3286,11 @@ function openNoticePanel() {
     }
 
     panel.style.display = 'flex';
+    requestAnimationFrame(() => {
+        const hdr = panel.querySelector('.fullpage-header');
+        const body = panel.querySelector('.fullpage-body');
+        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+    });
 }
 
 function closeNoticePanel() {
@@ -3422,29 +3429,49 @@ function openFavoritePanel() {
             document.querySelectorAll('#nav li').forEach(l => l.classList.remove('active'));
             const allTab = document.querySelector('#nav li');
             if (allTab) allTab.classList.add('active');
-            // 找到该卡片在第几页
-            const filtered = Array.from(document.querySelectorAll('#box .card')).filter(c => {
-                const n = (c.querySelector('.g-name')||{}).textContent||'';
-                const t = (c.querySelector('.g-tags')||{}).textContent||'';
-                return true; // 全部显示
+
+            // 完全复刻 refreshUI 的排序逻辑，保证页码与实际显示一致
+            const allCardsForNav = Array.from(document.querySelectorAll('#box .card'));
+            // 过滤：全部分类无搜索词时全部显示
+            let filteredForNav = allCardsForNav.filter(c => {
+                const blockedTags = getBlockedTags();
+                if (blockedTags.length > 0) {
+                    const st = ((c.querySelector('.g-name')||{}).textContent||'') + ((c.querySelector('.g-tags')||{}).textContent||'');
+                    if (blockedTags.some(tag => st.toUpperCase().includes(tag.toUpperCase()))) return false;
+                }
+                return true;
             });
-            const idx = filtered.indexOf(card);
-            if (idx >= 0) {
-                const targetPage = Math.floor(idx / PAGE_SIZE) + 1;
-                refreshUI(targetPage);
-            }
+            // 排序：置顶卡片在前
+            filteredForNav.sort((a, b) => {
+                const aP = a.classList.contains('is-pinned') ? 1 : 0;
+                const bP = b.classList.contains('is-pinned') ? 1 : 0;
+                return bP - aP;
+            });
+
+            const idx = filteredForNav.indexOf(card);
+            const targetPage = idx >= 0 ? Math.floor(idx / PAGE_SIZE) + 1 : 1;
+            refreshUI(targetPage);
+
             setTimeout(() => {
-                card.classList.add('card-expanded');
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.style.boxShadow = '0 0 0 3px var(--primary)';
-                setTimeout(() => { card.style.boxShadow = ''; }, 1500);
-            }, 150);
+                if (card.classList.contains('active-render')) {
+                    card.classList.add('card-expanded');
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.style.boxShadow = '0 0 0 3px var(--primary)';
+                    setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+                }
+            }, 200);
         });
 
         grid.appendChild(row);
     });
 
     panel.style.display = 'flex';
+    // 动态计算 header 高度，确保 fullpage-body top 精确对齐
+    requestAnimationFrame(() => {
+        const hdr = panel.querySelector('.fullpage-header');
+        const body = panel.querySelector('.fullpage-body');
+        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+    });
 }
 
 function closeFavoritePanel() {
