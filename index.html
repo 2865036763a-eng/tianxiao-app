@@ -298,6 +298,9 @@
         #favoritePanelPage .slider-box {
             touch-action: pan-y pinch-zoom;
         }
+        /* 收藏页：隐藏原生滚动条，改用全页面触摸拖拽滚动（见JS） */
+        #favoritePanelPage .fullpage-body::-webkit-scrollbar { display: none; }
+        #favoritePanelPage .fullpage-body { scrollbar-width: none; }
         .fav-panel-empty {
             text-align: center;
             color: #bbb;
@@ -544,26 +547,8 @@
             display: none;
         }
         /* 紧凑模式收藏心形浮层（覆盖在缩略图右上角）*/
-        .card-thumb-fav {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: rgba(255,20,147,0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            z-index: 10;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            transition: transform 0.15s;
-        }
-        .card-thumb-fav:active { transform: scale(0.88); }
-        .card-thumb-fav.hidden { display: none; }
+        /* card-thumb-fav: 紧凑模式缩略图上的收藏浮层，始终隐藏（不在非详情页暴露） */
+        .card-thumb-fav { display: none !important; }
         
         /* 紧凑模式的信息预览 */
         .card-preview {
@@ -3477,6 +3462,95 @@ function openFavoritePanel() {
 function closeFavoritePanel() {
     document.getElementById('favoritePanelPage').style.display = 'none';
 }
+
+// 收藏页全页面触摸拖拽滚动
+// 手指在收藏页任意位置上下滑动即可滚动列表，解决手机端无法流畅划动的问题
+(function() {
+    let _favTouchStartY = 0;
+    let _favScrollStart = 0;
+    let _favLastY = 0;
+    let _favVelocity = 0;
+    let _favLastTime = 0;
+    let _favRafId = null;
+    let _favIsDragging = false;
+
+    function getFavBody() {
+        const panel = document.getElementById('favoritePanelPage');
+        return panel ? panel.querySelector('.fullpage-body') : null;
+    }
+
+    function onTouchStart(e) {
+        const body = getFavBody();
+        if (!body) return;
+        // 如果触摸目标是按钮/链接类元素，不拦截
+        const tag = e.target.tagName;
+        if (tag === 'BUTTON' || tag === 'A' || tag === 'INPUT') return;
+
+        cancelMomentum();
+        _favTouchStartY = e.touches[0].clientY;
+        _favLastY = _favTouchStartY;
+        _favScrollStart = body.scrollTop;
+        _favVelocity = 0;
+        _favLastTime = Date.now();
+        _favIsDragging = true;
+    }
+
+    function onTouchMove(e) {
+        if (!_favIsDragging) return;
+        const body = getFavBody();
+        if (!body) return;
+
+        const y = e.touches[0].clientY;
+        const now = Date.now();
+        const dt = now - _favLastTime || 1;
+
+        _favVelocity = (_favLastY - y) / dt; // px/ms，向下为正
+        _favLastY = y;
+        _favLastTime = now;
+
+        const delta = _favTouchStartY - y;
+        body.scrollTop = _favScrollStart + delta;
+        e.preventDefault(); // 阻止页面本身滚动
+    }
+
+    function onTouchEnd(e) {
+        if (!_favIsDragging) return;
+        _favIsDragging = false;
+        // 松手后按速度惯性滑行
+        startMomentum(_favVelocity);
+    }
+
+    function startMomentum(velocity) {
+        const body = getFavBody();
+        if (!body) return;
+        cancelMomentum();
+
+        const FRICTION = 0.94; // 摩擦系数，越小越快停
+        let v = velocity * 16; // 换算成 px/frame (60fps ≈ 16ms)
+
+        function step() {
+            if (Math.abs(v) < 0.5) return;
+            body.scrollTop += v;
+            v *= FRICTION;
+            _favRafId = requestAnimationFrame(step);
+        }
+        _favRafId = requestAnimationFrame(step);
+    }
+
+    function cancelMomentum() {
+        if (_favRafId) { cancelAnimationFrame(_favRafId); _favRafId = null; }
+    }
+
+    // 等 DOM 就绪后绑定到收藏面板
+    document.addEventListener('DOMContentLoaded', function() {
+        const panel = document.getElementById('favoritePanelPage');
+        if (!panel) return;
+        panel.addEventListener('touchstart', onTouchStart, { passive: true });
+        panel.addEventListener('touchmove', onTouchMove, { passive: false });
+        panel.addEventListener('touchend', onTouchEnd, { passive: true });
+        panel.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    });
+})();
 
 function handleScroll() {
     const main = document.getElementById("mainScroll");
