@@ -4599,20 +4599,32 @@ function renderAllTagPills() {
 // 📏 简介展开按钮可见性：内容不超过2行则隐藏按钮
 function syncDescBtnVisibility() {
     document.querySelectorAll('.card.active-render').forEach(card => {
+        const descWrap = card.querySelector('.desc-wrap');
         const descText = card.querySelector('.desc-text');
         const descBtn  = card.querySelector('.desc-expand-btn');
         if (!descText || !descBtn) return;
-        // 临时取消高度限制，测量真实内容高度
-        const savedMax      = descText.style.maxHeight;
-        const savedOverflow = descText.style.overflow;
-        descText.style.maxHeight = 'none';
-        descText.style.overflow  = 'visible';
+
+        // 如果当前已展开，先临时收起来测量
+        const wasExpanded = descWrap && descWrap.classList.contains('expanded');
+
+        // 临时移除 expanded 以确保 max-height 约束生效
+        if (wasExpanded && descWrap) descWrap.classList.remove('expanded');
+
+        // 读取受限状态下的可见高度 和 真实内容高度
+        // scrollHeight 永远是内容完整高度（不管 overflow）
+        const clippedH = descText.clientHeight;  // 受 max-height 限制后的可见高度
+        // 临时解除内联限制以读真实高度
+        descText.style.cssText += ';max-height:none!important;overflow:visible!important;';
         const realH = descText.scrollHeight;
-        descText.style.maxHeight = savedMax;
-        descText.style.overflow  = savedOverflow;
-        // 阈值：14px字号 × 1.8行高 × 2行 + 8px余量 ≈ 58px
-        const threshold = Math.ceil(14 * 1.8 * 2) + 8;
-        descBtn.style.display = realH > threshold ? '' : 'none';
+        descText.style.cssText = descText.style.cssText
+            .replace(/;?max-height:[^;]+!important/g, '')
+            .replace(/;?overflow:[^;]+!important/g, '');
+
+        // 恢复展开状态
+        if (wasExpanded && descWrap) descWrap.classList.add('expanded');
+
+        // 只有当真实高度明显大于受限高度时，才需要展开按钮（给4px容错）
+        descBtn.style.display = (realH > clippedH + 4) ? '' : 'none';
     });
 }
 
