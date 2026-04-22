@@ -4598,34 +4598,43 @@ function renderAllTagPills() {
 
 // 📏 简介展开按钮可见性：内容不超过2行则隐藏按钮
 function syncDescBtnVisibility() {
+    // 创建一个屏幕外容器，用于在不影响页面布局的情况下测量文本真实高度
+    // 这样即使卡片处于折叠/隐藏状态，也能准确判断简介是否需要展开按钮
+    const ruler = document.createElement('div');
+    ruler.style.cssText = [
+        'position:fixed',
+        'top:-9999px',
+        'left:0',
+        // 使用与 .desc-text 相同的宽度上下文（主内容区最大550px，减去卡片内边距）
+        'width:' + Math.min(window.innerWidth - 48, 502) + 'px',
+        'font-size:14px',
+        'line-height:1.8',
+        'padding:16px',
+        'box-sizing:border-box',
+        'word-break:break-word',
+        'white-space:normal',
+        'visibility:hidden',
+        'pointer-events:none',
+        'z-index:-1'
+    ].join(';');
+    document.body.appendChild(ruler);
+
     document.querySelectorAll('.card.active-render').forEach(card => {
-        const descWrap = card.querySelector('.desc-wrap');
         const descText = card.querySelector('.desc-text');
         const descBtn  = card.querySelector('.desc-expand-btn');
         if (!descText || !descBtn) return;
 
-        // 如果当前已展开，先临时收起来测量
-        const wasExpanded = descWrap && descWrap.classList.contains('expanded');
+        // 把 desc-text 的文字内容复制到离屏 ruler 里测量真实高度
+        ruler.innerHTML = descText.innerHTML;
+        const realH = ruler.scrollHeight;
 
-        // 临时移除 expanded 以确保 max-height 约束生效
-        if (wasExpanded && descWrap) descWrap.classList.remove('expanded');
-
-        // 读取受限状态下的可见高度 和 真实内容高度
-        // scrollHeight 永远是内容完整高度（不管 overflow）
-        const clippedH = descText.clientHeight;  // 受 max-height 限制后的可见高度
-        // 临时解除内联限制以读真实高度
-        descText.style.cssText += ';max-height:none!important;overflow:visible!important;';
-        const realH = descText.scrollHeight;
-        descText.style.cssText = descText.style.cssText
-            .replace(/;?max-height:[^;]+!important/g, '')
-            .replace(/;?overflow:[^;]+!important/g, '');
-
-        // 恢复展开状态
-        if (wasExpanded && descWrap) descWrap.classList.add('expanded');
-
-        // 只有当真实高度明显大于受限高度时，才需要展开按钮（给4px容错）
-        descBtn.style.display = (realH > clippedH + 4) ? '' : 'none';
+        // max-height: 3.6em = 14px * 1.8 * 2 = 50.4px，加上上下 padding 16px*2 = 82.4px
+        // 只要真实高度超过这个值，说明文字被截断，需要展开按钮
+        const maxH = Math.ceil(14 * 1.8 * 2) + 32 + 4; // 50 + 32(padding) + 4(容错) ≈ 86px
+        descBtn.style.display = realH > maxH ? '' : 'none';
     });
+
+    document.body.removeChild(ruler);
 }
 
 // 🔗 为所有卡片添加跳转按钮 + 直接下载按钮
