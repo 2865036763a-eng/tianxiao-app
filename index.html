@@ -3514,19 +3514,12 @@ function showExportModal(json, blob, fileName, count) {
     box.style.cssText = `background:${boxBg};width:100%;max-width:550px;border-radius:20px 20px 0 0;padding:20px 20px 36px;box-sizing:border-box;`;
     box.onclick = e => e.stopPropagation();
 
-    // 判断运行环境
-    const isWebView = /wv|WebView/.test(navigator.userAgent) ||
-                      (window.Android !== undefined) ||
-                      (!window.chrome && /Android/.test(navigator.userAgent));
-
-    // 复制功能（最兼容，APK/网页均可用）
+    // 复制功能
     function doCopy() {
         const succeed = () => { overlay.remove(); showToast('✅ 已复制到剪贴板！粘贴到记事本、QQ、微信文件助手均可保存', 5000); };
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(json).then(succeed).catch(() => execCopy());
-        } else {
-            execCopy();
-        }
+        } else { execCopy(); }
         function execCopy() {
             try {
                 const ta = document.createElement('textarea');
@@ -3539,7 +3532,7 @@ function showExportModal(json, blob, fileName, count) {
         }
     }
 
-    // 下载功能（网页端有效，APK 内可能无效）
+    // 下载文件（触发系统下载/打开方式）
     function doDownload() {
         try {
             const url = URL.createObjectURL(blob);
@@ -3549,55 +3542,48 @@ function showExportModal(json, blob, fileName, count) {
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
             overlay.remove();
-            showToast('✅ 文件已下载，在手机「下载」文件夹中查找', 5000);
+            showToast('✅ 正在下载…如弹出「打开方式」请选择文件管理器保存', 5000);
         } catch(e) {
             showToast('❌ 下载失败，请改用「复制数据」方式保存');
         }
     }
 
-    // 分享功能
-    async function doShare() {
-        // 尝试文件分享
-        if (navigator.share && navigator.canShare) {
+    // 保存到手机文件夹（File System Access API，支持自选目录）
+    async function doSaveToFolder() {
+        if (window.showSaveFilePicker) {
             try {
-                const file = new File([blob], fileName, { type: 'application/json' });
-                if (navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: '天笑收藏备份' });
-                    overlay.remove(); return;
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: fileName,
+                    types: [{ description: '收藏备份文件', accept: { 'application/json': ['.json'] } }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                overlay.remove();
+                showToast('✅ 已保存到选定文件夹！', 4000);
+            } catch(e) {
+                if (e.name !== 'AbortError') {
+                    // 不支持则回退到普通下载
+                    doDownload();
                 }
-            } catch(e) { if (e.name === 'AbortError') return; }
+            }
+        } else {
+            // 不支持 File System Access API，回退普通下载
+            doDownload();
         }
-        // 尝试文本分享
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: '天笑收藏备份', text: json });
-                overlay.remove(); return;
-            } catch(e) { if (e.name === 'AbortError') return; }
-        }
-        // 都不支持，提示用复制
-        showToast('⚠️ 分享不可用，已自动改用复制');
-        doCopy();
     }
-
-    // APK 环境：复制置顶并加醒目提示
-    const apkTip = isWebView
-        ? `<div style="background:#fff8e1;border:1px solid #ffcc02;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7a6000;line-height:1.6;">
-               💡 检测到 App 环境，推荐使用「复制数据」：<br>复制后粘贴到 <b>QQ / 微信文件助手 / 备忘录</b> 保存即可
-           </div>`
-        : '';
 
     box.innerHTML = `
         <div style="font-size:16px;font-weight:bold;color:${textColor};margin-bottom:4px;">💾 导出收藏（${count} 个游戏）</div>
         <div style="font-size:12px;color:${subColor};margin-bottom:14px;">选择保存方式</div>
-        ${apkTip}
         <button id="_expCopy" style="width:100%;padding:13px;margin-bottom:10px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;touch-action:manipulation;">
             📋 复制收藏数据
         </button>
-        <button id="_expShare" style="width:100%;padding:13px;margin-bottom:10px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
-            📤 分享到其他 App
+        <button id="_expDownload" style="width:100%;padding:13px;margin-bottom:10px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
+            ⬇️ 下载文件
         </button>
-        <button id="_expDownload" style="width:100%;padding:13px;margin-bottom:16px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
-            ⬇️ 下载到本机（网页端）
+        <button id="_expSaveFolder" style="width:100%;padding:13px;margin-bottom:16px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
+            📁 保存到手机文件夹
         </button>
         <button id="_expCancel" style="width:100%;padding:11px;background:none;color:${subColor};border:none;font-size:14px;cursor:pointer;touch-action:manipulation;">取消</button>
     `;
@@ -3605,10 +3591,10 @@ function showExportModal(json, blob, fileName, count) {
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
-    document.getElementById('_expCopy').onclick     = doCopy;
-    document.getElementById('_expShare').onclick    = doShare;
-    document.getElementById('_expDownload').onclick = doDownload;
-    document.getElementById('_expCancel').onclick   = () => overlay.remove();
+    document.getElementById('_expCopy').onclick       = doCopy;
+    document.getElementById('_expDownload').onclick   = doDownload;
+    document.getElementById('_expSaveFolder').onclick = doSaveToFolder;
+    document.getElementById('_expCancel').onclick     = () => overlay.remove();
 }
 
 // ──────────────────────────────────────────────
