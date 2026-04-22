@@ -2216,8 +2216,13 @@
     <div class="fullpage-header">
         <div class="fullpage-back-btn" onclick="closeFavoritePanel()">←</div>
         <div class="fullpage-header-title">💖 我的收藏</div>
-        <div style="width:40px;"></div>
+        <div style="display:flex;gap:4px;align-items:center;">
+            <div class="header-icon-btn" onclick="importFavorites()" title="导入收藏">📂</div>
+            <div class="header-icon-btn" onclick="exportFavorites()" title="导出收藏">💾</div>
+        </div>
     </div>
+    <!-- 隐藏的文件选择器，用于导入收藏 -->
+    <input type="file" id="favImportInput" accept=".json" style="display:none;" onchange="handleFavImport(this)">
     <div class="fullpage-body">
         <div class="fav-panel-grid" id="favPanelGrid"></div>
     </div>
@@ -3257,8 +3262,10 @@ function openNoticePanel() {
 
     // 读取公告内容：内存变量优先（云端已加载），否则回退到 localStorage
     const saved = noticeText || localStorage.getItem(NOTICE_KEY) || '';
-    // 用 innerText 赋值保留换行（textContent 会丢失换行显示）
-    body.innerText = saved;
+    // 用 innerHTML 渲染，将存储的 \n 转为 <br>，确保换行始终正确显示
+    body.innerHTML = saved
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
 
     if (isEditMode) {
         // 管理员模式：直接开启编辑
@@ -3294,20 +3301,14 @@ function startNoticeEdit() {
 
 function saveNoticeContent() {
     const body = document.getElementById('noticeContentBody');
-    // contentEditable 里换行是 <br> 或 <div>，需转成 \n 再存储
-    const html = body.innerHTML || '';
-    const content = html
-        .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/<div>/gi, '\n')
-        .replace(/<\/div>/gi, '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&');
+    // 直接用 innerText 读取：浏览器已将 <br>/<div> 转为换行，无需手动解析 HTML
+    const content = body.innerText || '';
     noticeText = content;
     localStorage.setItem(NOTICE_KEY, content);
-    body.innerText = content; // 重新渲染确保显示正确
+    // 用 innerHTML 渲染，将 \n 转为 <br>，确保 non-editable 状态换行正确显示
+    body.innerHTML = content
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
     body.contentEditable = 'false';
     showToast('✅ 公告已保存！记得点「☁️ 保存云端」同步给所有人');
 }
@@ -3461,6 +3462,107 @@ function openFavoritePanel() {
 
 function closeFavoritePanel() {
     document.getElementById('favoritePanelPage').style.display = 'none';
+}
+
+// ──────────────────────────────────────────────
+// 💾 收藏导出：生成 JSON 文件，只含 cardId + 游戏名 + 标签
+//    绝对不含任何网盘链接
+// ──────────────────────────────────────────────
+function exportFavorites() {
+    if (favorites.size === 0) {
+        showToast('❌ 暂无收藏，无法导出');
+        return;
+    }
+
+    const allCards = Array.from(document.querySelectorAll('#box .card'));
+    const exportData = {
+        version: 1,
+        exportTime: new Date().toISOString(),
+        site: '天笑の秘密基地',
+        note: '此文件仅含收藏列表，不含任何下载链接。导入后将自动恢复收藏状态。',
+        favorites: []
+    };
+
+    favorites.forEach(cardId => {
+        const card = allCards.find(c => c.dataset.cardId === cardId);
+        const name = card ? (card.querySelector('.g-name') || {}).textContent?.trim() || '未知游戏' : '（游戏已不存在）';
+        const tags = card ? (card.querySelector('.g-tags') || {}).textContent?.replace(/^标签[：:]\s*/, '').trim() || '' : '';
+        exportData.favorites.push({ cardId, name, tags });
+    });
+
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '天笑收藏_' + new Date().toLocaleDateString('zh-CN').replace(/\//g, '-') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ 收藏已导出！共 ' + exportData.favorites.length + ' 个游戏');
+}
+
+// ──────────────────────────────────────────────
+// 📂 收藏导入：读取 JSON 文件，按 cardId 恢复收藏
+// ──────────────────────────────────────────────
+function importFavorites() {
+    document.getElementById('favImportInput').click();
+}
+
+function handleFavImport(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = ''; // 重置，允许重复选同一文件
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        let data;
+        try {
+            data = JSON.parse(e.target.result);
+        } catch(err) {
+            showToast('❌ 文件格式错误，请选择正确的收藏文件');
+            return;
+        }
+
+        // 校验格式
+        if (!data.favorites || !Array.isArray(data.favorites) || data.site !== '天笑の秘密基地') {
+            showToast('❌ 文件不是天笑收藏备份，无法导入');
+            return;
+        }
+
+        // 获取当前主页所有卡片的 cardId 集合
+        const allCards = Array.from(document.querySelectorAll('#box .card'));
+        const existingIds = new Set(allCards.map(c => c.dataset.cardId).filter(Boolean));
+
+        let matched = 0, notFound = 0, alreadyHad = 0;
+
+        data.favorites.forEach(item => {
+            const id = item.cardId;
+            if (!id) return;
+            if (favorites.has(id)) {
+                alreadyHad++;
+                return;
+            }
+            if (existingIds.has(id)) {
+                favorites.add(id);
+                matched++;
+            } else {
+                notFound++;
+            }
+        });
+
+        if (matched > 0) {
+            saveFavorites();
+            initCardFavorites(); // 同步主页收藏按钮状态
+            openFavoritePanel(); // 刷新收藏面板
+        }
+
+        let msg = '';
+        if (matched > 0) msg += `✅ 成功恢复 ${matched} 个收藏`;
+        if (alreadyHad > 0) msg += (msg ? '，' : '') + `${alreadyHad} 个已有`;
+        if (notFound > 0) msg += (msg ? '，' : '') + `${notFound} 个游戏已下架`;
+        showToast(msg || '✅ 导入完成', 4000);
+    };
+    reader.readAsText(file);
 }
 
 // 收藏页全页面触摸拖拽滚动
