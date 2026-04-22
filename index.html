@@ -4285,31 +4285,27 @@ function initCardFavorites() {
         if (!card.dataset.cardId) {
             card.dataset.cardId = 'card_' + Date.now() + '_' + index;
         }
-        
-        // 检查是否已有收藏按钮
-        if (!card.querySelector('.fav-btn')) {
+        const cardId = card.dataset.cardId;
+        const isFaved = favorites.has(cardId);
+
+        // 已有 fav-btn（HTML硬编码的）：直接同步状态，不重复创建
+        const existingBtns = card.querySelectorAll('.fav-btn');
+        if (existingBtns.length > 0) {
+            existingBtns.forEach(b => {
+                b.innerHTML = isFaved ? '💖' : '🤍';
+                b.classList.toggle('favorited', isFaved);
+                b.onclick = function() { toggleFavorite(this); };
+            });
+        } else {
+            // 没有 fav-btn，动态创建一个
             const favBtn = document.createElement('div');
             favBtn.className = 'fav-btn';
-            const cardId = card.dataset.cardId;
-            const isFaved = favorites.has(cardId);
             favBtn.innerHTML = isFaved ? '💖' : '🤍';
             if (isFaved) favBtn.classList.add('favorited');
             favBtn.onclick = function() { toggleFavorite(this); };
-            
-            // 插入到卡片顶部（在pin按钮之后）
             const sliderBox = card.querySelector('.slider-box');
-            if (sliderBox) {
-                sliderBox.appendChild(favBtn);
-            } else {
-                card.prepend(favBtn);
-            }
-        }
-        // 同步紧凑模式缩略图收藏浮层状态
-        const overlay = card.querySelector('.card-thumb-fav');
-        if (overlay) {
-            const cardId2 = card.dataset.cardId;
-            if (favorites.has(cardId2)) overlay.classList.remove('hidden');
-            else overlay.classList.add('hidden');
+            if (sliderBox) sliderBox.appendChild(favBtn);
+            else card.prepend(favBtn);
         }
     });
 }
