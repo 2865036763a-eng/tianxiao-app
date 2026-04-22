@@ -3532,23 +3532,7 @@ function showExportModal(json, blob, fileName, count) {
         }
     }
 
-    // 下载文件（触发系统下载/打开方式）
-    function doDownload() {
-        try {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = fileName;
-            document.body.appendChild(a); a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            overlay.remove();
-            showToast('✅ 正在下载…如弹出「打开方式」请选择文件管理器保存', 5000);
-        } catch(e) {
-            showToast('❌ 下载失败，请改用「复制数据」方式保存');
-        }
-    }
-
-    // 保存到手机文件夹（File System Access API，支持自选目录）
+    // 保存到手机文件夹（File System Access API，支持自选目录；不支持时回退普通下载）
     async function doSaveToFolder() {
         if (window.showSaveFilePicker) {
             try {
@@ -3563,13 +3547,26 @@ function showExportModal(json, blob, fileName, count) {
                 showToast('✅ 已保存到选定文件夹！', 4000);
             } catch(e) {
                 if (e.name !== 'AbortError') {
-                    // 不支持则回退到普通下载
-                    doDownload();
+                    // 不支持则回退普通下载
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = fileName;
+                    document.body.appendChild(a); a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    overlay.remove();
+                    showToast('✅ 正在下载，如弹出「打开方式」请选择文件管理器保存', 5000);
                 }
             }
         } else {
-            // 不支持 File System Access API，回退普通下载
-            doDownload();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = fileName;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            overlay.remove();
+            showToast('✅ 正在下载，如弹出「打开方式」请选择文件管理器保存', 5000);
         }
     }
 
@@ -3578,9 +3575,6 @@ function showExportModal(json, blob, fileName, count) {
         <div style="font-size:12px;color:${subColor};margin-bottom:14px;">选择保存方式</div>
         <button id="_expCopy" style="width:100%;padding:13px;margin-bottom:10px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:bold;cursor:pointer;touch-action:manipulation;">
             📋 复制收藏数据
-        </button>
-        <button id="_expDownload" style="width:100%;padding:13px;margin-bottom:10px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
-            ⬇️ 下载文件
         </button>
         <button id="_expSaveFolder" style="width:100%;padding:13px;margin-bottom:16px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
             📁 保存到手机文件夹
@@ -3592,7 +3586,6 @@ function showExportModal(json, blob, fileName, count) {
     document.body.appendChild(overlay);
 
     document.getElementById('_expCopy').onclick       = doCopy;
-    document.getElementById('_expDownload').onclick   = doDownload;
     document.getElementById('_expSaveFolder').onclick = doSaveToFolder;
     document.getElementById('_expCancel').onclick     = () => overlay.remove();
 }
