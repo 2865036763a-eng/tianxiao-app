@@ -109,7 +109,7 @@
             background: rgba(18,18,20,0.97) !important;
             border-bottom-color: #2a2a2e !important;
         }
-        [data-theme="dark"] .fullpage-panel { background: #0e0e10; background-image: none; }
+        [data-theme="dark"] .fullpage-panel { background: #0e0e10; }
         [data-theme="dark"] .notice-content-wrap {
             background: #18181b;
             border-color: #3f3f46;
@@ -176,23 +176,22 @@
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
-            display: block;
-            overflow-y: scroll;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* 防止安卓浏览器把触摸事件路由给 viewport 而非内层滚动容器 */
         }
         .fullpage-panel::before { display: none; }
         .fullpage-panel::after { display: none; }
         .fullpage-header {
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 12px 15px;
-            background: rgba(255,255,255,0.92);
+            background: rgba(255,255,255,0.85);
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(8px);
-            position: sticky;
-            top: 0;
+            position: relative;
             z-index: 2;
         }
         .fullpage-header-title {
@@ -210,8 +209,17 @@
             color: var(--primary);
         }
         .fullpage-body {
+            position: absolute;
+            top: 57px;   /* 与 fullpage-header 高度对齐，脱离 flex 布局 */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
             padding: 16px;
-            min-height: calc(100vh - 57px); /* 保证内容区至少填满屏幕剩余高度 */
+            z-index: 1;
+            touch-action: pan-y;
+            overscroll-behavior-y: contain;
             box-sizing: border-box;
         }
 
@@ -3264,12 +3272,8 @@ function openNoticePanel() {
 
     // 读取公告内容：内存变量优先（云端已加载），否则回退到 localStorage
     const saved = noticeText || localStorage.getItem(NOTICE_KEY) || '';
-    // 用 innerHTML 渲染，将存储的 \n 转为 <br>，确保换行始终正确显示
-    body.innerHTML = saved
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
+    // 用 innerText 赋值保留换行（textContent 会丢失换行显示）
+    body.innerText = saved;
 
     if (isEditMode) {
         // 管理员模式：直接开启编辑
@@ -3281,8 +3285,12 @@ function openNoticePanel() {
         hint.textContent = '';
     }
 
-    panel.style.display = 'block';
-    panel.scrollTop = 0;
+    panel.style.display = 'flex';
+    requestAnimationFrame(() => {
+        const hdr = panel.querySelector('.fullpage-header');
+        const body = panel.querySelector('.fullpage-body');
+        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+    });
 }
 
 function closeNoticePanel() {
@@ -3301,15 +3309,20 @@ function startNoticeEdit() {
 
 function saveNoticeContent() {
     const body = document.getElementById('noticeContentBody');
-    // 直接用 innerText 读取：浏览器已将所有 <br>/<div> 转为换行，无需手动解析 HTML
-    const txt = body.innerText || '';
-    noticeText = txt;
-    localStorage.setItem(NOTICE_KEY, txt);
-    // 渲染：将换行符转为 <br>，确保 non-editable 状态下换行正确显示
-    body.innerHTML = txt
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/
-/g, '<br>');
+    // contentEditable 里换行是 <br> 或 <div>，需转成 \n 再存储
+    const html = body.innerHTML || '';
+    const content = html
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<div>/gi, '\n')
+        .replace(/<\/div>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+    noticeText = content;
+    localStorage.setItem(NOTICE_KEY, content);
+    body.innerText = content; // 重新渲染确保显示正确
     body.contentEditable = 'false';
     showToast('✅ 公告已保存！记得点「☁️ 保存云端」同步给所有人');
 }
@@ -3452,8 +3465,13 @@ function openFavoritePanel() {
         grid.appendChild(row);
     });
 
-    panel.style.display = 'block';
-    panel.scrollTop = 0;
+    panel.style.display = 'flex';
+    // 动态计算 header 高度，确保 fullpage-body top 精确对齐
+    requestAnimationFrame(() => {
+        const hdr = panel.querySelector('.fullpage-header');
+        const body = panel.querySelector('.fullpage-body');
+        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+    });
 }
 
 function closeFavoritePanel() {
