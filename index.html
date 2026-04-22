@@ -209,13 +209,14 @@
         }
         .fullpage-body {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
             padding: 16px;
             position: relative;
             z-index: 1;
-            -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
             overscroll-behavior: contain;
+            will-change: scroll-position;
         }
 
         /* 公告内容区 */
@@ -3327,16 +3328,21 @@ function openFavoritePanel() {
 
         // 简单行布局
         const row = document.createElement('div');
-        row.style.cssText = 'display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; margin-bottom:10px; cursor:pointer; -webkit-tap-highlight-color:transparent;';
+        row.style.cssText = 'display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; margin-bottom:10px; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:pan-y;';
 
-        // 缩略图
-        if (thumb) {
+        // 缩略图（始终渲染容器，防止图片加载失败后布局塌陷导致点击区域消失）
+        const thumbWrap = document.createElement('div');
+        thumbWrap.style.cssText = 'width:70px; height:70px; flex-shrink:0; border-radius:8px; overflow:hidden; background:#f0f0f0; display:flex; align-items:center; justify-content:center; pointer-events:none;';
+        if (thumb && !thumb.includes('via.placeholder')) {
             const img = document.createElement('img');
             img.src = thumb;
-            img.style.cssText = 'width:70px; height:70px; object-fit:cover; border-radius:8px; flex-shrink:0;';
-            img.onerror = () => img.style.display = 'none';
-            row.appendChild(img);
+            img.style.cssText = 'width:70px; height:70px; object-fit:cover; display:block; pointer-events:none;';
+            img.onerror = () => { img.style.display = 'none'; thumbWrap.innerHTML = '<span style="font-size:28px;color:#bbb;">🖼️</span>'; };
+            thumbWrap.appendChild(img);
+        } else {
+            thumbWrap.innerHTML = '<span style="font-size:28px;color:#bbb;">🖼️</span>';
         }
+        row.appendChild(thumbWrap);
 
         // 文字区
         const info = document.createElement('div');
@@ -3364,12 +3370,20 @@ function openFavoritePanel() {
 
         // 取消收藏按钮
         const unfavBtn = document.createElement('button');
-        unfavBtn.style.cssText = 'flex-shrink:0; background:none; border:none; font-size:20px; cursor:pointer; padding:4px; line-height:1;';
+        unfavBtn.style.cssText = 'flex-shrink:0; background:none; border:none; font-size:20px; cursor:pointer; padding:4px; line-height:1; touch-action:manipulation;';
         unfavBtn.textContent = '💖';
         unfavBtn.title = '取消收藏';
         unfavBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            toggleFavorite(card);
+            // Bug修复：必须传 fav-btn 元素给 toggleFavorite，传 card 本身会导致 card.innerHTML 被清空
+            const realFavBtn = card.querySelector('.fav-btn');
+            if (realFavBtn) {
+                toggleFavorite(realFavBtn);
+            } else {
+                // fallback：手动处理收藏状态
+                const cardId = card.dataset.cardId;
+                if (cardId) { favorites.delete(cardId); saveFavorites(); }
+            }
             row.remove();
             if (grid.children.length === 0) {
                 grid.innerHTML = '<div class="fav-panel-empty">💔 还没有收藏任何游戏哦~</div>';
