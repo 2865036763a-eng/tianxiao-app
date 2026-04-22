@@ -178,6 +178,7 @@
             background-repeat: no-repeat;
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* 防止安卓浏览器把触摸事件路由给 viewport 而非内层滚动容器 */
         }
         .fullpage-panel::before { display: none; }
         .fullpage-panel::after { display: none; }
@@ -209,13 +210,14 @@
         }
         .fullpage-body {
             flex: 1;
+            min-height: 0; /* 关键：让 flex 子元素可以收缩到比内容更小，触发内部滚动 */
             overflow-y: scroll;
             -webkit-overflow-scrolling: touch;
             padding: 16px;
             position: relative;
             z-index: 1;
             touch-action: pan-y;
-            overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
             will-change: scroll-position;
         }
 
@@ -539,6 +541,27 @@
         .card-thumb .thumb-count {
             display: none;
         }
+        /* 紧凑模式收藏心形浮层（覆盖在缩略图右上角）*/
+        .card-thumb-fav {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255,20,147,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.15s;
+        }
+        .card-thumb-fav:active { transform: scale(0.88); }
+        .card-thumb-fav.hidden { display: none; }
         
         /* 紧凑模式的信息预览 */
         .card-preview {
@@ -3906,6 +3929,19 @@ function generateCompactCardHTML(card) {
                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:28px;">🖼️</div>
             `;
         }
+        // 添加收藏浮层心形（紧凑模式下唯一可见的收藏状态指示）
+        const _cid = card.dataset.cardId;
+        const _faved = _cid && favorites.has(_cid);
+        const favOverlay = document.createElement('div');
+        favOverlay.className = 'card-thumb-fav' + (_faved ? '' : ' hidden');
+        favOverlay.textContent = '\u{1F496}';
+        favOverlay.title = '已收藏';
+        favOverlay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const realBtn = card.querySelector('.fav-btn');
+            if (realBtn) toggleFavorite(realBtn);
+        });
+        thumb.appendChild(favOverlay);
         card.insertBefore(thumb, sliderBox);
     }
     
@@ -4154,8 +4190,9 @@ function initCardFavorites() {
             const favBtn = document.createElement('div');
             favBtn.className = 'fav-btn';
             const cardId = card.dataset.cardId;
-            favBtn.innerHTML = favorites.has(cardId) ? '💖' : '🤍';
-            if (favorites.has(cardId)) favBtn.classList.add('favorited');
+            const isFaved = favorites.has(cardId);
+            favBtn.innerHTML = isFaved ? '💖' : '🤍';
+            if (isFaved) favBtn.classList.add('favorited');
             favBtn.onclick = function() { toggleFavorite(this); };
             
             // 插入到卡片顶部（在pin按钮之后）
@@ -4166,25 +4203,39 @@ function initCardFavorites() {
                 card.prepend(favBtn);
             }
         }
+        // 同步紧凑模式缩略图收藏浮层状态
+        const overlay = card.querySelector('.card-thumb-fav');
+        if (overlay) {
+            const cardId2 = card.dataset.cardId;
+            if (favorites.has(cardId2)) overlay.classList.remove('hidden');
+            else overlay.classList.add('hidden');
+        }
     });
 }
 
 function toggleFavorite(btn) {
     const card = btn.closest('.card');
+    if (!card) return;
     const cardId = card.dataset.cardId;
     
     if (!cardId) return;
     
-    if (favorites.has(cardId)) {
+    const isFaved = favorites.has(cardId);
+    if (isFaved) {
         // 取消收藏
         favorites.delete(cardId);
-        btn.innerHTML = '🤍';
-        btn.classList.remove('favorited');
+        // 更新 slider-box 里的 fav-btn（展开状态可见）
+        card.querySelectorAll('.fav-btn').forEach(b => { b.innerHTML = '🤍'; b.classList.remove('favorited'); });
+        // 更新紧凑模式缩略图上的收藏浮层
+        const overlay = card.querySelector('.card-thumb-fav');
+        if (overlay) overlay.classList.add('hidden');
     } else {
         // 添加收藏
         favorites.add(cardId);
-        btn.innerHTML = '💖';
-        btn.classList.add('favorited');
+        card.querySelectorAll('.fav-btn').forEach(b => { b.innerHTML = '💖'; b.classList.add('favorited'); });
+        // 更新紧凑模式缩略图上的收藏浮层
+        const overlay = card.querySelector('.card-thumb-fav');
+        if (overlay) overlay.classList.remove('hidden');
     }
     
     // 保存收藏数据
