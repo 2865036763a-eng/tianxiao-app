@@ -175,17 +175,15 @@
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
             display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
         }
-        /* 背景图用固定定位的伪元素实现，不受键盘/滚动影响，始终全屏覆盖 */
-        body::before {
-            content: '';
+        /* 背景层：用真实 DOM div 实现，配合 visualViewport API 修正键盘弹出缩小问题 */
+        #bg-layer {
             position: fixed;
-            inset: 0;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: -1;
             background: url('images/bg.jpg') center center / cover no-repeat;
-            transition: opacity 0.6s ease;
-        }
-        [data-theme="dark"] body::before {
-            background: url('images/bg_night.jpg') center center / cover no-repeat;
+            transition: background-image 0.6s ease;
+            pointer-events: none;
         }
         
         /* 标题栏图标按钮 */
@@ -5572,7 +5570,28 @@ function showSearchImageEgg(src) {
 }
 
 
-// 🎨 背景图用 body::before 固定伪元素实现，无需视差JS
+// 🎨 背景层：用 visualViewport API 修正安卓键盘弹出导致 fixed 元素缩小的问题
+(function() {
+    const bgLayer = document.getElementById('bg-layer');
+    if (!bgLayer) return;
+
+    function fixBgSize() {
+        // 用 visualViewport 的实际大小覆盖 fixed 元素，防止键盘弹出时缩小
+        const vv = window.visualViewport;
+        if (!vv) return;
+        bgLayer.style.width  = vv.width  + 'px';
+        bgLayer.style.height = vv.height + 'px';
+        bgLayer.style.top    = vv.offsetTop  + 'px';
+        bgLayer.style.left   = vv.offsetLeft + 'px';
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', fixBgSize);
+        window.visualViewport.addEventListener('scroll', fixBgSize);
+    }
+    // 初始化一次
+    window.addEventListener('load', fixBgSize);
+})();
 
 
 // 📱 AZ安卓模式悬浮球
@@ -5630,12 +5649,15 @@ function initDarkMode() {
 function applyDarkMode(dark, save = true) {
     const html = document.documentElement;
     const btn = document.getElementById('darkModeBtn');
+    const bgLayer = document.getElementById('bg-layer');
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
+        if (bgLayer) bgLayer.style.backgroundImage = "url('images/bg_night.jpg')";
     } else {
         html.removeAttribute('data-theme');
         if (btn) btn.textContent = '🌙';
+        if (bgLayer) bgLayer.style.backgroundImage = "url('images/bg.jpg')";
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
 }
@@ -6253,4 +6275,5 @@ window.closeNoticePanel = function() {
 </div>
 
 
+<div id="bg-layer"></div>
 </body></html>
