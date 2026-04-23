@@ -27,8 +27,8 @@
             background-color: #0e0e10;
             background-image: url('images/bg_night.jpg') !important;
             background-size: cover !important;
-            background-position: center center !important;
-            background-attachment: scroll !important;
+            background-position: center 50%;
+            background-attachment: scroll;
             filter: none;
         }
         [data-theme="dark"] header {
@@ -3613,7 +3613,7 @@ function showExportModal(json, blob, fileName, count) {
             📋 复制收藏数据
         </button>
         <button id="_expSaveFolder" style="width:100%;padding:13px;margin-bottom:16px;background:${btnBg};color:${textColor};border:none;border-radius:12px;font-size:15px;cursor:pointer;touch-action:manipulation;">
-            📁 保存到手机文件夹
+            📁 保存到文件夹
         </button>
         <button id="_expCancel" style="width:100%;padding:11px;background:none;color:${subColor};border:none;font-size:14px;cursor:pointer;touch-action:manipulation;">取消</button>
     `;
@@ -5574,16 +5574,14 @@ function showSearchImageEgg(src) {
 
 
 // 🎨 视差滚动背景
+// 移动端不用 fixed（键盘弹出会导致背景缩小），改为 scroll + JS 视差
 (function() {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile) {
-        // 移动端保持 fixed 背景（性能更好）
-        document.body.style.backgroundAttachment = 'fixed';
-        return;
-    }
-    // PC端用视差
+    // 确保 body 背景始终是 scroll 模式
+    document.body.style.backgroundAttachment = 'scroll';
+
     const main = document.querySelector('main');
     if (!main) return;
+
     main.addEventListener('scroll', function() {
         const scrollY = main.scrollTop;
         const speed = 0.35;
