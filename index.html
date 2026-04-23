@@ -116,7 +116,9 @@
             border-bottom-color: #2a2a2e !important;
         }
         [data-theme="dark"] .fullpage-panel {
-            background: rgba(0,0,0,0.45) !important;
+            background-image: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('images/bg_night.jpg') !important;
+            background-size: cover !important;
+            background-position: center center !important;
         }
         [data-theme="dark"] .notice-content-wrap {
             background: #18181b;
@@ -203,13 +205,13 @@
             position: fixed;
             inset: 0;
             z-index: 1500;
-            background: rgba(0,0,0,0.25);
+            background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('images/bg.jpg');
             background-size: cover;
-            background-position: center top;
+            background-position: center center;
             background-repeat: no-repeat;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* 防止安卓浏览器把触摸事件路由给 viewport 而非内层滚动容器 */
+            overflow: hidden;
         }
         .fullpage-panel::before { display: none; }
         .fullpage-panel::after { display: none; }
@@ -339,7 +341,7 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; inset: 0; background: #fff; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        #gateKeeper { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center center; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -5660,6 +5662,13 @@ function applyDarkMode(dark, save = true) {
         if (bgLayer) bgLayer.style.backgroundImage = "url('images/bg.jpg')";
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
+    // 同步更新免责声明页背景
+    const gate = document.getElementById('gateKeeper');
+    if (gate) {
+        gate.style.backgroundImage = dark
+            ? "linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url('images/bg_night.jpg')"
+            : "linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg')";
+    }
 }
 
 function toggleDarkMode() {
