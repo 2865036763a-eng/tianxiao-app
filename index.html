@@ -24,11 +24,7 @@
             --primary: #ff6699;
         }
         [data-theme="dark"] body {
-            background-color: #0e0e10;
-            background-image: url('images/bg_night.jpg') !important;
-            background-size: cover !important;
-            background-position: center 50%;
-            background-attachment: scroll;
+            background: none;
             filter: none;
         }
         [data-theme="dark"] header {
@@ -120,8 +116,7 @@
             border-bottom-color: #2a2a2e !important;
         }
         [data-theme="dark"] .fullpage-panel {
-            background-color: #0e0e10;
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('images/bg_night.jpg') !important;
+            background: rgba(0,0,0,0.45) !important;
         }
         [data-theme="dark"] .notice-content-wrap {
             background: #18181b;
@@ -176,17 +171,22 @@
         [data-theme="dark"] #darkModeBtn { transform: rotate(180deg); }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
         body { 
-            background: url('images/bg.jpg') center center / cover no-repeat;
-            background-attachment: scroll;
+            background: none;
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
             display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
-            transition: background-image 0.6s ease;
         }
-        /* 夜间模式背景图 */
-        [data-theme="dark"] body {
-            background-image: url('images/bg_night.jpg') !important;
+        /* 背景图用固定定位的伪元素实现，不受键盘/滚动影响，始终全屏覆盖 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url('images/bg.jpg') center center / cover no-repeat;
+            transition: opacity 0.6s ease;
         }
-        body::before { display: none; }
+        [data-theme="dark"] body::before {
+            background: url('images/bg_night.jpg') center center / cover no-repeat;
+        }
         
         /* 标题栏图标按钮 */
         .header-icon-btn {
@@ -205,8 +205,7 @@
             position: fixed;
             inset: 0;
             z-index: 1500;
-            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('images/bg.jpg');
-            transition: background-image 0.6s ease;
+            background: rgba(0,0,0,0.25);
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
@@ -5573,21 +5572,7 @@ function showSearchImageEgg(src) {
 }
 
 
-// 🎨 视差滚动背景
-// 移动端不用 fixed（键盘弹出会导致背景缩小），改为 scroll + JS 视差
-(function() {
-    // 确保 body 背景始终是 scroll 模式
-    document.body.style.backgroundAttachment = 'scroll';
-
-    const main = document.querySelector('main');
-    if (!main) return;
-
-    main.addEventListener('scroll', function() {
-        const scrollY = main.scrollTop;
-        const speed = 0.35;
-        document.body.style.backgroundPositionY = `calc(50% + ${scrollY * speed}px)`;
-    }, { passive: true });
-})();
+// 🎨 背景图用 body::before 固定伪元素实现，无需视差JS
 
 
 // 📱 AZ安卓模式悬浮球
