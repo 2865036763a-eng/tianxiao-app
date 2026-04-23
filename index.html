@@ -177,22 +177,29 @@
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
             display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
         }
-        /* 背景层：用真实 DOM div 实现，配合 visualViewport API 修正键盘弹出缩小问题 */
-        #bg-layer {
+        /* 背景层：html::before 伪元素实现，完全不受安卓键盘弹出的 viewport resize 影响 */
+        html::before {
+            content: '';
             position: fixed;
             top: 0; left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100vw; height: 100vh;
             z-index: -1;
-            background: url('images/bg.jpg') center center / cover no-repeat;
+            background-image: url('images/bg.jpg');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             transition: background-image 0.6s ease;
             pointer-events: none;
         }
-        /* 桌面端（有鼠标设备）：背景图视差滚动，上下滚动时能看到完整图片 */
+        html[data-theme="dark"]::before {
+            background-image: url('images/bg_night.jpg');
+        }
+        /* #bg-layer 仅作为占位，不显示 */
+        #bg-layer { display: none; }
+        /* 桌面端视差滚动：--bg-pos-y 由 JS handleScroll 动态更新 */
         @media (hover: hover) and (pointer: fine) {
-            #bg-layer {
-                background-size: cover;
-                background-position: center 0%;
+            html::before {
+                background-position: center var(--bg-pos-y, 0%);
             }
         }
         
@@ -3796,15 +3803,12 @@ function handleScroll() {
         if (main.scrollTop > 300) azBall.classList.add("show");
         else azBall.classList.remove("show");
     }
-    // 桌面端：随滚动更新背景图位置，让图片从上到下完整显示
+    // 桌面端：随滚动更新 html::before 背景图位置，让图片从上到下完整显示
     const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (isDesktop) {
-        const bgLayer = document.getElementById('bg-layer');
-        if (bgLayer) {
-            const scrollable = main.scrollHeight - main.clientHeight;
-            const pct = scrollable > 0 ? (main.scrollTop / scrollable) * 100 : 0;
-            bgLayer.style.backgroundPosition = 'center ' + pct + '%';
-        }
+        const scrollable = main.scrollHeight - main.clientHeight;
+        const pct = scrollable > 0 ? (main.scrollTop / scrollable) * 100 : 0;
+        document.documentElement.style.setProperty('--bg-pos-y', pct + '%');
     }
 }
 
@@ -5590,69 +5594,15 @@ function showSearchImageEgg(src) {
 }
 
 
-// 🎨 背景层：用 visualViewport API 修正安卓键盘弹出导致 fixed 元素缩小的问题
+// 🎨 背景层由 html::before 伪元素实现，天然不受安卓键盘弹出 viewport 变化影响
+// 桌面端视差滚动由 handleScroll 里的 backgroundPosition 更新处理
 (function() {
-    const bgLayer = document.getElementById('bg-layer');
-    if (!bgLayer) return;
-
-    // 记录页面完整尺寸（键盘弹出前的真实屏幕尺寸）
-    // 用 screen.height 作为最可靠的参考，不受 viewport 变化影响
-    let fullH = window.innerHeight;
-    let fullW = window.innerWidth;
-
-    // 设置 transform-origin 确保从左上角缩放
-    bgLayer.style.transformOrigin = 'top left';
-
-    function fixBgSize() {
-        const vv = window.visualViewport;
-        if (!vv) return;
-
-        // 桌面端不处理
-        const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-        if (isDesktop) return;
-
-        // 键盘弹出时 vv.height < fullH，用 scale 补偿让背景保持全屏
-        const scaleY = fullH / vv.height;
-        const scaleX = fullW / vv.width;
-        // 同时补偿 top/left 偏移（部分安卓浏览器键盘弹出会有偏移）
-        const tx = vv.offsetLeft;
-        const ty = vv.offsetTop;
-        bgLayer.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`;
-
-        // gateKeeper 同样处理（position:fixed 元素 offsetParent 为 null，直接判断 display）
-        const gate = document.getElementById('gateKeeper');
-        if (gate && gate.style.display !== 'none' && gate.style.display !== '') {
-            gate.style.transformOrigin = 'top left';
-            gate.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`;
-        }
-    }
-
-    // 屏幕旋转等真实尺寸变化时更新基准（键盘弹出时宽度不变，所以用宽度变化判断）
-    function updateBaseline() {
-        const vv = window.visualViewport;
-        // 如果没有键盘（vv.height 接近 window.innerHeight），更新基准
-        if (!vv || vv.height > window.innerHeight * 0.75) {
-            fullW = window.innerWidth;
-            fullH = window.innerHeight;
-        }
-    }
-
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', function() {
-            updateBaseline();
-            fixBgSize();
-        });
-        window.visualViewport.addEventListener('scroll', fixBgSize);
-    }
-    window.addEventListener('resize', function() {
-        updateBaseline();
-        fixBgSize();
-    });
-    // 初始化
+    // 桌面端：页面加载后初始化视差位置
     window.addEventListener('load', function() {
-        fullW = window.innerWidth;
-        fullH = window.innerHeight;
-        fixBgSize();
+        const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        if (!isDesktop) return;
+        const main = document.getElementById('mainScroll');
+        if (main) main.dispatchEvent(new Event('scroll'));
     });
 })();
 
@@ -5716,11 +5666,11 @@ function applyDarkMode(dark, save = true) {
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
-        if (bgLayer) bgLayer.style.backgroundImage = "url('images/bg_night.jpg')";
+        // 背景图由 CSS html[data-theme="dark"]::before 自动切换
     } else {
         html.removeAttribute('data-theme');
         if (btn) btn.textContent = '🌙';
-        if (bgLayer) bgLayer.style.backgroundImage = "url('images/bg.jpg')";
+        // 背景图由 CSS html::before 自动切换
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
     // 同步更新免责声明页背景
