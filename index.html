@@ -173,33 +173,28 @@
         [data-theme="dark"] #darkModeBtn { transform: rotate(180deg); }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
         body { 
-            background: none;
+            background: url('images/bg.jpg') center top / cover no-repeat scroll;
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
             display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
         }
-        /* 背景层：html::before 伪元素实现，完全不受安卓键盘弹出的 viewport resize 影响 */
-        html::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1;
-            background-image: url('images/bg.jpg');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-            transition: background-image 0.6s ease;
-            pointer-events: none;
+        /* 背景层：直接用 body 的背景，配合 background-attachment:scroll
+           body 的尺寸由浏览器布局决定，不受 visualViewport 键盘压缩影响 */
+        body {
+            background-image: url('images/bg.jpg') !important;
+            background-size: cover !important;
+            background-position: center top !important;
+            background-repeat: no-repeat !important;
+            background-attachment: scroll !important;
         }
-        html[data-theme="dark"]::before {
-            background-image: url('images/bg_night.jpg');
+        html[data-theme="dark"] body {
+            background-image: url('images/bg_night.jpg') !important;
         }
         /* #bg-layer 仅作为占位，不显示 */
         #bg-layer { display: none; }
         /* 桌面端视差滚动：--bg-pos-y 由 JS handleScroll 动态更新 */
         @media (hover: hover) and (pointer: fine) {
-            html::before {
-                background-position: center var(--bg-pos-y, 0%);
+            body {
+                background-position: center var(--bg-pos-y, 0%) !important;
             }
         }
         
@@ -3803,12 +3798,12 @@ function handleScroll() {
         if (main.scrollTop > 300) azBall.classList.add("show");
         else azBall.classList.remove("show");
     }
-    // 桌面端：随滚动更新 html::before 背景图位置，让图片从上到下完整显示
+    // 桌面端：随滚动更新 body 背景图位置，让图片从上到下完整显示
     const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (isDesktop) {
         const scrollable = main.scrollHeight - main.clientHeight;
         const pct = scrollable > 0 ? (main.scrollTop / scrollable) * 100 : 0;
-        document.documentElement.style.setProperty('--bg-pos-y', pct + '%');
+        document.body.style.backgroundPosition = 'center ' + pct + '%';
     }
 }
 
@@ -5666,11 +5661,11 @@ function applyDarkMode(dark, save = true) {
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
-        // 背景图由 CSS html[data-theme="dark"]::before 自动切换
+        document.body.style.backgroundImage = "url('images/bg_night.jpg')";
     } else {
         html.removeAttribute('data-theme');
         if (btn) btn.textContent = '🌙';
-        // 背景图由 CSS html::before 自动切换
+        document.body.style.backgroundImage = "url('images/bg.jpg')";
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
     // 同步更新免责声明页背景
