@@ -39,36 +39,39 @@
         }
         [data-theme="dark"] main { background: transparent; }
         [data-theme="dark"] .card {
-            background: rgba(24,24,27,0.72) !important;
-            border-color: rgba(42,42,46,0.8) !important;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         [data-theme="dark"] .card.is-pinned { border-color: #ff9800 !important; }
         [data-theme="dark"] .info-box {
-            background: transparent !important;
+            background: rgba(0,0,0,0.18) !important;
         }
-        [data-theme="dark"] .g-name { color: #e3e3e3 !important; }
-        [data-theme="dark"] .g-tags { color: var(--primary); }
+        [data-theme="dark"] .g-name {
+            color: #fff !important;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+        }
+        [data-theme="dark"] .g-tags { color: var(--primary); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
         [data-theme="dark"] .tag-pill {
-            background: #27272a;
-            border-color: #3f3f46;
-            color: #d4d4d8;
+            background: rgba(0,0,0,0.35);
+            border-color: rgba(255,255,255,0.15);
+            color: #e8e8e8;
         }
-        [data-theme="dark"] .tag-prefix { color: #71717a; }
+        [data-theme="dark"] .tag-prefix { color: rgba(255,255,255,0.5); }
         [data-theme="dark"] .desc-wrap {
-            background: #27272a !important;
-            border-color: #3f3f46 !important;
+            background: rgba(0,0,0,0.30) !important;
+            border-color: rgba(255,255,255,0.10) !important;
             box-shadow: none !important;
         }
-        [data-theme="dark"] .desc-text { color: #d4d4d8 !important; }
+        [data-theme="dark"] .desc-text { color: rgba(255,255,255,0.88) !important; }
         [data-theme="dark"] .desc-expand-btn { color: var(--primary); }
         [data-theme="dark"] .link-wrap {
-            background: #27272a !important;
-            border-color: #3f3f46 !important;
+            background: rgba(0,0,0,0.30) !important;
+            border-color: rgba(255,255,255,0.10) !important;
         }
-        [data-theme="dark"] .link-actions { border-top-color: #3f3f46; }
+        [data-theme="dark"] .link-actions { border-top-color: rgba(255,255,255,0.12); }
         [data-theme="dark"] .link-jump-btn { background: #3f3f8a; }
         [data-theme="dark"] #search {
             background: rgba(39,39,42,0.55) !important;
@@ -136,10 +139,25 @@
             background: #27272a;
             color: #a1a1aa;
         }
-        [data-theme="dark"] .card-preview-title { color: #e3e3e3 !important; }
-        [data-theme="dark"] .card-preview-desc { color: #a1a1aa !important; }
-        [data-theme="dark"] .card-preview-tags { color: var(--primary) !important; }
-        [data-theme="dark"] .card-expand-hint { color: #71717a; }
+        [data-theme="dark"] .card-preview-title {
+            color: #fff !important;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.7);
+        }
+        [data-theme="dark"] .card-preview-desc {
+            color: rgba(255,255,255,0.85) !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        [data-theme="dark"] .card-preview-tags {
+            color: var(--primary) !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        [data-theme="dark"] .card-expand-hint {
+            color: rgba(255,255,255,0.6);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        [data-theme="dark"] .card-preview {
+            background: linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 100%);
+        }
         [data-theme="dark"] .direct-dl-edit input {
             background: #27272a;
             border-color: #3f3f46;
