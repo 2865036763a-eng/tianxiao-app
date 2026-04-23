@@ -191,7 +191,7 @@
         /* 桌面端（有鼠标设备）：背景图视差滚动，上下滚动时能看到完整图片 */
         @media (hover: hover) and (pointer: fine) {
             #bg-layer {
-                background-size: auto 150%;
+                background-size: cover;
                 background-position: center 0%;
             }
         }
@@ -5615,12 +5615,15 @@ function showSearchImageEgg(src) {
         bgLayer.style.left = vv.offsetLeft + 'px';
 
         // gateKeeper 也是 fixed，同样修正它的尺寸防止键盘弹出时缩小
+        // 注意：只在移动端（已经过 isDesktop 判断后到这里）才执行
         const gate = document.getElementById('gateKeeper');
-        if (gate && gate.style.display !== 'none') {
+        if (gate && gate.offsetParent !== null) {
             gate.style.width  = fullW + 'px';
             gate.style.height = fullH + 'px';
             gate.style.top    = vv.offsetTop  + 'px';
             gate.style.left   = vv.offsetLeft + 'px';
+            gate.style.right  = 'auto';
+            gate.style.bottom = 'auto';
         }
     }
 
