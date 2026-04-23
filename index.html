@@ -349,7 +349,7 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center center; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        #gateKeeper { position: fixed; inset: 0; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -5595,53 +5595,60 @@ function showSearchImageEgg(src) {
     const bgLayer = document.getElementById('bg-layer');
     if (!bgLayer) return;
 
-    // 记录页面初始完整尺寸（键盘弹出前）
-    let fullW = window.innerWidth;
+    // 记录页面完整尺寸（键盘弹出前的真实屏幕尺寸）
+    // 用 screen.height 作为最可靠的参考，不受 viewport 变化影响
     let fullH = window.innerHeight;
+    let fullW = window.innerWidth;
+
+    // 设置 transform-origin 确保从左上角缩放
+    bgLayer.style.transformOrigin = 'top left';
 
     function fixBgSize() {
         const vv = window.visualViewport;
         if (!vv) return;
 
-        // 桌面端（有鼠标）不处理，让 CSS 的 background-attachment:fixed 自然展示
+        // 桌面端不处理
         const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         if (isDesktop) return;
 
-        // 移动端：始终保持背景层等于页面初始完整尺寸，不随键盘弹出缩小
-        bgLayer.style.width  = fullW + 'px';
-        bgLayer.style.height = fullH + 'px';
-        // 用 offsetTop/offsetLeft 补偿 visualViewport 偏移
-        bgLayer.style.top  = vv.offsetTop  + 'px';
-        bgLayer.style.left = vv.offsetLeft + 'px';
+        // 键盘弹出时 vv.height < fullH，用 scale 补偿让背景保持全屏
+        const scaleY = fullH / vv.height;
+        const scaleX = fullW / vv.width;
+        // 同时补偿 top/left 偏移（部分安卓浏览器键盘弹出会有偏移）
+        const tx = vv.offsetLeft;
+        const ty = vv.offsetTop;
+        bgLayer.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`;
 
-        // gateKeeper 也是 fixed，同样修正它的尺寸防止键盘弹出时缩小
-        // 注意：只在移动端（已经过 isDesktop 判断后到这里）才执行
+        // gateKeeper 同样处理（position:fixed 元素 offsetParent 为 null，直接判断 display）
         const gate = document.getElementById('gateKeeper');
-        if (gate && gate.offsetParent !== null) {
-            gate.style.width  = fullW + 'px';
-            gate.style.height = fullH + 'px';
-            gate.style.top    = vv.offsetTop  + 'px';
-            gate.style.left   = vv.offsetLeft + 'px';
-            gate.style.right  = 'auto';
-            gate.style.bottom = 'auto';
+        if (gate && gate.style.display !== 'none' && gate.style.display !== '') {
+            gate.style.transformOrigin = 'top left';
+            gate.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY})`;
         }
     }
 
-    // 页面尺寸真正变化（旋转屏幕）时更新基准尺寸
-    window.addEventListener('resize', function() {
+    // 屏幕旋转等真实尺寸变化时更新基准（键盘弹出时宽度不变，所以用宽度变化判断）
+    function updateBaseline() {
         const vv = window.visualViewport;
-        if (!vv || Math.abs(vv.width - fullW) > 50) {
+        // 如果没有键盘（vv.height 接近 window.innerHeight），更新基准
+        if (!vv || vv.height > window.innerHeight * 0.75) {
             fullW = window.innerWidth;
             fullH = window.innerHeight;
         }
-        fixBgSize();
-    });
+    }
 
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', fixBgSize);
+        window.visualViewport.addEventListener('resize', function() {
+            updateBaseline();
+            fixBgSize();
+        });
         window.visualViewport.addEventListener('scroll', fixBgSize);
     }
-    // 初始化一次
+    window.addEventListener('resize', function() {
+        updateBaseline();
+        fixBgSize();
+    });
+    // 初始化
     window.addEventListener('load', function() {
         fullW = window.innerWidth;
         fullH = window.innerHeight;
@@ -5722,6 +5729,7 @@ function applyDarkMode(dark, save = true) {
         gate.style.backgroundImage = dark
             ? "linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url('images/bg_night.jpg')"
             : "linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg')";
+        gate.style.backgroundPosition = 'center top';
     }
 }
 
