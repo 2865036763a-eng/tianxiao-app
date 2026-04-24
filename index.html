@@ -4126,13 +4126,19 @@ function initSliderTrack(box) {
     // 标记当前索引
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
-    // 单张图时隐藏左右切换按钮
+    // 单张图时隐藏左右切换按钮，图片铺满
     const btns = box.querySelectorAll('.slide-btn');
     btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
-    // 等 box 完成渲染再定位，避免 offsetWidth = 0 的问题
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => updateSliderTrack(box));
-    });
+    if (imgs.length === 1) {
+        // 单张图：铺满整个 slider-box，无偏移无 peek
+        imgs[0].style.cssText = 'flex:0 0 100%;width:100%;margin:0;border-radius:0;';
+        track.style.transform = 'translateX(0)';
+    } else {
+        // 多张图：等 box 渲染后精确定位
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => updateSliderTrack(box));
+        });
+    }
 }
 
 // 根据当前索引移动轨道（用 px 精确定位，避免 % 基于 track 宽度的误差）
@@ -4152,8 +4158,9 @@ function updateSliderTrack(box) {
 
     let translateX;
     if (imgs.length === 1) {
-        // 单张图居中：图片宽 84%，左边距 = 8% of boxW
-        translateX = boxW * 0.08;
+        // 单张图已在 initSliderTrack 处理，无需偏移
+        track.style.transform = 'translateX(0)';
+        return;
     } else {
         // 多张图 peek 布局：图片宽 84% + 左右各 1.5% margin = 87% 每格
         // 首张偏移 = 6.5% of boxW，之后每张 -87% of boxW
