@@ -1,3 +1,29 @@
+
+<style>
+.slider-box{
+    overflow:hidden !important;
+    position:relative !important;
+}
+.slider-track{
+    display:flex !important;
+    will-change: transform;
+}
+.slider-item{
+    min-width:100% !important;
+    width:100% !important;
+    flex:0 0 100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+}
+.slider-item img{
+    display:block !important;
+    margin:0 auto !important;
+    max-width:100% !important;
+    object-fit:contain !important;
+}
+</style>
+
 <!DOCTYPE html>
 <!-- 天笑の秘密基地 v4.0.0 - 紧凑卡片版 -->
 <!-- 新功能: 紧凑卡片布局 + 点击展开详情 + 提高信息密度 -->
@@ -688,6 +714,10 @@
 
         .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; overflow: hidden; flex-shrink: 0; display: block; }
         .slider-track {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    transform: translateX(0px);
     justify-content: flex-start;
     align-items: center; display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
         /* 图片宽度和位置完全由 JS 用 px 控制，CSS 只设基本样式 */
@@ -6496,19 +6526,30 @@ window.closeNoticePanel = function() {
 <div id="bg-layer"></div>
 </body></html>
 
-<script>
 
-window.addEventListener('load', () => {
-    setTimeout(() => {
+
+
+<script>
+window.addEventListener('load', function () {
+    function forceFixSlider() {
         try {
-            if (typeof currentIndex !== 'undefined') {
-                currentIndex = 0;
-            }
+            if (typeof currentIndex !== 'undefined') currentIndex = 0;
             if (typeof updateSlider === 'function') {
                 updateSlider();
+                setTimeout(updateSlider, 150);
+                setTimeout(updateSlider, 400);
             }
-        } catch (e) {}
-    }, 100);
-});
+        } catch(e) {}
+    }
 
+    forceFixSlider();
+
+    document.querySelectorAll('.slider-box img').forEach(function(img){
+        if (img.complete) {
+            forceFixSlider();
+        } else {
+            img.onload = forceFixSlider;
+        }
+    });
+});
 </script>
