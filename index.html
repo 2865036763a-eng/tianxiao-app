@@ -5622,18 +5622,14 @@ function showSearchImageEgg(src) {
             el.style.left   = '0';
         }
 
-        // gateKeeper：同样锁定尺寸和位置，防止键盘弹出时被压缩或偏移
-        // 键盘弹出时用 visualViewport.offsetTop 修正 top，让它保持在屏幕顶部
+        // gateKeeper：锁死宽高为真实屏幕尺寸，top/left 始终为 0
+        // 键盘弹出时不移动位置，内容通过 overflow-y:auto 自然滚动查看
         var gate = document.getElementById('gateKeeper');
         if (gate && gate.style.display !== 'none') {
-            gate.style.width    = REAL_SCREEN_W + 'px';
-            gate.style.height   = REAL_SCREEN_H + 'px';
-            gate.style.left     = '0';
-            gate.style.right    = 'auto';
-            gate.style.bottom   = 'auto';
-            // 键盘弹出时 vv.offsetTop 表示 viewport 相对页面顶部的偏移
-            // gateKeeper 需要向上移动相同距离才能保持在屏幕顶部
-            gate.style.top = vv ? vv.offsetTop + 'px' : '0';
+            gate.style.width  = REAL_SCREEN_W + 'px';
+            gate.style.height = REAL_SCREEN_H + 'px';
+            gate.style.top    = '0';
+            gate.style.left   = '0';
         }
     }
 
@@ -5720,25 +5716,25 @@ function initDarkMode() {
 function applyDarkMode(dark, save = true) {
     const html = document.documentElement;
     const btn = document.getElementById('darkModeBtn');
-    const bgLayer = document.getElementById('bg-layer');
+
+    // 先同步更新 data-theme 和按钮文字（不涉及 transition）
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
-        const bl = document.getElementById('bg-layer');
-        if (bl) bl.classList.add('night');
     } else {
         html.removeAttribute('data-theme');
         if (btn) btn.textContent = '🌙';
-        const bl = document.getElementById('bg-layer');
-        if (bl) bl.classList.remove('night');
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
-    // 同步免责声明页背景：用 class 切换，让 CSS transition 生效
+
+    // bg-layer 和 gateKeeper 用 rAF 切换 class，确保浏览器能识别状态变化并播放 transition
+    // 快速连续点击时，rAF 会合并到下一帧，不会互相干扰
+    const bl   = document.getElementById('bg-layer');
     const gate = document.getElementById('gateKeeper');
-    if (gate) {
-        if (dark) gate.classList.add('night');
-        else gate.classList.remove('night');
-    }
+    requestAnimationFrame(() => {
+        if (bl)   { dark ? bl.classList.add('night')   : bl.classList.remove('night');   }
+        if (gate) { dark ? gate.classList.add('night') : gate.classList.remove('night'); }
+    });
 }
 
 function toggleDarkMode() {
