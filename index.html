@@ -350,11 +350,15 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: background-image 0.6s ease, background-color 0.6s ease; }
+        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; flex-direction: column; overflow: hidden; transition: background-image 0.6s ease, background-color 0.6s ease; }
         /* 内层滚动容器：键盘弹出时只有这一层缩小，外层 fixed 背景不动 */
-        #gate-scroll { width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; display: flex; align-items: flex-start; justify-content: center; padding: 20px; box-sizing: border-box; }
+        #gate-scroll { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; display: flex; align-items: flex-start; justify-content: center; padding: 20px; box-sizing: border-box; }
         #gateKeeper.night { background-color: #0e0e10; background-image: linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('images/bg_night.jpg'); }
-        .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; text-align: center; }
+        .gate-box { display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; }
+        .gate-scroll-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 20px 12px; text-align: center; }
+        .gate-title { color: var(--primary); font-size: 22px; font-weight: bold; margin-bottom: 16px; }
+        .gate-bottom { padding: 12px 20px 24px; background: rgba(255,255,255,0.92); border-top: 1px solid rgba(0,0,0,0.08); }
+        [data-theme="dark"] .gate-bottom { background: rgba(18,18,27,0.92); border-top-color: rgba(255,255,255,0.1); }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
         .gate-btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
@@ -683,8 +687,9 @@
         }
 
         .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #e0e0e0; position: relative; display: none; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; touch-action: pan-y pinch-zoom; }
-        .slider-box img { width: 100%; height: 100%; display: none; object-fit: contain; background: #000; cursor: pointer; }
-        .slider-box img.active { display: block; }
+        .slider-box img { width: 100%; height: 100%; display: none; object-fit: contain; background: #000; cursor: pointer; opacity: 0; transition: opacity 0.3s ease; }
+        .slider-box img.active { display: block; opacity: 1; }
+        .slider-box img.fade-in { opacity: 1; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
         .admin-mode .edit-img-btn { display: block; }
@@ -1043,23 +1048,27 @@
 <body class="view-mode">
 
 <div id="gateKeeper" style="display: flex;">
-    <div id="gate-scroll">
     <div class="gate-box">
-        <h2 style="color:var(--primary)">天笑の秘密基地</h2>
-        <div class="disclaimer">
-            <strong>【免责声明 · 用户使用协议】</strong><br><br>
-            在阅读并接受本授权协议所有条款之前，请勿运行和使用本站内容。使用即表示您接受以下全部条款。<br><br>
-            1. 本站所有资源仅供爱好者测试及研究之用，版权归原发行公司所有。任何组织或个人不得传播或用于任何商业用途，否则一切后果由该组织及个人自行承担，本站不承担任何法律及连带责任。<br>
-            2. 对使用本站资源后产生的任何不良影响，本站不承担任何法律及连带责任。<br>
-            3. 请于下载后24小时内自觉删除。如果喜欢，请购买正版并授权合法使用。<br><br>
-            <strong>⚠️ 成人内容警告：</strong><br>
-            本站包含面向 <strong>18岁及以上</strong> 成年人的性取向内容。如果您未满18岁、成人内容令您反感，或您正从法律禁止成人内容的国家/地区访问，请<strong>立即离开</strong>！<br>
-            本站内容中的性行为均为虚构幻想，不代表现实，不提倡模仿。站内所有角色均已满18周岁。<br><br>
-            继续访问即代表您已理解并同意以上全部声明内容，若有任何不良影响概不负责。
+        <!-- 可滚动内容区 -->
+        <div class="gate-scroll-area">
+            <div class="gate-title">天笑の秘密基地</div>
+            <div class="disclaimer">
+                <strong>【免责声明 · 用户使用协议】</strong><br><br>
+                在阅读并接受本授权协议所有条款之前，请勿运行和使用本站内容。使用即表示您接受以下全部条款。<br><br>
+                1. 本站所有资源仅供爱好者测试及研究之用，版权归原发行公司所有。任何组织或个人不得传播或用于任何商业用途，否则一切后果由该组织及个人自行承担，本站不承担任何法律及连带责任。<br>
+                2. 对使用本站资源后产生的任何不良影响，本站不承担任何法律及连带责任。<br>
+                3. 请于下载后24小时内自觉删除。如果喜欢，请购买正版并授权合法使用。<br><br>
+                <strong>⚠️ 成人内容警告：</strong><br>
+                本站包含面向 <strong>18岁及以上</strong> 成年人的性取向内容。如果您未满18岁、成人内容令您反感，或您正从法律禁止成人内容的国家/地区访问，请<strong>立即离开</strong>！<br>
+                本站内容中的性行为均为虚构幻想，不代表现实，不提倡模仿。站内所有角色均已满18周岁。<br><br>
+                继续访问即代表您已理解并同意以上全部声明内容，若有任何不良影响概不负责。
+            </div>
         </div>
-        <input type="password" id="accessPass" class="gate-input" placeholder="输入天笑的解压暗号" onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),300)">
-        <button class="gate-btn" onclick="verifyAccess()">解锁基地</button>
-    </div>
+        <!-- 固定底部：输入框+按钮，键盘弹出时贴在键盘上方 -->
+        <div class="gate-bottom">
+            <input type="password" id="accessPass" class="gate-input" placeholder="输入天笑的解压暗号" style="margin-bottom:10px;">
+            <button class="gate-btn" onclick="verifyAccess()">解锁基地</button>
+        </div>
     </div>
 </div>
 
@@ -4089,10 +4098,21 @@ function changeSlide(btn, dir) {
     const imgs = box.querySelectorAll('img');
     const indexTag = box.querySelector('.img-index');
     let idx = Array.from(imgs).findIndex(img => img.classList.contains('active'));
+    // 淡出当前图
     imgs[idx].classList.remove('active');
     idx = (idx + dir + imgs.length) % imgs.length;
-    imgs[idx].classList.add('active');
+    const next = imgs[idx];
+    // 确保图片已加载再淡入
+    next.classList.add('active');
+    next.style.opacity = '0';
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => { next.style.opacity = '1'; });
+    });
     indexTag.innerText = `${idx + 1} / ${imgs.length}`;
+    // 预加载前后两张
+    const preload = (i) => { if (imgs[i] && !imgs[i].complete) imgs[i].src = imgs[i].src; };
+    preload((idx + 1) % imgs.length);
+    preload((idx - 1 + imgs.length) % imgs.length);
 }
 
 function editCurrentImg(btn) {
@@ -4342,6 +4362,8 @@ function toggleCardExpand(card) {
     } else {
         // 展开当前卡片
         card.classList.add('card-expanded');
+        // 预加载所有图片
+        preloadSliderImgs(card);
         // 滚动到卡片顶部
         setTimeout(() => {
             const cardTop = card.offsetTop;
@@ -5639,18 +5661,19 @@ function showSearchImageEgg(src) {
             gate.style.left   = '0';
         }
 
-        // gate-scroll：高度跟随 visualViewport.height，键盘弹出时缩小，自动滚到输入框
+        // gate-scroll：高度跟随 visualViewport.height，position:absolute 固定顶部不偏移
         var gateScroll = document.getElementById('gate-scroll');
         if (gateScroll) {
             var vpH = vv ? vv.height : REAL_SCREEN_H;
             gateScroll.style.height    = vpH + 'px';
             gateScroll.style.maxHeight = vpH + 'px';
-            // 键盘弹出时（视口高度小于真实屏幕高度），自动滚到输入框
+            gateScroll.style.top       = '0';
+            // 键盘弹出时自动滚到输入框
             if (vv && vv.height < REAL_SCREEN_H * 0.85) {
                 var inp = document.getElementById('accessPass');
                 if (inp) setTimeout(function() {
                     inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
+                }, 150);
             }
         }
     }
@@ -5671,6 +5694,14 @@ function showSearchImageEgg(src) {
         setTimeout(init, 300);
     });
 })();
+// 卡片展开时预加载 slider 内所有图片
+function preloadSliderImgs(card) {
+    card.querySelectorAll('.slider-box img').forEach(img => {
+        if (img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+        else if (!img.complete) { const s = img.src; img.src = ''; img.src = s; }
+    });
+}
+
 // 桌面端视差滚动由 handleScroll 里的 backgroundPosition 更新处理
 (function() {
     // 桌面端：页面加载后初始化视差位置
