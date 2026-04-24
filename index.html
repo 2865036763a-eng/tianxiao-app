@@ -691,6 +691,10 @@
         /* 横向滑轨：左右各露出 8% 作为 peek 预览 */
         .slider-track { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
         .slide-item { flex: 0 0 84%; width: 84%; height: 100%; margin: 0 1.5%; display: flex; align-items: center; justify-content: center; }
+        /* 单图时 track 居中 */
+        .slider-track:only-child { justify-content: center; }
+        .slider-box[data-single="1"] .slider-track { justify-content: center; transform: none !important; }
+        .slider-box[data-single="1"] .slide-item { flex: 0 0 100%; width: 100%; margin: 0; }
         .slider-box img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; cursor: pointer; display: block !important; opacity: 1 !important; border-radius: 6px; }
         .slider-box img.active { outline: none; }
         
@@ -4119,6 +4123,8 @@ function initSliderTrack(box) {
     // 标记当前索引
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
+    // 单图标记：直接 CSS 居中，不用 transform 偏移
+    if (imgs.length === 1) box.dataset.single = '1';
     updateSliderTrack(box);
 }
 
