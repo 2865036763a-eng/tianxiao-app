@@ -4135,15 +4135,14 @@ function updateSliderTrack(box) {
     const idx = parseInt(box.dataset.slideIdx || '0');
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
-    let offset;
     if (imgs.length === 1) {
-        // 单图：slide-item 宽 84%，居中需要偏移 (100-84)/2 = 8%
-        offset = 8;
+        // 单图：清除 transform，让 CSS justify-content:center 生效
+        track.style.transform = 'none';
     } else {
         // 多图：左右 peek 设计，每格 87%，首格从 6.5% 开始
-        offset = 6.5 - idx * 87;
+        const offset = 6.5 - idx * 87;
+        track.style.transform = `translateX(${offset}%)`;
     }
-    track.style.transform = `translateX(${offset}%)`;
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
 }
