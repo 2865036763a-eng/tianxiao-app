@@ -3802,12 +3802,15 @@ function handleScroll() {
         if (main.scrollTop > 300) azBall.classList.add("show");
         else azBall.classList.remove("show");
     }
-    // 桌面端：随滚动更新 body 背景图位置，让图片从上到下完整显示
+    // 桌面端：随滚动更新 bg-layer 背景图位置，让图片从上到下完整显示
     const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (isDesktop) {
-        const scrollable = main.scrollHeight - main.clientHeight;
-        const pct = scrollable > 0 ? (main.scrollTop / scrollable) * 100 : 0;
-        document.body.style.backgroundPosition = 'center ' + pct + '%';
+        const bgLayer = document.getElementById('bg-layer');
+        if (bgLayer) {
+            const scrollable = main.scrollHeight - main.clientHeight;
+            const pct = scrollable > 0 ? (main.scrollTop / scrollable) * 100 : 0;
+            bgLayer.style.backgroundPosition = 'center ' + pct + '%';
+        }
     }
 }
 
@@ -5607,32 +5610,33 @@ function showSearchImageEgg(src) {
 
     function applyFix() {
         if (!REAL_SCREEN_H) return;
-
         var vv = window.visualViewport;
+        var offsetTop  = vv ? vv.offsetTop  : 0;
+        var offsetLeft = vv ? vv.offsetLeft : 0;
 
-        // 锁定 body 尺寸为真实屏幕大小，键盘弹出不影响布局
+        // 锁定 body 尺寸
         document.body.style.height    = REAL_SCREEN_H + 'px';
         document.body.style.minHeight = REAL_SCREEN_H + 'px';
         document.body.style.maxHeight = REAL_SCREEN_H + 'px';
         document.body.style.width     = REAL_SCREEN_W + 'px';
 
-        // 背景层：固定尺寸，不加任何 transform
+        // 背景层：锁死尺寸，用 offsetTop/Left 补偿位置
         var el = document.getElementById('bg-layer');
         if (el) {
-            el.style.transform = 'none';
             el.style.width  = REAL_SCREEN_W + 'px';
             el.style.height = REAL_SCREEN_H + 'px';
-            el.style.top    = '0';
-            el.style.left   = '0';
+            el.style.top    = offsetTop  + 'px';
+            el.style.left   = offsetLeft + 'px';
+            el.style.transform = 'none';
         }
 
-        // gateKeeper：同样用真实像素锁死，键盘弹出时不缩小不偏移
+        // gateKeeper：同样补偿 offsetTop，背景图跟着走，视觉上完全不动
         var gate = document.getElementById('gateKeeper');
         if (gate) {
             gate.style.width  = REAL_SCREEN_W + 'px';
             gate.style.height = REAL_SCREEN_H + 'px';
-            gate.style.top    = '0';
-            gate.style.left   = '0';
+            gate.style.top    = offsetTop  + 'px';
+            gate.style.left   = offsetLeft + 'px';
         }
     }
 
