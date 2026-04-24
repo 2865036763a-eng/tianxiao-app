@@ -686,10 +686,12 @@
             display: flex !important;
         }
 
-        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
+        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; transition: aspect-ratio 0.3s; }
+
         /* 横向滑轨：左右各露出 8% 作为 peek 预览 */
         .slider-track { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
-        .slider-box img { flex: 0 0 84%; width: 84%; height: 100%; object-fit: contain; object-position: center; background: #111; cursor: pointer; display: block !important; opacity: 1 !important; margin: auto 1.5%; border-radius: 6px; }
+        .slide-item { flex: 0 0 84%; width: 84%; height: 100%; margin: 0 1.5%; display: flex; align-items: center; justify-content: center; }
+        .slider-box img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; cursor: pointer; display: block !important; opacity: 1 !important; border-radius: 6px; }
         .slider-box img.active { outline: none; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
@@ -4105,7 +4107,13 @@ function initSliderTrack(box) {
     if (imgs.length === 0) return;
     const track = document.createElement('div');
     track.className = 'slider-track';
-    imgs.forEach(img => { img.classList.remove('active'); track.appendChild(img); });
+    imgs.forEach(img => {
+        img.classList.remove('active');
+        const item = document.createElement('div');
+        item.className = 'slide-item';
+        item.appendChild(img);
+        track.appendChild(item);
+    });
     // 把 track 插到 box 最前面（保留按钮等其他元素）
     box.insertBefore(track, box.firstChild);
     // 标记当前索引
@@ -4121,8 +4129,6 @@ function updateSliderTrack(box) {
     const idx = parseInt(box.dataset.slideIdx || '0');
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
-    // 每张图 84% + 左右各 1.5% margin = 87% 每格
-    // 第一张居中偏移 = (100% - 84%) / 2 - 1.5% = 6.5%
     const offset = 6.5 - idx * 87;
     track.style.transform = `translateX(${offset}%)`;
     const indexTag = box.querySelector('.img-index');
