@@ -14,7 +14,7 @@
     flex:0 0 100% !important;
     display:flex !important;
     justify-content:center !important;
-    align-items:center !important;
+    
 }
 .slider-item img{
     display:block !important;
@@ -715,10 +715,10 @@
         .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; overflow: hidden; flex-shrink: 0; display: block; }
         .slider-track {
     display: flex;
-    justify-content: flex-start;
+    
     align-items: center;
-    transform: translateX(0px);
-    justify-content: flex-start;
+    
+    
     align-items: center; display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
         /* 图片宽度和位置完全由 JS 用 px 控制，CSS 只设基本样式 */
         .slider-box img { width: 100%; height: 100%; object-fit: contain; display: block; flex-shrink: 0; background: #111; }
@@ -2625,7 +2625,7 @@ function showUpdateNotification(oldVer, newVer) {
     `;
     notification.innerHTML = `
         🎉 应用已更新！
-        <span style="opacity: 0.8; font-size: 12px; /* removed margin-left: */ 8px;">
+        <span style="opacity: 0.8; font-size: 12px; margin-left: 8px;">
         ${oldVer} → ${newVer}
         </span>
     `;
@@ -4160,6 +4160,13 @@ function initSliderTrack(box) {
     const w = box.getBoundingClientRect().width;
     if (w > 10) {
         applyLayout(w);
+
+        setTimeout(() => {
+            try {
+                box.dataset.slideIdx = '0';
+                updateSliderTrack(box);
+            } catch (e) {}
+        }, 120);
     } else {
         // box 还没渲染出来，用 ResizeObserver 等待
         const ro = new ResizeObserver((entries) => {
@@ -6410,7 +6417,7 @@ function copyText(text) {
         <div class="sidebar-item" id="sidebarComment" onclick="sidebarGoComment()">
             <span class="sidebar-item-icon">💬</span>
             <span>评论区</span>
-            <span id="sidebarCommentEdit" onclick="event.stopPropagation(); editCommentUrl();" style="display:none; /* removed margin-left: */auto; font-size:12px; color:#aaa; padding:2px 6px; border-radius:4px; background:#f0f0f0;">⚙️</span>
+            <span id="sidebarCommentEdit" onclick="event.stopPropagation(); editCommentUrl();" style="display:none; margin-left:auto; font-size:12px; color:#aaa; padding:2px 6px; border-radius:4px; background:#f0f0f0;">⚙️</span>
         </div>
         <div class="sidebar-item" id="sidebarFavorite" onclick="sidebarGoFavorite()">
             <span class="sidebar-item-icon">💖</span>
@@ -6551,5 +6558,21 @@ window.addEventListener('load', function () {
             img.onload = forceFixSlider;
         }
     });
+});
+</script>
+
+
+<script>
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        document.querySelectorAll('.slider-box').forEach(box => {
+            try {
+                box.dataset.slideIdx = '0';
+                if (typeof updateSliderTrack === 'function') {
+                    updateSliderTrack(box);
+                }
+            } catch (e) {}
+        });
+    }, 150);
 });
 </script>
