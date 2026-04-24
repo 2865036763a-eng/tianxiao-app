@@ -5625,8 +5625,10 @@ function showSearchImageEgg(src) {
     var REAL_SCREEN_W = 0;
 
     function init() {
-        REAL_SCREEN_H = window.innerHeight;
-        REAL_SCREEN_W = window.innerWidth;
+        // 优先用 screen.height（物理屏幕，不受任何压缩影响）
+        // 次选 window.outerHeight，最后才用 innerHeight
+        REAL_SCREEN_H = screen.height || window.outerHeight || window.innerHeight;
+        REAL_SCREEN_W = screen.width  || window.outerWidth  || window.innerWidth;
         applyFix();
     }
 
@@ -5636,27 +5638,31 @@ function showSearchImageEgg(src) {
         var offsetTop  = vv ? vv.offsetTop  : 0;
         var offsetLeft = vv ? vv.offsetLeft : 0;
 
-        // 锁定 body 尺寸
-        document.body.style.height    = REAL_SCREEN_H + 'px';
-        document.body.style.minHeight = REAL_SCREEN_H + 'px';
-        document.body.style.maxHeight = REAL_SCREEN_H + 'px';
-        document.body.style.width     = REAL_SCREEN_W + 'px';
+        // 用物理屏幕尺寸锁定，不受键盘/系统UI影响
+        var screenH = screen.height || REAL_SCREEN_H;
+        var screenW = screen.width  || REAL_SCREEN_W;
 
-        // 背景层：top/left 永远 0，只锁尺寸
+        // 锁定 body 尺寸
+        document.body.style.height    = screenH + 'px';
+        document.body.style.minHeight = screenH + 'px';
+        document.body.style.maxHeight = screenH + 'px';
+        document.body.style.width     = screenW + 'px';
+
+        // 背景层
         var el = document.getElementById('bg-layer');
         if (el) {
-            el.style.width     = REAL_SCREEN_W + 'px';
-            el.style.height    = REAL_SCREEN_H + 'px';
+            el.style.width     = screenW + 'px';
+            el.style.height    = screenH + 'px';
             el.style.top       = '0';
             el.style.left      = '0';
             el.style.transform = 'none';
         }
 
-        // gateKeeper：top/left 永远 0，只锁尺寸
+        // gateKeeper
         var gate = document.getElementById('gateKeeper');
         if (gate) {
-            gate.style.width  = REAL_SCREEN_W + 'px';
-            gate.style.height = REAL_SCREEN_H + 'px';
+            gate.style.width  = screenW + 'px';
+            gate.style.height = screenH + 'px';
             gate.style.top    = '0';
             gate.style.left   = '0';
         }
@@ -5664,9 +5670,10 @@ function showSearchImageEgg(src) {
         // gate-bottom: 键盘弹出时上移，始终贴在键盘上方
         var gateBottom = document.querySelector('.gate-bottom');
         var gateScrollArea = document.querySelector('.gate-scroll-area');
-        if (gateBottom && REAL_SCREEN_H > 0) {
-            var vpH = vv ? vv.height : REAL_SCREEN_H;
-            var kbH = REAL_SCREEN_H - vpH; // 键盘高度
+        if (gateBottom) {
+            var screenH2 = screen.height || REAL_SCREEN_H;
+            var vpH = vv ? vv.height : screenH2;
+            var kbH = screenH2 - vpH; // 键盘高度
             if (kbH > 50) {
                 // 键盘弹出：把 gate-bottom 提到键盘上方
                 gateBottom.style.bottom = kbH + 'px';
