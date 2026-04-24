@@ -4535,7 +4535,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-//   修复：确保所有卡片都包含简介区域
+// � 修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4599,7 +4599,7 @@ function resetAllCardStates() {
     });
 }
 
-//  🐛 修复：处理标签粘贴，清理格式
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
