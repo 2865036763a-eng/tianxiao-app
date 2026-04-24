@@ -4100,7 +4100,7 @@ function addCard() {
 
 // 初始化单个 slider-box 的轨道结构
 function initSliderTrack(box) {
-    if (box.querySelector('.slider-track')) return; // 已初始化
+    if (box.querySelector('.slider-track')) return;
     const imgs = Array.from(box.querySelectorAll('img'));
     if (imgs.length === 0) return;
     const track = document.createElement('div');
@@ -4112,7 +4112,7 @@ function initSliderTrack(box) {
             img.addEventListener('error', function() {
                 this.style.visibility = 'hidden';
                 const wrap = document.createElement('div');
-                wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;border-radius:6px;flex-shrink:0;';
+                wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;border-radius:6px;flex-shrink:0;height:100%;';
                 wrap.textContent = '🖼️';
                 this.parentElement && this.parentElement.insertBefore(wrap, this);
             });
@@ -4124,26 +4124,42 @@ function initSliderTrack(box) {
     imgs[0].classList.add('active');
     const btns = box.querySelectorAll('.slide-btn');
     btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
-    // 等两帧后 box 有真实宽度再设置图片尺寸
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-        const boxW = box.getBoundingClientRect().width;
+
+    // 用 ResizeObserver 等 box 真正有宽度后再布局
+    function applyLayout(boxW) {
+        if (!boxW || boxW < 10) return;
         if (imgs.length === 1) {
-            // 单张图：铺满
             imgs[0].style.width = boxW + 'px';
+            imgs[0].style.minWidth = boxW + 'px';
             imgs[0].style.margin = '0';
             imgs[0].style.borderRadius = '0';
             track.style.transform = 'translateX(0px)';
         } else {
-            // 多张图：84% 宽 + 左右各 8px 间距
-            const imgW = Math.round(boxW * 0.84);
-            const gap = Math.round(boxW * 0.03);
+            const gap = 6; // 固定 6px 间距，清晰简单
+            const imgW = Math.round(boxW * 0.82);
             imgs.forEach(img => {
                 img.style.width = imgW + 'px';
+                img.style.minWidth = imgW + 'px';
                 img.style.margin = '0 ' + gap + 'px';
             });
             updateSliderTrack(box);
         }
-    }));
+    }
+
+    const w = box.getBoundingClientRect().width;
+    if (w > 10) {
+        applyLayout(w);
+    } else {
+        // box 还没渲染出来，用 ResizeObserver 等待
+        const ro = new ResizeObserver((entries) => {
+            const bw = entries[0].contentRect.width;
+            if (bw > 10) {
+                ro.disconnect();
+                applyLayout(bw);
+            }
+        });
+        ro.observe(box);
+    }
 }
 
 // 根据当前索引移动轨道（纯 px 计算）
@@ -4161,16 +4177,15 @@ function updateSliderTrack(box) {
 
     // 读取第一张图的实际宽度和 margin
     const firstImg = imgs[0];
-    const style = window.getComputedStyle(firstImg);
-    const imgW = firstImg.offsetWidth || 0;
-    const marginL = parseFloat(style.marginLeft) || 0;
-    const marginR = parseFloat(style.marginRight) || 0;
-    const step = imgW + marginL + marginR; // 每步移动距离（px）
+    const imgW = firstImg.offsetWidth || firstImg.getBoundingClientRect().width || 0;
+    const marginL = parseFloat(window.getComputedStyle(firstImg).marginLeft) || 0;
+    const marginR = parseFloat(window.getComputedStyle(firstImg).marginRight) || 0;
+    const step = imgW + marginL + marginR;
 
-    if (step === 0) return; // 还没渲染好
+    if (step < 10) return;
 
-    // 首张居中偏移：让第一张图水平居中在 box 里
     const boxW = box.getBoundingClientRect().width;
+    // 第一张居中：left = (boxW - imgW) / 2
     const firstOffset = (boxW - imgW) / 2 - marginL;
     const translateX = firstOffset - idx * step;
     track.style.transform = `translateX(${translateX}px)`;
