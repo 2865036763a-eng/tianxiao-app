@@ -350,7 +350,7 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -5603,13 +5603,15 @@ function showSearchImageEgg(src) {
     function applyFix() {
         if (!REAL_SCREEN_H) return;
 
+        var vv = window.visualViewport;
+
         // 锁定 body 尺寸为真实屏幕大小，键盘弹出不影响布局
         document.body.style.height    = REAL_SCREEN_H + 'px';
         document.body.style.minHeight = REAL_SCREEN_H + 'px';
         document.body.style.maxHeight = REAL_SCREEN_H + 'px';
         document.body.style.width     = REAL_SCREEN_W + 'px';
 
-        // 背景层：固定尺寸，不加任何 transform（transform 会导致偏移）
+        // 背景层：固定尺寸，不加任何 transform
         var el = document.getElementById('bg-layer');
         if (el) {
             el.style.transform = 'none';
@@ -5619,8 +5621,18 @@ function showSearchImageEgg(src) {
             el.style.left   = '0';
         }
 
-        // gateKeeper：不强制锁定高度，让 overflow-y:auto 自然处理
-        // 键盘弹出时内容可滚动查看，不做强制干预
+        // gateKeeper：同样锁定尺寸和位置，防止键盘弹出时被压缩或偏移
+        // 键盘弹出时用 visualViewport.offsetTop 修正 top，让它保持在屏幕顶部
+        var gate = document.getElementById('gateKeeper');
+        if (gate && gate.style.display !== 'none') {
+            gate.style.width    = REAL_SCREEN_W + 'px';
+            gate.style.height   = REAL_SCREEN_H + 'px';
+            gate.style.left     = '0';
+            gate.style.right    = 'auto';
+            gate.style.bottom   = 'auto';
+            // 键盘弹出时 vv.offsetTop 会有偏移量，用负值抵消
+            gate.style.top = vv ? (-vv.offsetTop) + 'px' : '0';
+        }
     }
 
     // visualViewport resize 时只修正布局，不移动背景
