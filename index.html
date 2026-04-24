@@ -4126,13 +4126,16 @@ function initSliderTrack(box) {
     // 标记当前索引
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
-    updateSliderTrack(box);
     // 单张图时隐藏左右切换按钮
     const btns = box.querySelectorAll('.slide-btn');
     btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
+    // 等 box 完成渲染再定位，避免 offsetWidth = 0 的问题
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => updateSliderTrack(box));
+    });
 }
 
-// 根据当前索引移动轨道
+// 根据当前索引移动轨道（用 px 精确定位，避免 % 基于 track 宽度的误差）
 function updateSliderTrack(box) {
     const track = box.querySelector('.slider-track');
     if (!track) return;
@@ -4140,15 +4143,24 @@ function updateSliderTrack(box) {
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
 
-    let offset;
-    if (imgs.length === 1) {
-        // 单张图：完全居中，无 peek
-        offset = 8; // (100% - 84%) / 2 = 8%
-    } else {
-        // 多张图：left peek 效果，每格 87%，首张偏移 6.5%
-        offset = 6.5 - idx * 87;
+    const boxW = box.offsetWidth || box.getBoundingClientRect().width || 0;
+    if (boxW === 0) {
+        // box 尚未渲染，延迟重试
+        requestAnimationFrame(() => updateSliderTrack(box));
+        return;
     }
-    track.style.transform = `translateX(${offset}%)`;
+
+    let translateX;
+    if (imgs.length === 1) {
+        // 单张图居中：图片宽 84%，左边距 = 8% of boxW
+        translateX = boxW * 0.08;
+    } else {
+        // 多张图 peek 布局：图片宽 84% + 左右各 1.5% margin = 87% 每格
+        // 首张偏移 = 6.5% of boxW，之后每张 -87% of boxW
+        translateX = boxW * (0.065 - idx * 0.87);
+    }
+    track.style.transform = `translateX(${translateX}px)`;
+
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
 }
