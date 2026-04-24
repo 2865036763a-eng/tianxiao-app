@@ -686,10 +686,11 @@
             display: flex !important;
         }
 
-        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #e0e0e0; position: relative; display: none; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; touch-action: pan-y pinch-zoom; }
-        .slider-box img { width: 100%; height: 100%; display: none; object-fit: contain; background: #000; cursor: pointer; opacity: 0; transition: opacity 0.3s ease; }
-        .slider-box img.active { display: block; opacity: 1; }
-        .slider-box img.fade-in { opacity: 1; }
+        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #000; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
+        /* 横向滑轨：图片水平排列，容器比 slider-box 更宽，左右各露出 peek */
+        .slider-track { display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
+        .slider-box img { flex: 0 0 86%; width: 86%; height: 100%; object-fit: contain; background: #000; cursor: pointer; display: block !important; opacity: 1 !important; margin: 0 2%; border-radius: 4px; }
+        .slider-box img.active { outline: none; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
         .admin-mode .edit-img-btn { display: block; }
@@ -3499,6 +3500,8 @@ function openFavoritePanel() {
             setTimeout(() => {
                 if (card.classList.contains('active-render')) {
                     card.classList.add('card-expanded');
+                    const _sb = card.querySelector('.slider-box');
+                    if (_sb) initSliderTrack(_sb);
                     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     card.style.boxShadow = '0 0 0 3px var(--primary)';
                     setTimeout(() => { card.style.boxShadow = ''; }, 1500);
@@ -3941,6 +3944,8 @@ function enterAdmin() {
     // 🎯 v4.0 管理员模式下展开所有卡片
     document.querySelectorAll(".card").forEach(card => {
         card.classList.add("card-expanded");
+        const sb = card.querySelector('.slider-box');
+        if (sb) initSliderTrack(sb);
         
         if (!card.querySelector(".pin-btn")) {
             const pin = document.createElement("div");
@@ -4093,26 +4098,47 @@ function addCard() {
     }, 150);
 }
 
+// 初始化单个 slider-box 的轨道结构
+function initSliderTrack(box) {
+    if (box.querySelector('.slider-track')) return; // 已初始化
+    const imgs = Array.from(box.querySelectorAll('img'));
+    if (imgs.length === 0) return;
+    const track = document.createElement('div');
+    track.className = 'slider-track';
+    imgs.forEach(img => { img.classList.remove('active'); track.appendChild(img); });
+    // 把 track 插到 box 最前面（保留按钮等其他元素）
+    box.insertBefore(track, box.firstChild);
+    // 标记当前索引
+    box.dataset.slideIdx = '0';
+    imgs[0].classList.add('active');
+    updateSliderTrack(box);
+}
+
+// 根据当前索引移动轨道
+function updateSliderTrack(box) {
+    const track = box.querySelector('.slider-track');
+    if (!track) return;
+    const idx = parseInt(box.dataset.slideIdx || '0');
+    const imgs = track.querySelectorAll('img');
+    imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
+    // 每张图宽 86% + 左右各 2% margin = 90% per slide
+    // 起始偏移让第一张居中：left offset = (100% - 86%) / 2 - 2% = 5%
+    const offset = 5 - idx * 90;
+    track.style.transform = `translateX(${offset}%)`;
+    const indexTag = box.querySelector('.img-index');
+    if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
+}
+
 function changeSlide(btn, dir) {
     const box = btn.parentElement;
-    const imgs = box.querySelectorAll('img');
-    const indexTag = box.querySelector('.img-index');
-    let idx = Array.from(imgs).findIndex(img => img.classList.contains('active'));
-    // 淡出当前图
-    imgs[idx].classList.remove('active');
+    // 懒初始化轨道
+    if (!box.querySelector('.slider-track')) initSliderTrack(box);
+    const track = box.querySelector('.slider-track');
+    const imgs = track ? track.querySelectorAll('img') : box.querySelectorAll('img');
+    let idx = parseInt(box.dataset.slideIdx || '0');
     idx = (idx + dir + imgs.length) % imgs.length;
-    const next = imgs[idx];
-    // 确保图片已加载再淡入
-    next.classList.add('active');
-    next.style.opacity = '0';
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => { next.style.opacity = '1'; });
-    });
-    indexTag.innerText = `${idx + 1} / ${imgs.length}`;
-    // 预加载前后两张
-    const preload = (i) => { if (imgs[i] && !imgs[i].complete) imgs[i].src = imgs[i].src; };
-    preload((idx + 1) % imgs.length);
-    preload((idx - 1 + imgs.length) % imgs.length);
+    box.dataset.slideIdx = idx;
+    updateSliderTrack(box);
 }
 
 function editCurrentImg(btn) {
@@ -4127,16 +4153,18 @@ function editCurrentImg(btn) {
 // 管理员：在当前图后插入一张新图
 function addImgSlot(btn) {
     const box = btn.parentElement;
-    const activeImg = box.querySelector('img.active');
+    const track = box.querySelector('.slider-track') || box;
+    const activeImg = track.querySelector('img.active');
     const newImg = document.createElement('img');
     newImg.loading = 'lazy';
     newImg.src = 'https://via.placeholder.com';
-    // 插入到 active 图片后面
     activeImg.after(newImg);
-    // 切换到新图
     activeImg.classList.remove('active');
     newImg.classList.add('active');
-    // 更新计数
+    // 更新索引到新图
+    const imgs = track.querySelectorAll('img');
+    box.dataset.slideIdx = Array.from(imgs).indexOf(newImg);
+    updateSliderTrack(box);
     updateImgIndex(box);
     // 为新图初始化预览
     initImagePreview();
@@ -4362,7 +4390,9 @@ function toggleCardExpand(card) {
     } else {
         // 展开当前卡片
         card.classList.add('card-expanded');
-        // 预加载所有图片
+        // 初始化横向滑轨 + 预加载所有图片
+        const sliderBox = card.querySelector('.slider-box');
+        if (sliderBox) initSliderTrack(sliderBox);
         preloadSliderImgs(card);
         // 滚动到卡片顶部
         setTimeout(() => {
