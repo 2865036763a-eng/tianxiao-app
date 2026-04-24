@@ -188,6 +188,7 @@
             background: url('images/bg.jpg') center top / cover no-repeat;
             pointer-events: none;
             will-change: transform;
+            transition: background-image 0.6s ease;
         }
         
         /* 标题栏图标按钮 */
@@ -5585,19 +5586,26 @@ function showSearchImageEgg(src) {
 (function() {
     function updateBgLayer() {
         const vv = window.visualViewport;
-        const screenH = window.innerHeight;
+        const screenH = window.innerHeight; // 物理屏幕高度，不受键盘影响
+
+        // 锁定 body 高度，防止键盘弹出时内容被压缩上移
+        document.body.style.height = screenH + 'px';
+        document.body.style.minHeight = screenH + 'px';
+        document.body.style.maxHeight = screenH + 'px';
 
         // 修正背景层
         const el = document.getElementById('bg-layer');
-        if (el && vv) {
+        if (el) {
             el.style.width  = window.innerWidth  + 'px';
             el.style.height = screenH + 'px';
             el.style.top    = '0px';
             el.style.left   = '0px';
-            el.style.transform = 'translateY(' + (vv.pageTop - (window.scrollY || 0)) + 'px)';
+            if (vv) {
+                el.style.transform = 'translateY(' + (vv.pageTop - (window.scrollY || 0)) + 'px)';
+            }
         }
 
-        // 同步修正免责声明页高度，防止键盘弹出时页面被压缩上移
+        // 修正免责声明页高度
         const gate = document.getElementById('gateKeeper');
         if (gate && gate.style.display !== 'none') {
             gate.style.height = screenH + 'px';
