@@ -172,20 +172,23 @@
         #darkModeBtn { transition: transform 0.4s; }
         [data-theme="dark"] #darkModeBtn { transform: rotate(180deg); }
         html, body { height: 100%; margin: 0; padding: 0; overscroll-behavior: none; overscroll-behavior-y: none; }
-        /* 背景挂在 html 上：html 元素不受键盘弹出压缩，始终保持全屏，解决安卓输入法背景上移问题 */
-        html {
-            background: #fff url('images/bg.jpg') center top / cover no-repeat fixed;
-        }
-        html[data-theme="dark"] {
-            background-image: url('images/bg_night.jpg');
-        }
+        html { background: #fff; }
         body { 
             background: transparent;
             color: var(--text); font-family: -apple-system, system-ui, sans-serif; 
             display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: none;
         }
-        /* #bg-layer 仅作为占位，不显示 */
-        #bg-layer { display: none; }
+        /* 背景层：固定定位的真实div，由JS配合visualViewport实时修正尺寸，彻底解决键盘上移问题 */
+        #bg-layer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: url('images/bg.jpg') center top / cover no-repeat;
+            pointer-events: none;
+            will-change: transform;
+        }
         
         /* 标题栏图标按钮 */
         .header-icon-btn {
@@ -5578,7 +5581,29 @@ function showSearchImageEgg(src) {
 }
 
 
-// 🎨 背景层由 html::before 伪元素实现，天然不受安卓键盘弹出 viewport 变化影响
+// 🎨 背景层：#bg-layer 配合 visualViewport API，键盘弹出时实时修正，防止背景上移
+(function() {
+    function updateBgLayer() {
+        const el = document.getElementById('bg-layer');
+        if (!el) return;
+        const vv = window.visualViewport;
+        if (vv) {
+            el.style.width  = window.innerWidth  + 'px';
+            el.style.height = window.innerHeight + 'px';
+            el.style.top    = '0px';
+            el.style.left   = '0px';
+            // transform 抵消键盘弹出时的 viewport 偏移
+            el.style.transform = 'translateY(' + (vv.pageTop - (window.scrollY || 0)) + 'px)';
+        }
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateBgLayer, { passive: true });
+        window.visualViewport.addEventListener('scroll', updateBgLayer, { passive: true });
+    }
+    window.addEventListener('resize', updateBgLayer, { passive: true });
+    document.addEventListener('DOMContentLoaded', updateBgLayer);
+})();
 // 桌面端视差滚动由 handleScroll 里的 backgroundPosition 更新处理
 (function() {
     // 桌面端：页面加载后初始化视差位置
@@ -5650,11 +5675,11 @@ function applyDarkMode(dark, save = true) {
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
-        document.documentElement.style.backgroundImage = "url('images/bg_night.jpg')";
+        const bl = document.getElementById('bg-layer'); if(bl) bl.style.backgroundImage = "url('images/bg_night.jpg')";
     } else {
         html.removeAttribute('data-theme');
         if (btn) btn.textContent = '🌙';
-        document.documentElement.style.backgroundImage = "url('images/bg.jpg')";
+        const bl2 = document.getElementById('bg-layer'); if(bl2) bl2.style.backgroundImage = "url('images/bg.jpg')";
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
     // 同步更新免责声明页背景
