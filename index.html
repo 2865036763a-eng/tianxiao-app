@@ -350,7 +350,9 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; transition: background-image 0.6s ease, background-color 0.6s ease; }
+        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: background-image 0.6s ease, background-color 0.6s ease; }
+        /* 内层滚动容器：键盘弹出时只有这一层缩小，外层 fixed 背景不动 */
+        #gate-scroll { width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; display: flex; align-items: flex-start; justify-content: center; padding: 20px; box-sizing: border-box; }
         #gateKeeper.night { background-color: #0e0e10; background-image: linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url('images/bg_night.jpg'); }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
@@ -1041,6 +1043,7 @@
 <body class="view-mode">
 
 <div id="gateKeeper" style="display: flex;">
+    <div id="gate-scroll">
     <div class="gate-box">
         <h2 style="color:var(--primary)">天笑の秘密基地</h2>
         <div class="disclaimer">
@@ -1056,6 +1059,7 @@
         </div>
         <input type="password" id="accessPass" class="gate-input" placeholder="输入天笑的解压暗号">
         <button class="gate-btn" onclick="verifyAccess()">解锁基地</button>
+    </div>
     </div>
 </div>
 
@@ -5622,8 +5626,7 @@ function showSearchImageEgg(src) {
             el.style.left   = '0';
         }
 
-        // gateKeeper 不做任何 JS 干预
-        // 依赖 viewport meta 的 interactive-widget=resizes-content 保持位置不动
+        // gateKeeper 外层 overflow:hidden，天然不受键盘影响
     }
 
     // visualViewport resize 时只修正布局，不移动背景
