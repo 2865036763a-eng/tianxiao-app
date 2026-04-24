@@ -6495,3 +6495,20 @@ window.closeNoticePanel = function() {
 
 <div id="bg-layer"></div>
 </body></html>
+
+<script>
+
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        try {
+            if (typeof currentIndex !== 'undefined') {
+                currentIndex = 0;
+            }
+            if (typeof updateSlider === 'function') {
+                updateSlider();
+            }
+        } catch (e) {}
+    }, 100);
+});
+
+</script>
