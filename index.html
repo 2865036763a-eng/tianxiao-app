@@ -343,7 +343,7 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; inset: 0; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -5584,16 +5584,23 @@ function showSearchImageEgg(src) {
 // 🎨 背景层：#bg-layer 配合 visualViewport API，键盘弹出时实时修正，防止背景上移
 (function() {
     function updateBgLayer() {
-        const el = document.getElementById('bg-layer');
-        if (!el) return;
         const vv = window.visualViewport;
-        if (vv) {
+        const screenH = window.innerHeight;
+
+        // 修正背景层
+        const el = document.getElementById('bg-layer');
+        if (el && vv) {
             el.style.width  = window.innerWidth  + 'px';
-            el.style.height = window.innerHeight + 'px';
+            el.style.height = screenH + 'px';
             el.style.top    = '0px';
             el.style.left   = '0px';
-            // transform 抵消键盘弹出时的 viewport 偏移
             el.style.transform = 'translateY(' + (vv.pageTop - (window.scrollY || 0)) + 'px)';
+        }
+
+        // 同步修正免责声明页高度，防止键盘弹出时页面被压缩上移
+        const gate = document.getElementById('gateKeeper');
+        if (gate && gate.style.display !== 'none') {
+            gate.style.height = screenH + 'px';
         }
     }
 
