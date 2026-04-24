@@ -188,6 +188,12 @@
             background: url('images/bg.jpg') center top / cover no-repeat;
             pointer-events: none;
             will-change: transform;
+        }
+        /* 日夜切换用伪类+CSS变量实现过渡，避免 inline style 覆盖 transition */
+        #bg-layer.night {
+            background-image: url('images/bg_night.jpg');
+        }
+        #bg-layer, #bg-layer.night {
             transition: background-image 0.6s ease;
         }
         
@@ -344,7 +350,7 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center center; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -5613,11 +5619,8 @@ function showSearchImageEgg(src) {
             el.style.left   = '0';
         }
 
-        // 锁定免责声明页高度
-        var gate = document.getElementById('gateKeeper');
-        if (gate && gate.style.display !== 'none') {
-            gate.style.height = REAL_SCREEN_H + 'px';
-        }
+        // gateKeeper：不强制锁定高度，让 overflow-y:auto 自然处理
+        // 键盘弹出时内容可滚动查看，不做强制干预
     }
 
     // visualViewport resize 时只修正布局，不移动背景
@@ -5707,22 +5710,16 @@ function applyDarkMode(dark, save = true) {
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
-        const bl = document.getElementById('bg-layer'); if(bl) bl.style.backgroundImage = "url('images/bg_night.jpg')";
+        const bl = document.getElementById('bg-layer');
+        if (bl) bl.classList.add('night');
     } else {
         html.removeAttribute('data-theme');
         if (btn) btn.textContent = '🌙';
-        const bl2 = document.getElementById('bg-layer'); if(bl2) bl2.style.backgroundImage = "url('images/bg.jpg')";
+        const bl = document.getElementById('bg-layer');
+        if (bl) bl.classList.remove('night');
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
-    // 同步更新免责声明页背景
-    const gate = document.getElementById('gateKeeper');
-    if (gate) {
-        gate.style.backgroundColor = dark ? '#0e0e10' : '#fff';
-        gate.style.backgroundImage = dark
-            ? "linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6)),url('images/bg_night.jpg')"
-            : "linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg')";
-        gate.style.backgroundPosition = 'center top';
-    }
+    // gateKeeper 透明，背景由 #bg-layer 统一管理，无需单独更新
 }
 
 function toggleDarkMode() {
