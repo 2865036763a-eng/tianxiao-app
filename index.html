@@ -686,17 +686,10 @@
             display: flex !important;
         }
 
-        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; transition: aspect-ratio 0.3s; }
-
-        /* 横向滑轨：左右各露出 8% 作为 peek 预览 */
-        .slider-track { display: flex; align-items: center; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
-        .slide-item { flex: 0 0 84%; width: 84%; height: 100%; margin: 0 1.5%; display: flex; align-items: center; justify-content: center; }
-        /* 单图时 track 居中 */
-        .slider-track:only-child { justify-content: center; }
-        .slider-box[data-single="1"] .slider-track { transform: none !important; }
-        .slider-box[data-single="1"] .slide-item { flex: 0 0 100% !important; width: 100% !important; margin: 0 !important; }
-        .slider-box img { width: 100%; height: 100%; object-fit: contain; cursor: pointer; display: block !important; opacity: 1 !important; border-radius: 6px; }
-        .slider-box img.img-error { opacity: 0 !important; }
+        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
+        .slider-track { display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
+        /* 图片宽度和位置完全由 JS 用 px 控制，CSS 只设基本样式 */
+        .slider-box img { height: 100%; object-fit: contain; background: #111; cursor: pointer; display: block !important; opacity: 1 !important; border-radius: 6px; flex-shrink: 0; }
         .slider-box img.active { outline: none; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
@@ -2782,11 +2775,6 @@ async function loadFromGrave() {
                     // ✨ 重置所有卡片UI状态：收起展开、图片回第一张
                     resetAllCardStates();
                     
-                    // 🖼️ 云端数据替换 innerHTML 后重新初始化所有 slider 轨道
-                    document.querySelectorAll('.slider-box').forEach(function(box) {
-                        initSliderTrack(box);
-                    });
-                    
                     // ✨ v3.4.0：从云端恢复轮播图配置
                     if (content.banner && Array.isArray(content.banner)) {
                         bannerSlides = content.banner;
@@ -4112,64 +4100,96 @@ function addCard() {
 
 // 初始化单个 slider-box 的轨道结构
 function initSliderTrack(box) {
-    if (box.querySelector('.slider-track')) return; // 已初始化
+    if (box.querySelector('.slider-track')) return;
     const imgs = Array.from(box.querySelectorAll('img'));
     if (imgs.length === 0) return;
     const track = document.createElement('div');
     track.className = 'slider-track';
     imgs.forEach(img => {
         img.classList.remove('active');
-        img.onerror = function() {
-            this.classList.add('img-error');
-            // 隐藏失败图片所在的 slide-item
-            if (this.parentElement && this.parentElement.classList.contains('slide-item')) {
-                this.parentElement.style.display = 'none';
-            }
-            // 重新计算：获取可见图片数量和当前索引
-            const b = this.closest('.slider-box');
-            if (b) {
-                const visibleItems = Array.from(b.querySelectorAll('.slide-item')).filter(it => it.style.display !== 'none');
-                if (visibleItems.length === 1) {
-                    b.dataset.single = '1';
-                    const track = b.querySelector('.slider-track');
-                    if (track) track.style.transform = 'none';
-                } else {
-                    updateSliderTrack(b);
-                }
-                const indexTag = b.querySelector('.img-index');
-                if (indexTag) indexTag.style.display = 'none';
-            }
-        };
-        const item = document.createElement('div');
-        item.className = 'slide-item';
-        item.appendChild(img);
-        track.appendChild(item);
+        if (!img.dataset.errorBound) {
+            img.dataset.errorBound = '1';
+            img.addEventListener('error', function() {
+                this.style.visibility = 'hidden';
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;border-radius:6px;flex-shrink:0;height:100%;';
+                wrap.textContent = '🖼️';
+                this.parentElement && this.parentElement.insertBefore(wrap, this);
+            });
+        }
+        track.appendChild(img);
     });
-    // 把 track 插到 box 最前面（保留按钮等其他元素）
     box.insertBefore(track, box.firstChild);
-    // 标记当前索引
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
-    // 单图标记：直接 CSS 居中，不用 transform 偏移
-    if (imgs.length === 1) box.dataset.single = '1';
-    updateSliderTrack(box);
+    const btns = box.querySelectorAll('.slide-btn');
+    btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
+
+    // 用 ResizeObserver 等 box 真正有宽度后再布局
+    function applyLayout(boxW) {
+        if (!boxW || boxW < 10) return;
+        if (imgs.length === 1) {
+            imgs[0].style.width = boxW + 'px';
+            imgs[0].style.minWidth = boxW + 'px';
+            imgs[0].style.margin = '0';
+            imgs[0].style.borderRadius = '0';
+            track.style.transform = 'translateX(0px)';
+        } else {
+            const gap = 6; // 固定 6px 间距，清晰简单
+            const imgW = Math.round(boxW * 0.82);
+            imgs.forEach(img => {
+                img.style.width = imgW + 'px';
+                img.style.minWidth = imgW + 'px';
+                img.style.margin = '0 ' + gap + 'px';
+            });
+            updateSliderTrack(box);
+        }
+    }
+
+    const w = box.getBoundingClientRect().width;
+    if (w > 10) {
+        applyLayout(w);
+    } else {
+        // box 还没渲染出来，用 ResizeObserver 等待
+        const ro = new ResizeObserver((entries) => {
+            const bw = entries[0].contentRect.width;
+            if (bw > 10) {
+                ro.disconnect();
+                applyLayout(bw);
+            }
+        });
+        ro.observe(box);
+    }
 }
 
-// 根据当前索引移动轨道
+// 根据当前索引移动轨道（纯 px 计算）
 function updateSliderTrack(box) {
     const track = box.querySelector('.slider-track');
     if (!track) return;
     const idx = parseInt(box.dataset.slideIdx || '0');
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
-    if (imgs.length === 1) {
-        // 单图：清除 transform，让 CSS justify-content:center 生效
-        track.style.transform = 'none';
-    } else {
-        // 多图：左右 peek 设计，每格 87%，首格从 6.5% 开始
-        const offset = 6.5 - idx * 87;
-        track.style.transform = `translateX(${offset}%)`;
+
+    if (imgs.length <= 1) {
+        track.style.transform = 'translateX(0px)';
+        return;
     }
+
+    // 读取第一张图的实际宽度和 margin
+    const firstImg = imgs[0];
+    const imgW = firstImg.offsetWidth || firstImg.getBoundingClientRect().width || 0;
+    const marginL = parseFloat(window.getComputedStyle(firstImg).marginLeft) || 0;
+    const marginR = parseFloat(window.getComputedStyle(firstImg).marginRight) || 0;
+    const step = imgW + marginL + marginR;
+
+    if (step < 10) return;
+
+    const boxW = box.getBoundingClientRect().width;
+    // 第一张居中：left = (boxW - imgW) / 2
+    const firstOffset = (boxW - imgW) / 2 - marginL;
+    const translateX = firstOffset - idx * step;
+    track.style.transform = `translateX(${translateX}px)`;
+
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
 }
@@ -5886,11 +5906,6 @@ window.onload = async () => {
         var img = new Image();
         img.src = 'images/bg_night.jpg';
     })();
-    // 页面加载时立即初始化所有 slider-box 的轨道结构
-    // 避免卡片展开瞬间出现图片偏左的闪烁
-    document.querySelectorAll('.slider-box').forEach(function(box) {
-        initSliderTrack(box);
-    });
     checkForUpdates();
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
     // 🏷️ 先渲染导航，不依赖云端
