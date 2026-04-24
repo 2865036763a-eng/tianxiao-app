@@ -344,7 +344,7 @@
             margin-top: 60px;
         }
 
-        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center top; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        #gateKeeper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; background-image: linear-gradient(rgba(0,0,0,0.15),rgba(0,0,0,0.15)),url('images/bg.jpg'); background-size: cover; background-position: center center; z-index: 2000; display: flex; align-items: flex-start; justify-content: center; flex-direction: column; padding: 20px; text-align: center; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-box { max-width: 400px; width: 100%; margin: auto; padding: 20px 0; }
         .disclaimer { font-size: 13px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; line-height: 1.8; border: 1px dashed #ddd; text-align: left; max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
         .gate-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; outline: none; text-align: center; font-size: 16px; box-sizing: border-box; }
@@ -5582,42 +5582,59 @@ function showSearchImageEgg(src) {
 }
 
 
-// 🎨 背景层：#bg-layer 配合 visualViewport API，键盘弹出时实时修正，防止背景上移
+// 🎨 键盘弹出修正：记录页面初始高度，键盘出现时锁定 body/gateKeeper 高度，背景层不做任何偏移
 (function() {
-    function updateBgLayer() {
-        const vv = window.visualViewport;
-        const screenH = window.innerHeight; // 物理屏幕高度，不受键盘影响
+    // 在页面完全加载后记录真实屏幕高度（此时键盘未弹出）
+    var REAL_SCREEN_H = 0;
+    var REAL_SCREEN_W = 0;
 
-        // 锁定 body 高度，防止键盘弹出时内容被压缩上移
-        document.body.style.height = screenH + 'px';
-        document.body.style.minHeight = screenH + 'px';
-        document.body.style.maxHeight = screenH + 'px';
+    function init() {
+        REAL_SCREEN_H = window.innerHeight;
+        REAL_SCREEN_W = window.innerWidth;
+        applyFix();
+    }
 
-        // 修正背景层
-        const el = document.getElementById('bg-layer');
+    function applyFix() {
+        if (!REAL_SCREEN_H) return;
+
+        // 锁定 body 尺寸为真实屏幕大小，键盘弹出不影响布局
+        document.body.style.height    = REAL_SCREEN_H + 'px';
+        document.body.style.minHeight = REAL_SCREEN_H + 'px';
+        document.body.style.maxHeight = REAL_SCREEN_H + 'px';
+        document.body.style.width     = REAL_SCREEN_W + 'px';
+
+        // 背景层：固定尺寸，不加任何 transform（transform 会导致偏移）
+        var el = document.getElementById('bg-layer');
         if (el) {
-            el.style.width  = window.innerWidth  + 'px';
-            el.style.height = screenH + 'px';
-            el.style.top    = '0px';
-            el.style.left   = '0px';
-            if (vv) {
-                el.style.transform = 'translateY(' + (vv.pageTop - (window.scrollY || 0)) + 'px)';
-            }
+            el.style.transform = 'none';
+            el.style.width  = REAL_SCREEN_W + 'px';
+            el.style.height = REAL_SCREEN_H + 'px';
+            el.style.top    = '0';
+            el.style.left   = '0';
         }
 
-        // 修正免责声明页高度
-        const gate = document.getElementById('gateKeeper');
+        // 锁定免责声明页高度
+        var gate = document.getElementById('gateKeeper');
         if (gate && gate.style.display !== 'none') {
-            gate.style.height = screenH + 'px';
+            gate.style.height = REAL_SCREEN_H + 'px';
         }
     }
 
+    // visualViewport resize 时只修正布局，不移动背景
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateBgLayer, { passive: true });
-        window.visualViewport.addEventListener('scroll', updateBgLayer, { passive: true });
+        window.visualViewport.addEventListener('resize', applyFix, { passive: true });
     }
-    window.addEventListener('resize', updateBgLayer, { passive: true });
-    document.addEventListener('DOMContentLoaded', updateBgLayer);
+
+    // 用 load 事件确保获取到准确的初始高度
+    if (document.readyState === 'complete') {
+        init();
+    } else {
+        window.addEventListener('load', init, { once: true });
+    }
+    // 旋转屏幕时更新真实尺寸
+    window.addEventListener('orientationchange', function() {
+        setTimeout(init, 300);
+    });
 })();
 // 桌面端视差滚动由 handleScroll 里的 backgroundPosition 更新处理
 (function() {
