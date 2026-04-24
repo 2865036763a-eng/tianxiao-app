@@ -687,9 +687,9 @@
         }
 
         .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
-        /* 横向滑轨：左右各露出 8% 作为 peek 预览 */
         .slider-track { display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
-        .slider-box img { flex: 0 0 84%; width: 84%; height: 100%; object-fit: cover; background: #111; cursor: pointer; display: block !important; opacity: 1 !important; margin: 0 1.5%; border-radius: 6px; }
+        /* 图片宽度和位置完全由 JS 用 px 控制，CSS 只设基本样式 */
+        .slider-box img { height: 100%; object-fit: cover; background: #111; cursor: pointer; display: block !important; opacity: 1 !important; border-radius: 6px; flex-shrink: 0; }
         .slider-box img.active { outline: none; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
@@ -4107,41 +4107,46 @@ function initSliderTrack(box) {
     track.className = 'slider-track';
     imgs.forEach(img => {
         img.classList.remove('active');
-        // 图片加载失败时用占位背景代替破损图标
         if (!img.dataset.errorBound) {
             img.dataset.errorBound = '1';
             img.addEventListener('error', function() {
-                this.style.visibility = 'hidden'; // 隐藏破损图标但保留占位空间
+                this.style.visibility = 'hidden';
                 const wrap = document.createElement('div');
-                wrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;border-radius:6px;';
+                wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;border-radius:6px;flex-shrink:0;';
                 wrap.textContent = '🖼️';
-                // 插入到 img 之前的父级
                 this.parentElement && this.parentElement.insertBefore(wrap, this);
             });
         }
         track.appendChild(img);
     });
-    // 把 track 插到 box 最前面（保留按钮等其他元素）
     box.insertBefore(track, box.firstChild);
-    // 标记当前索引
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
-    // 单张图时隐藏左右切换按钮，图片铺满
     const btns = box.querySelectorAll('.slide-btn');
     btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
-    if (imgs.length === 1) {
-        // 单张图：铺满整个 slider-box，无偏移无 peek
-        imgs[0].style.cssText = 'flex:0 0 100%;width:100%;margin:0;border-radius:0;';
-        track.style.transform = 'translateX(0)';
-    } else {
-        // 多张图：等 box 渲染后精确定位
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => updateSliderTrack(box));
-        });
-    }
+    // 等两帧后 box 有真实宽度再设置图片尺寸
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        const boxW = box.getBoundingClientRect().width;
+        if (imgs.length === 1) {
+            // 单张图：铺满
+            imgs[0].style.width = boxW + 'px';
+            imgs[0].style.margin = '0';
+            imgs[0].style.borderRadius = '0';
+            track.style.transform = 'translateX(0px)';
+        } else {
+            // 多张图：84% 宽 + 左右各 8px 间距
+            const imgW = Math.round(boxW * 0.84);
+            const gap = Math.round(boxW * 0.03);
+            imgs.forEach(img => {
+                img.style.width = imgW + 'px';
+                img.style.margin = '0 ' + gap + 'px';
+            });
+            updateSliderTrack(box);
+        }
+    }));
 }
 
-// 根据当前索引移动轨道（用 px 精确定位，避免 % 基于 track 宽度的误差）
+// 根据当前索引移动轨道（纯 px 计算）
 function updateSliderTrack(box) {
     const track = box.querySelector('.slider-track');
     if (!track) return;
@@ -4149,23 +4154,25 @@ function updateSliderTrack(box) {
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
 
-    const boxW = box.offsetWidth || box.getBoundingClientRect().width || 0;
-    if (boxW === 0) {
-        // box 尚未渲染，延迟重试
-        requestAnimationFrame(() => updateSliderTrack(box));
+    if (imgs.length <= 1) {
+        track.style.transform = 'translateX(0px)';
         return;
     }
 
-    let translateX;
-    if (imgs.length === 1) {
-        // 单张图已在 initSliderTrack 处理，无需偏移
-        track.style.transform = 'translateX(0)';
-        return;
-    } else {
-        // 多张图 peek 布局：图片宽 84% + 左右各 1.5% margin = 87% 每格
-        // 首张偏移 = 6.5% of boxW，之后每张 -87% of boxW
-        translateX = boxW * (0.065 - idx * 0.87);
-    }
+    // 读取第一张图的实际宽度和 margin
+    const firstImg = imgs[0];
+    const style = window.getComputedStyle(firstImg);
+    const imgW = firstImg.offsetWidth || 0;
+    const marginL = parseFloat(style.marginLeft) || 0;
+    const marginR = parseFloat(style.marginRight) || 0;
+    const step = imgW + marginL + marginR; // 每步移动距离（px）
+
+    if (step === 0) return; // 还没渲染好
+
+    // 首张居中偏移：让第一张图水平居中在 box 里
+    const boxW = box.getBoundingClientRect().width;
+    const firstOffset = (boxW - imgW) / 2 - marginL;
+    const translateX = firstOffset - idx * step;
     track.style.transform = `translateX(${translateX}px)`;
 
     const indexTag = box.querySelector('.img-index');
