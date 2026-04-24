@@ -686,10 +686,10 @@
             display: flex !important;
         }
 
-        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #000; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
-        /* 横向滑轨：图片水平排列，容器比 slider-box 更宽，左右各露出 peek */
+        .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
+        /* 横向滑轨：左右各露出 8% 作为 peek 预览 */
         .slider-track { display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
-        .slider-box img { flex: 0 0 86%; width: 86%; height: 100%; object-fit: contain; background: #000; cursor: pointer; display: block !important; opacity: 1 !important; margin: 0 2%; border-radius: 4px; }
+        .slider-box img { flex: 0 0 84%; width: 84%; height: 100%; object-fit: cover; background: #111; cursor: pointer; display: block !important; opacity: 1 !important; margin: 0 1.5%; border-radius: 6px; }
         .slider-box img.active { outline: none; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
@@ -4121,9 +4121,9 @@ function updateSliderTrack(box) {
     const idx = parseInt(box.dataset.slideIdx || '0');
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
-    // 每张图宽 86% + 左右各 2% margin = 90% per slide
-    // 起始偏移让第一张居中：left offset = (100% - 86%) / 2 - 2% = 5%
-    const offset = 5 - idx * 90;
+    // 每张图 84% + 左右各 1.5% margin = 87% 每格
+    // 第一张居中偏移 = (100% - 84%) / 2 - 1.5% = 6.5%
+    const offset = 6.5 - idx * 87;
     track.style.transform = `translateX(${offset}%)`;
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
