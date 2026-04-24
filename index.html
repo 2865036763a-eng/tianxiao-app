@@ -5859,6 +5859,11 @@ window.onload = async () => {
         var img = new Image();
         img.src = 'images/bg_night.jpg';
     })();
+    // 页面加载时立即初始化所有 slider-box 的轨道结构
+    // 避免卡片展开瞬间出现图片偏左的闪烁
+    document.querySelectorAll('.slider-box').forEach(function(box) {
+        initSliderTrack(box);
+    });
     checkForUpdates();
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
     // 🏷️ 先渲染导航，不依赖云端
