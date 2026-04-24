@@ -1057,7 +1057,7 @@
             本站内容中的性行为均为虚构幻想，不代表现实，不提倡模仿。站内所有角色均已满18周岁。<br><br>
             继续访问即代表您已理解并同意以上全部声明内容，若有任何不良影响概不负责。
         </div>
-        <input type="password" id="accessPass" class="gate-input" placeholder="输入天笑的解压暗号">
+        <input type="password" id="accessPass" class="gate-input" placeholder="输入天笑的解压暗号" onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),300)">
         <button class="gate-btn" onclick="verifyAccess()">解锁基地</button>
     </div>
     </div>
@@ -5630,13 +5630,21 @@ function showSearchImageEgg(src) {
             el.style.transform = 'none';
         }
 
-        // gateKeeper：同样补偿 offsetTop，背景图跟着走，视觉上完全不动
+        // gateKeeper：背景层锁死不动
         var gate = document.getElementById('gateKeeper');
         if (gate) {
             gate.style.width  = REAL_SCREEN_W + 'px';
             gate.style.height = REAL_SCREEN_H + 'px';
             gate.style.top    = offsetTop  + 'px';
             gate.style.left   = offsetLeft + 'px';
+        }
+        // gate-scroll 内层高度跟随 visualViewport.height，键盘弹出时自动缩小
+        // 这样内容区可以正常滚动到输入框位置
+        var gateScroll = document.getElementById('gate-scroll');
+        if (gateScroll) {
+            var vpH = vv ? vv.height : REAL_SCREEN_H;
+            gateScroll.style.height = vpH + 'px';
+            gateScroll.style.maxHeight = vpH + 'px';
         }
     }
 
