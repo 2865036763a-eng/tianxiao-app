@@ -5620,31 +5620,38 @@ function showSearchImageEgg(src) {
         document.body.style.maxHeight = REAL_SCREEN_H + 'px';
         document.body.style.width     = REAL_SCREEN_W + 'px';
 
-        // 背景层：锁死尺寸，用 offsetTop/Left 补偿位置
+        // 背景层：top/left 永远 0，只锁尺寸
         var el = document.getElementById('bg-layer');
         if (el) {
-            el.style.width  = REAL_SCREEN_W + 'px';
-            el.style.height = REAL_SCREEN_H + 'px';
-            el.style.top    = offsetTop  + 'px';
-            el.style.left   = offsetLeft + 'px';
+            el.style.width     = REAL_SCREEN_W + 'px';
+            el.style.height    = REAL_SCREEN_H + 'px';
+            el.style.top       = '0';
+            el.style.left      = '0';
             el.style.transform = 'none';
         }
 
-        // gateKeeper：背景层锁死不动
+        // gateKeeper：top/left 永远 0，只锁尺寸
         var gate = document.getElementById('gateKeeper');
         if (gate) {
             gate.style.width  = REAL_SCREEN_W + 'px';
             gate.style.height = REAL_SCREEN_H + 'px';
-            gate.style.top    = offsetTop  + 'px';
-            gate.style.left   = offsetLeft + 'px';
+            gate.style.top    = '0';
+            gate.style.left   = '0';
         }
-        // gate-scroll 内层高度跟随 visualViewport.height，键盘弹出时自动缩小
-        // 这样内容区可以正常滚动到输入框位置
+
+        // gate-scroll：高度跟随 visualViewport.height，键盘弹出时缩小，自动滚到输入框
         var gateScroll = document.getElementById('gate-scroll');
         if (gateScroll) {
             var vpH = vv ? vv.height : REAL_SCREEN_H;
-            gateScroll.style.height = vpH + 'px';
+            gateScroll.style.height    = vpH + 'px';
             gateScroll.style.maxHeight = vpH + 'px';
+            // 键盘弹出时（视口高度小于真实屏幕高度），自动滚到输入框
+            if (vv && vv.height < REAL_SCREEN_H * 0.85) {
+                var inp = document.getElementById('accessPass');
+                if (inp) setTimeout(function() {
+                    inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
         }
     }
 
