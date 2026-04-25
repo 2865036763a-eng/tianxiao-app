@@ -687,9 +687,28 @@
         }
 
         .slider-box { width: 100%; aspect-ratio: 16 / 9; background: #111; position: relative; display: none; overflow: hidden; flex-shrink: 0; touch-action: pan-y; }
-        .slider-track { display: flex; height: 100%; will-change: transform; transition: transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
-        /* 图片宽度和位置完全由 JS 用 px 控制，CSS 只设基本样式 */
-        .slider-box img { height: 100%; object-fit: contain; background: #111; cursor: pointer; display: block !important; opacity: 1 !important; border-radius: 6px; flex-shrink: 0; }
+        /* CSS scroll snap：纯CSS实现滑动，无需JS计算宽度 */
+        .slider-track {
+            display: flex;
+            height: 100%;
+            overflow-x: scroll;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+        .slider-track::-webkit-scrollbar { display: none; }
+        .slider-box img {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #111;
+            cursor: pointer;
+            display: block !important;
+            opacity: 1 !important;
+            scroll-snap-align: start;
+        }
         .slider-box img.active { outline: none; }
         
         .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
@@ -4112,9 +4131,9 @@ function initSliderTrack(box) {
             img.addEventListener('error', function() {
                 this.style.visibility = 'hidden';
                 const wrap = document.createElement('div');
-                wrap.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;border-radius:6px;flex-shrink:0;height:100%;';
+                wrap.style.cssText = 'flex:0 0 100%;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;color:#555;background:#1a1a1a;scroll-snap-align:start;';
                 wrap.textContent = '🖼️';
-                this.parentElement && this.parentElement.insertBefore(wrap, this);
+                track.insertBefore(wrap, this.nextSibling);
             });
         }
         track.appendChild(img);
@@ -4122,81 +4141,35 @@ function initSliderTrack(box) {
     box.insertBefore(track, box.firstChild);
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
+    // 单张图隐藏切换按钮
     const btns = box.querySelectorAll('.slide-btn');
     btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
-
-    // 用 ResizeObserver 等 box 真正有宽度后再布局
-    function applyLayout(boxW) {
-        if (!boxW || boxW < 10) return;
-        if (imgs.length === 1) {
-            imgs[0].style.width = boxW + 'px';
-            imgs[0].style.minWidth = boxW + 'px';
-            imgs[0].style.margin = '0';
-            imgs[0].style.borderRadius = '0';
-            track.style.transform = 'translateX(0px)';
-        } else {
-            const gap = 6; // 固定 6px 间距，清晰简单
-            const imgW = Math.round(boxW * 0.82);
-            imgs.forEach(img => {
-                img.style.width = imgW + 'px';
-                img.style.minWidth = imgW + 'px';
-                img.style.margin = '0 ' + gap + 'px';
-            });
-            updateSliderTrack(box);
-        }
-    }
-
-    const w = box.getBoundingClientRect().width;
-    if (w > 10) {
-        applyLayout(w);
-    } else {
-        // box 还没渲染出来，用 ResizeObserver 等待
-        const ro = new ResizeObserver((entries) => {
-            const bw = entries[0].contentRect.width;
-            if (bw > 10) {
-                ro.disconnect();
-                applyLayout(bw);
-            }
-        });
-        ro.observe(box);
-    }
+    // 监听手动滑动，同步更新索引和计数
+    track.addEventListener('scroll', function() {
+        const imgW = track.clientWidth;
+        if (!imgW) return;
+        const idx = Math.round(track.scrollLeft / imgW);
+        box.dataset.slideIdx = idx;
+        imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
+        const indexTag = box.querySelector('.img-index');
+        if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
+    }, { passive: true });
 }
 
-// 根据当前索引移动轨道（纯 px 计算）
 function updateSliderTrack(box) {
     const track = box.querySelector('.slider-track');
     if (!track) return;
     const idx = parseInt(box.dataset.slideIdx || '0');
     const imgs = track.querySelectorAll('img');
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
-
-    if (imgs.length <= 1) {
-        track.style.transform = 'translateX(0px)';
-        return;
-    }
-
-    // 读取第一张图的实际宽度和 margin
-    const firstImg = imgs[0];
-    const imgW = firstImg.offsetWidth || firstImg.getBoundingClientRect().width || 0;
-    const marginL = parseFloat(window.getComputedStyle(firstImg).marginLeft) || 0;
-    const marginR = parseFloat(window.getComputedStyle(firstImg).marginRight) || 0;
-    const step = imgW + marginL + marginR;
-
-    if (step < 10) return;
-
-    const boxW = box.getBoundingClientRect().width;
-    // 第一张居中：left = (boxW - imgW) / 2
-    const firstOffset = (boxW - imgW) / 2 - marginL;
-    const translateX = firstOffset - idx * step;
-    track.style.transform = `translateX(${translateX}px)`;
-
+    // scroll-snap 模式下直接 scrollLeft 定位
+    track.scrollLeft = idx * track.clientWidth;
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
 }
 
 function changeSlide(btn, dir) {
     const box = btn.parentElement;
-    // 懒初始化轨道
     if (!box.querySelector('.slider-track')) initSliderTrack(box);
     const track = box.querySelector('.slider-track');
     const imgs = track ? track.querySelectorAll('img') : box.querySelectorAll('img');
@@ -5737,10 +5710,11 @@ function showSearchImageEgg(src) {
         var screenH = screen.height || REAL_SCREEN_H;
         var screenW = screen.width  || REAL_SCREEN_W;
 
-        // 锁定 body 高度防止键盘压缩，不锁宽度（否则 fixed 元素 right 值会偏移）
+        // 锁定 body 尺寸
         document.body.style.height    = screenH + 'px';
         document.body.style.minHeight = screenH + 'px';
         document.body.style.maxHeight = screenH + 'px';
+        document.body.style.width     = screenW + 'px';
 
         // 背景层
         var el = document.getElementById('bg-layer');
