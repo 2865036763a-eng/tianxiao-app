@@ -3056,7 +3056,31 @@ function addCard() {
     
     // 🔒 安全修复：仅在管理员模式下设置为可编辑
     if (isEditMode) {
-        div.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+        div.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+        div.querySelectorAll(".g-tags").forEach(el => {
+            el.contentEditable = "true";
+            el.addEventListener('keydown', function(e) {
+                if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+                const sel = window.getSelection();
+                if (!sel || !sel.rangeCount) return;
+                const range = sel.getRangeAt(0);
+                const text = el.textContent;
+                if (!text.startsWith('标签')) return;
+                // 光标在前4字符内（"标签: "）时阻止删除
+                let offset = range.startOffset;
+                // 如果 anchorNode 是子节点，要算偏移
+                if (range.startContainer !== el) {
+                    let node = el.firstChild;
+                    let total = 0;
+                    while (node && node !== range.startContainer) {
+                        total += node.textContent.length;
+                        node = node.nextSibling;
+                    }
+                    offset = total + range.startOffset;
+                }
+                if (offset <= 4) e.preventDefault();
+            });
+        });
     }
     
     document.getElementById("search").value = ""; 
@@ -3738,7 +3762,12 @@ function syncDescBtnVisibility() {
         // max-height: 3.6em = 14px * 1.8 * 2 = 50.4px，加上上下 padding 16px*2 = 82.4px
         // 只要真实高度超过这个值，说明文字被截断，需要展开按钮
         const maxH = Math.ceil(14 * 1.8 * 2) + 32 + 4; // 50 + 32(padding) + 4(容错) ≈ 86px
-        descBtn.style.display = realH > maxH ? '' : 'none';
+        // 管理员模式下始终显示展开按钮（方便编辑时查看全文）
+        if (document.body.classList.contains('admin-mode')) {
+            descBtn.style.display = '';
+        } else {
+            descBtn.style.display = realH > maxH ? '' : 'none';
+        }
     });
 
     document.body.removeChild(ruler);
