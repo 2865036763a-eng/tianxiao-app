@@ -629,8 +629,17 @@
             font-size: 11px;
             color: var(--primary);
             overflow: hidden;
-            text-overflow: ellipsis;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        .card-preview-tags .pt {
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 1px 7px;
             white-space: nowrap;
+            font-size: 11px;
         }
         .card-preview-bottom {
             display: flex;
@@ -707,7 +716,7 @@
         }
         .slider-box img.active { outline: none; }
         
-        .edit-img-btn { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
+        .edit-img-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
         .admin-mode .edit-img-btn { display: block; }
         .img-add-btn, .img-del-btn { position: absolute; z-index: 15; color: #fff; padding: 6px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; bottom: 10px; }
         .img-add-btn { background: #28a745; left: 10px; }
@@ -1114,7 +1123,7 @@
         <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
         <button onclick="migrateAllLinksToKV()" style="background: #c62828 !important;">🔒 迁移链接</button>
-        <button onclick="batchReplaceAZTag()" style="background: #7b1fa2 !important;">🔁 AZ→安卓</button>
+        
         <button onclick="debugCardStructure()" style="background:#333;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;">🐛 调试</button> <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
     </div>
@@ -3980,7 +3989,23 @@ function enterAdmin() {
         if (delBtn) delBtn.onclick = function() { deleteCard(this); };
     });
 
-    document.querySelectorAll(".g-name, .g-tags, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+    document.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+    // g-tags 单独处理：只让标签内容可编辑，"标签:"前缀不可删除
+    document.querySelectorAll(".g-tags").forEach(el => {
+        el.contentEditable = "true";
+        el.addEventListener('keydown', function(e) {
+            // 防止删除到"标签:"前缀（保证内容至少保留"标签: "3个字符）
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const offset = range.startOffset;
+            const text = el.textContent;
+            // 如果光标在"标签: "之内（前4字符），阻止删除
+            if ((e.key === 'Backspace' || e.key === 'Delete') && offset <= 4 && text.startsWith('标签')) {
+                e.preventDefault();
+            }
+        });
+    });
     // 🐛 修复：为所有标签元素绑定粘贴处理
     document.querySelectorAll(".g-tags").forEach(el => {
         el.onpaste = handleTagPaste;
@@ -4395,7 +4420,10 @@ function generateCompactCardHTML(card) {
         preview.innerHTML = `
             <div class="card-preview-top">
                 <div class="card-preview-title">${title}</div>
-                <div class="card-preview-tags">${tags}</div>
+                <div class="card-preview-tags">${
+                    tags.replace(/^标签[：:]\s*/, '').split(/[\s\/]+/).filter(Boolean)
+                    .map(t => `<span class="pt">${t}</span>`).join(' ')
+                }</div>
             </div>
             <div class="card-preview-bottom">
                 <div class="card-preview-desc">${descText}</div>
@@ -5820,28 +5848,7 @@ function toggleAZMode() {
 }
 
 
-// 🔁 批量把AZ标签改成安卓
-function batchReplaceAZTag() {
-    const allCards = document.querySelectorAll('#box .card');
-    let count = 0;
-    allCards.forEach(card => {
-        const tagsEl = card.querySelector('.g-tags');
-        if (!tagsEl) return;
-        const original = tagsEl.textContent;
-        // 匹配独立的AZ（前后是空格、冒号、行首行尾），不误改AZ开头的游戏名
-        const replaced = tagsEl.innerHTML.replace(/(?<=[\s:：,，]|^)AZ(?=[\s,，]|$)/g, '安卓');
-        if (replaced !== tagsEl.innerHTML) {
-            tagsEl.innerHTML = replaced;
-            count++;
-        }
-    });
-    if (count === 0) {
-        showToast('⚠️ 没有找到需要替换的AZ标签');
-        return;
-    }
-    autoSave();
-    showToast(`✅ 已将 ${count} 张卡片的AZ标签改为安卓，记得保存云端`);
-}
+
 
 
 // 🌙 夜间模式
