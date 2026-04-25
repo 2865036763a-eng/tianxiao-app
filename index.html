@@ -707,7 +707,7 @@
         }
         .slider-box img.active { outline: none; }
         
-        .edit-img-btn { position: absolute; z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
+        .edit-img-btn { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 15; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; }
         .admin-mode .edit-img-btn { display: block; }
         .img-add-btn, .img-del-btn { position: absolute; z-index: 15; color: #fff; padding: 6px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; display: none; border: none; font-weight: bold; touch-action: manipulation; bottom: 10px; }
         .img-add-btn { background: #28a745; left: 10px; }
@@ -3964,7 +3964,10 @@ function enterAdmin() {
     document.querySelectorAll(".card").forEach(card => {
         card.classList.add("card-expanded");
         const sb = card.querySelector('.slider-box');
-        if (sb) initSliderTrack(sb);
+        if (sb) {
+            initSliderTrack(sb);
+            requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(sb)));
+        }
         
         if (!card.querySelector(".pin-btn")) {
             const pin = document.createElement("div");
