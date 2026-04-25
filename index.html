@@ -1116,6 +1116,10 @@
         <!-- 由 renderNav() 动态生成 -->
     </div>
     <div id="adminBar" style="display: none;">
+        <div id="adminBarToggleRow" style="width:100%;display:flex;justify-content:center;margin-bottom:4px;">
+            <button id="adminBarToggleBtn" onclick="toggleAdminBarCollapse()" style="background:#555!important;padding:4px 20px;font-size:12px;border-radius:20px;min-width:unset;flex:unset;">▲ 收起面板</button>
+        </div>
+        <div id="adminBarBtns">
         <button onclick="addCard()">➕ 新增</button>
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
         <button onclick="toggleCatPanel()" style="background: #e91e63 !important;">🏷️ 分类</button>
@@ -1126,6 +1130,7 @@
         
         <button onclick="debugCardStructure()" style="background:#333;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;">🐛 调试</button> <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
+        </div>
     </div>
     <!-- 🏷️ 分类管理面板 -->
     <div id="catPanel">
@@ -2892,6 +2897,15 @@ async function checkPass() {
         alert("验证失败，请检查网络连接");
         closeLogin();
     }
+}
+
+function toggleAdminBarCollapse() {
+    const btns = document.getElementById('adminBarBtns');
+    const btn = document.getElementById('adminBarToggleBtn');
+    if (!btns || !btn) return;
+    const collapsed = btns.style.display === 'none';
+    btns.style.display = collapsed ? '' : 'none';
+    btn.textContent = collapsed ? '▲ 收起面板' : '▼ 展开面板';
 }
 
 function enterAdmin() {
