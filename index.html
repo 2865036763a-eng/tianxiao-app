@@ -3197,27 +3197,25 @@ function editCurrentImg(btn) {
     const url = prompt("🖼️ 输入图片URL:", activeImg ? activeImg.src : '');
     if (url && url.startsWith('http')) {
         if (activeImg) {
+            // 更新 src
             activeImg.src = url;
             activeImg.style.visibility = '';
             activeImg.classList.remove('img-error');
             delete activeImg.dataset.errorBound;
 
-            // 删除旧的 slider-track，重新初始化（清除之前 error 留下的 placeholder）
-            const oldTrack = box.querySelector('.slider-track');
-            if (oldTrack) {
-                // 把所有 img 移回 box（track 外），再删 track
-                Array.from(oldTrack.querySelectorAll('img')).forEach(im => {
-                    box.insertBefore(im, oldTrack);
+            // 清除 error 时插入的 🖼️ placeholder div（紧跟在 img 后面的兄弟节点）
+            const track = box.querySelector('.slider-track');
+            if (track) {
+                // 删除所有非 img 的占位 div
+                Array.from(track.children).forEach(el => {
+                    if (el.tagName !== 'IMG') el.remove();
                 });
-                oldTrack.remove();
             }
-            delete box.dataset.slideIdx;
-            // 重新初始化
-            initSliderTrack(box);
-            requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
+
             // 恢复计数器显示
             const indexTag = box.querySelector('.img-index');
             if (indexTag) indexTag.style.display = '';
+            requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
         }
         autoSave();
     }
