@@ -4608,21 +4608,36 @@ function randomGame() {
     const idx = filtered.indexOf(pick);
     const targetPage = Math.floor(idx / PAGE_SIZE) + 1;
 
+    // 记住卡片ID，refreshUI 后用 ID 重新找（避免 DOM 引用失效）
+    const pickId = pick.dataset.cardId;
+
     // 跳转到对应页，让 refreshUI 正确渲染
     refreshUI(targetPage);
 
-    // 展开卡片并滚动
-    setTimeout(() => {
-        pick.classList.add('card-expanded');
-        setTimeout(() => {
-            pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            pick.style.transition = 'box-shadow 0.3s';
-            pick.style.boxShadow = '0 0 0 3px var(--primary)';
-            setTimeout(() => { pick.style.boxShadow = ''; }, 1200);
-        }, 100);
-    }, 50);
-
     showToast(`🎲 抽到了：${title.substring(0, 20)}`);
+
+    // 等 refreshUI 渲染完后，用 cardId 重新定位
+    setTimeout(() => {
+        const target = document.querySelector(`#box .card[data-card-id="${pickId}"]`);
+        if (!target) return;
+        // 确保卡片处于 active-render 状态
+        if (!target.classList.contains('active-render')) {
+            target.classList.add('active-render');
+        }
+        target.classList.add('card-expanded');
+        // 初始化 slider 并等渲染完再滚动
+        const sb = target.querySelector('.slider-box');
+        if (sb) {
+            initSliderTrack(sb);
+            requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(sb)));
+        }
+        setTimeout(() => {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target.style.transition = 'box-shadow 0.3s';
+            target.style.boxShadow = '0 0 0 3px var(--primary)';
+            setTimeout(() => { target.style.boxShadow = ''; }, 1200);
+        }, 150);
+    }, 200);
 }
 
 
