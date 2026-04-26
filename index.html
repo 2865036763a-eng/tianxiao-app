@@ -4590,13 +4590,19 @@ function randomGame() {
     // 收起所有展开的卡片
     document.querySelectorAll('#box .card.card-expanded').forEach(c => c.classList.remove('card-expanded'));
 
-    // 取所有有内容的卡片
+    // 取所有有内容的卡片，AZ模式下只取有安卓/AZ标签的
     const allCards = Array.from(document.querySelectorAll('#box .card'));
     const gameCards = allCards.filter(c => {
         const name = c.querySelector('.g-name');
-        return name && name.textContent.trim().length > 0;
+        if (!name || !name.textContent.trim()) return false;
+        if (window._azMode) {
+            const tags = c.querySelector('.g-tags');
+            const tagText = tags ? tags.textContent : '';
+            return tagText.includes('安卓') || tagText.includes('AZ');
+        }
+        return true;
     });
-    if (gameCards.length === 0) { showToast('❌ 暂无游戏卡片'); return; }
+    if (gameCards.length === 0) { showToast(window._azMode ? '❌ 暂无安卓游戏' : '❌ 暂无游戏卡片'); return; }
 
     // 随机选一张
     const pick = gameCards[Math.floor(Math.random() * gameCards.length)];
