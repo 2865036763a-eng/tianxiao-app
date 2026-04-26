@@ -3130,11 +3130,6 @@ function initSliderTrack(box) {
     track.className = 'slider-track';
     imgs.forEach(img => {
         img.classList.remove('active');
-        // src 为空或 placeholder 的图片不加入轨道（避免加载失败后无法更新）
-        if (!img.src || img.src === '' || img.src.includes('via.placeholder.com') ||
-            img.src === window.location.href) {
-            return;
-        }
         if (!img.dataset.errorBound) {
             img.dataset.errorBound = '1';
             img.addEventListener('error', function() {
@@ -3197,24 +3192,11 @@ function editCurrentImg(btn) {
     const url = prompt("🖼️ 输入图片URL:", activeImg ? activeImg.src : '');
     if (url && url.startsWith('http')) {
         if (activeImg) {
-            // 更新 src
             activeImg.src = url;
             activeImg.style.visibility = '';
+            activeImg.style.opacity = '1';
             activeImg.classList.remove('img-error');
             delete activeImg.dataset.errorBound;
-
-            // 清除 error 时插入的 🖼️ placeholder div（紧跟在 img 后面的兄弟节点）
-            const track = box.querySelector('.slider-track');
-            if (track) {
-                // 删除所有非 img 的占位 div
-                Array.from(track.children).forEach(el => {
-                    if (el.tagName !== 'IMG') el.remove();
-                });
-            }
-
-            // 恢复计数器显示
-            const indexTag = box.querySelector('.img-index');
-            if (indexTag) indexTag.style.display = '';
             requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
         }
         autoSave();
