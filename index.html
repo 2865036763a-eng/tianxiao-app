@@ -3852,7 +3852,8 @@ function addLinkJumpButtons() {
                 && ltRaw !== '（链接已安全存储）'
                 && ltRaw !== '（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）'
                 && /[a-zA-Z0-9一-鿿]/.test(ltStripped); // 至少含字母、数字或中文
-            const hasAnyLink = hasLocalUrls || isKvCard || ltMeaningful;
+            // KV卡片：必须同时有实质内容才显示按钮（纯空KV卡片不显示）
+            const hasAnyLink = hasLocalUrls || (isKvCard && ltMeaningful) || ltMeaningful;
 
             if (cardId && hasAnyLink) {
                 // 统一显示「获取链接」按钮——先尝试KV，KV没有就用本地URL
