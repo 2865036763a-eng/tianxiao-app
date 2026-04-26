@@ -3177,13 +3177,19 @@ function updateSliderTrack(box) {
 
 function changeSlide(btn, dir) {
     const box = btn.parentElement;
-    if (!box.querySelector('.slider-track')) initSliderTrack(box);
+    const isNew = !box.querySelector('.slider-track');
+    if (isNew) initSliderTrack(box);
     const track = box.querySelector('.slider-track');
     const imgs = track ? track.querySelectorAll('img') : box.querySelectorAll('img');
     let idx = parseInt(box.dataset.slideIdx || '0');
     idx = (idx + dir + imgs.length) % imgs.length;
     box.dataset.slideIdx = idx;
-    updateSliderTrack(box);
+    // 新初始化的 track 需要等浏览器渲染一帧才有 transition，否则第一次切换无动画
+    if (isNew) {
+        requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
+    } else {
+        updateSliderTrack(box);
+    }
 }
 
 function editCurrentImg(btn) {
@@ -3585,9 +3591,12 @@ function resetAllCardStates() {
             const btn = linkWrap.querySelector(".expand-btn");
             if (btn) btn.textContent = "展开 ▾";
         }
-        // 3. 图片回到第一张
+        // 3. 图片回到第一张，清除 slider-track 的 transform inline style
         const sliderBox = card.querySelector(".slider-box");
         if (sliderBox) {
+            sliderBox.dataset.slideIdx = '0';
+            const track = sliderBox.querySelector('.slider-track');
+            if (track) track.style.transform = 'translateX(0%)';
             const imgs = sliderBox.querySelectorAll("img");
             imgs.forEach((img, i) => img.classList.toggle("active", i === 0));
             const indexTag = sliderBox.querySelector(".img-index");
