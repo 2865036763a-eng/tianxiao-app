@@ -2941,7 +2941,18 @@ function enterAdmin() {
         if (delBtn) delBtn.onclick = function() { deleteCard(this); };
     });
 
-    document.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+    document.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => {
+        el.contentEditable = "true";
+        // 拦截粘贴：只插入纯文本，防止外部样式（字体大小/背景色/颜色）污染
+        if (!el.dataset.pasteBound) {
+            el.dataset.pasteBound = '1';
+            el.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const plain = (e.clipboardData || window.clipboardData).getData('text/plain');
+                document.execCommand('insertText', false, plain);
+            });
+        }
+    });
     // g-tags 单独处理：只让标签内容可编辑，"标签:"前缀不可删除
     document.querySelectorAll(".g-tags").forEach(el => {
         el.contentEditable = "true";
@@ -3835,9 +3846,12 @@ function addLinkJumpButtons() {
             const useKv = card.dataset.useKv;
             const isKvCard = (useKv === 'done' || useKv === '1');
             const ltRaw = linkText ? (linkText.textContent || '').trim() : '';
-            const ltMeaningful = ltRaw.length > 0
+            // 有意义的内容：去除空白后仍有字母或数字（排除纯空行、纯标点、占位符）
+            const ltStripped = ltRaw.replace(/[\s　]/g, '');
+            const ltMeaningful = ltStripped.length > 2
                 && ltRaw !== '（链接已安全存储）'
-                && ltRaw !== '（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）';
+                && ltRaw !== '（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）'
+                && /[a-zA-Z0-9一-鿿]/.test(ltStripped); // 至少含字母、数字或中文
             const hasAnyLink = hasLocalUrls || isKvCard || ltMeaningful;
 
             if (cardId && hasAnyLink) {
