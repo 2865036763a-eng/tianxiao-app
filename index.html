@@ -3579,6 +3579,28 @@ function stripCompactCardElements() {
         if (thumb) thumb.remove();
         if (preview) preview.remove();
         if (hint) hint.remove();
+
+        // 保存前：把 slider-track 里的图片移回 slider-box，删除 track
+        // 同时重置 slideIdx，确保下次打开从第一张开始
+        const sliderBox = card.querySelector('.slider-box');
+        if (sliderBox) {
+            const track = sliderBox.querySelector('.slider-track');
+            if (track) {
+                // 把 img 移回 slider-box（track 之前的位置）
+                const imgs = Array.from(track.querySelectorAll('img'));
+                imgs.forEach((img, i) => {
+                    img.classList.toggle('active', i === 0); // 第一张设为 active
+                    sliderBox.insertBefore(img, track);
+                });
+                track.remove();
+            }
+            // 重置索引属性
+            delete sliderBox.dataset.slideIdx;
+            // 修正 img-index 显示
+            const indexTag = sliderBox.querySelector('.img-index');
+            const imgCount = sliderBox.querySelectorAll('img').length;
+            if (indexTag) indexTag.textContent = '1 / ' + imgCount;
+        }
     });
 }
 
