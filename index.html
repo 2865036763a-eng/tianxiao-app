@@ -3874,7 +3874,7 @@ function addLinkJumpButtons() {
                 btn.textContent = '🔗 获取链接';
                 // 标签含"说明"时，非管理员模式隐藏此按钮
                 const tagsText = card.querySelector('.g-tags') ? card.querySelector('.g-tags').textContent : '';
-                if (tagsText.includes('说明') && !isEditMode) {
+                if (tagsText.includes('说明') && !document.body.classList.contains('admin-mode')) {
                     btn.style.display = 'none';
                 }
                 btn.addEventListener('click', async function(e) {
