@@ -1269,6 +1269,84 @@
     background: rgba(10, 10, 10, 0.22) !important;
 }
 
+
+/* === 极致透明夜间模式：背景图清晰可见，不再只有模糊黑块 === */
+[data-theme="dark"] .card{
+    background: rgba(12, 6, 10, 0.14) !important;
+    backdrop-filter: blur(6px) saturate(125%) !important;
+    -webkit-backdrop-filter: blur(6px) saturate(125%) !important;
+    border: 1px solid rgba(255,182,210,0.14) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.10) !important;
+}
+
+[data-theme="dark"] .card-preview,
+[data-theme="dark"] .info-box,
+[data-theme="dark"] .desc-wrap,
+[data-theme="dark"] .link-wrap{
+    background: rgba(18, 8, 14, 0.08) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    border-color: rgba(255,182,210,0.08) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="dark"] .card-thumb{
+    background: rgba(10, 6, 10, 0.05) !important;
+    border-right-color: rgba(255,182,210,0.08) !important;
+}
+
+[data-theme="dark"] .slider-box{
+    background: rgba(0,0,0,0.08) !important;
+}
+
+/* 防止 preview 区额外遮罩太重 */
+[data-theme="dark"] .card-preview{
+    background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.12) 0%,
+        rgba(0,0,0,0.03) 100%
+    ) !important;
+}
+
+
+/* === 修复：夜间模式切换后卡片变小 === */
+/* 原因通常是 border / box-shadow / transform / backdrop-filter 导致视觉缩小 */
+
+/* 保持卡片尺寸完全一致 */
+.card,
+[data-theme="dark"] .card{
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-height: inherit !important;
+    transform: none !important;
+}
+
+/* 紧凑模式高度强制一致 */
+.card:not(.card-expanded),
+[data-theme="dark"] .card:not(.card-expanded){
+    height: 125px !important;
+}
+
+/* 缩略图区尺寸固定 */
+.card-thumb,
+[data-theme="dark"] .card-thumb{
+    width: 155px !important;
+    height: 125px !important;
+    flex-shrink: 0 !important;
+}
+
+/* 防止 hover/transition 导致夜间视觉缩放 */
+[data-theme="dark"] .card.active-render:not(.card-expanded):hover{
+    transform: none !important;
+}
+
+/* 防止 backdrop-filter 造成视觉收缩 */
+[data-theme="dark"] .card-preview,
+[data-theme="dark"] .info-box{
+    min-height: auto !important;
+    width: auto !important;
+}
+
 </style>
 <style>
         @keyframes pulse {
