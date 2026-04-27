@@ -3639,11 +3639,8 @@ function handleTagPaste(event) {
 function handlePlainPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text/plain');
-    // 保留换行，其他格式全清
-    const clean = text.replace(/
-/g, '\n').replace(/
-/g, '\n');
-    document.execCommand('insertText', false, clean);
+    // 只保留纯文字，丢弃所有富文本格式
+    document.execCommand('insertText', false, text);
     autoSave();
 }
 
