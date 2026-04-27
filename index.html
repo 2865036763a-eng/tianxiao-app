@@ -1238,6 +1238,37 @@
     color: rgba(255,210,230,0.60) !important;
 }
 
+
+/* === 更强透明度：紧凑卡片真正能透出背景图 === */
+[data-theme="dark"] .card{
+    background: rgba(18, 8, 16, 0.32) !important;
+    backdrop-filter: blur(18px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+    border: 1px solid rgba(255,102,153,0.18) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18) !important;
+}
+
+[data-theme="dark"] .card-preview,
+[data-theme="dark"] .info-box,
+[data-theme="dark"] .desc-wrap,
+[data-theme="dark"] .link-wrap{
+    background: rgba(24, 10, 20, 0.22) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-color: rgba(255,102,153,0.12) !important;
+}
+
+/* 缩略图区也不能太死黑 */
+[data-theme="dark"] .card-thumb{
+    background: rgba(20, 10, 18, 0.18) !important;
+    border-right-color: rgba(255,102,153,0.12) !important;
+}
+
+/* 图片容器弱化纯黑底 */
+[data-theme="dark"] .slider-box{
+    background: rgba(10, 10, 10, 0.22) !important;
+}
+
 </style>
 <style>
         @keyframes pulse {
