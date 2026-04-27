@@ -14,7 +14,7 @@
     <title>天笑の窝</title>
     <style>
         /* ============================================================
-           🌸 像素二次元主题 - 天笑の秘密基地
+           🌸 像素二次元主题 - 天笑の窝
            PixelMplus / 点阵装饰风格
         ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
@@ -60,12 +60,14 @@
         }
         [data-theme="dark"] main { background: transparent; }
         [data-theme="dark"] .card {
-            background: rgba(28,12,24,0.85) !important;
-            border-color: rgba(255,102,153,0.25) !important;
-            box-shadow: 3px 3px 0 rgba(255,102,153,0.15) !important;
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         [data-theme="dark"] .card.is-pinned { border-color: #ff9800 !important; }
-        [data-theme="dark"] .info-box { background: rgba(0,0,0,0.3) !important; }
+        [data-theme="dark"] .info-box { background: rgba(0,0,0,0.18) !important; }
         [data-theme="dark"] .g-name {
             color: #ffd0e8 !important;
             text-shadow: 0 1px 4px rgba(0,0,0,0.9);
@@ -75,6 +77,7 @@
             background: rgba(255,102,153,0.1);
             border-color: rgba(255,102,153,0.3);
             color: #ffb3cc;
+            box-shadow: none;
         }
         [data-theme="dark"] .tag-prefix { color: rgba(255,180,210,0.5); }
         [data-theme="dark"] .desc-wrap {
@@ -166,7 +169,7 @@
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
         [data-theme="dark"] .card-preview {
-            background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 100%);
+            background: linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 100%);
         }
         [data-theme="dark"] .direct-dl-edit input {
             background: #2a0f20;
@@ -665,7 +668,8 @@
         /* 默认折叠状态 - 紧凑模式 */
         .card:not(.card-expanded) {
             flex-direction: row;
-            height: 120px;
+            min-height: 120px;
+            height: auto;
         }
         
         /* 展开状态 - 完整模式 */
@@ -703,7 +707,8 @@
         /* 紧凑模式的缩略图 */
         .card-thumb {
             width: 155px;
-            height: 120px;
+            min-height: 120px;
+            align-self: stretch;
             flex-shrink: 0;
             background: linear-gradient(135deg, #ffd6e8, #ffe8f2);
             position: relative;
@@ -1508,6 +1513,23 @@
     }
     .next { border-radius: 6px 0 0 6px !important; }
 
+
+    /* 夜间模式额外修复 */
+    [data-theme="dark"] .card-preview-tags .pt {
+        border-color: rgba(255,102,153,0.3) !important;
+        background: rgba(255,102,153,0.08) !important;
+        box-shadow: none !important;
+    }
+    [data-theme="dark"] .tag-pill {
+        box-shadow: none !important;
+    }
+    /* 夜间link-wrap透明 */
+    [data-theme="dark"] .link-wrap {
+        background: rgba(0,0,0,0.25) !important;
+    }
+    [data-theme="dark"] .info-box {
+        background: rgba(0,0,0,0.18) !important;
+    }
 </style>
 </head>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -1870,7 +1892,7 @@ function cancelTurnstile() {
 })();
 // ================================
 
-const ACCESS_PASS = "350234"; 
+const ACCESS_PASS = "tianxiao"; 
 // 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 30;
 const FAV_KEY = "TX_FAVORITES";
