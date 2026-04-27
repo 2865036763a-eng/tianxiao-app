@@ -1510,7 +1510,26 @@
 
 </style>
 </head>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
+// === 删除图片索引修复：删除第N张后自动回退到前一张，防止黑屏 ===
+function __safeFixDeleteImage(card){
+    if (!card || !Array.isArray(card.images)) return;
+    let currentIndex = Number(card.currentIndex || 0);
+
+    if (card.images.length === 0) {
+        card.currentIndex = 0;
+        if (typeof updateBackground === 'function') updateBackground(null);
+        return;
+    }
+
+    if (currentIndex >= card.images.length) {
+        currentIndex = Math.max(0, card.images.length - 1);
+    }
+
+    card.currentIndex = currentIndex;
+}
+
+</script>
 <body class="view-mode">
 
 <div id="gateKeeper" style="display: flex;">
@@ -3694,10 +3713,15 @@ function delImgSlot(btn) {
     const activeImg = box.querySelector('img.active');
     const allImgs = Array.from(imgs);
     const idx = allImgs.indexOf(activeImg);
-    // 切换到前一张或后一张
+    // 删除后跳到前一张，如果是第一张则跳到新的第一张
     const nextIdx = idx > 0 ? idx - 1 : 1;
     allImgs[nextIdx].classList.add('active');
     activeImg.remove();
+    // 同步更新 slideIdx 为新 active 图片的实际位置
+    const remainImgs = Array.from(box.querySelectorAll('img'));
+    const newActiveImg = box.querySelector('img.active');
+    box.dataset.slideIdx = remainImgs.indexOf(newActiveImg);
+    updateSliderTrack(box);
     updateImgIndex(box);
     autoSave();
 }
