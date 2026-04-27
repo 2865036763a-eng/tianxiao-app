@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="天笑の窝">
+    <meta name="apple-mobile-web-app-title" content="天笑秘密基地">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ff6699">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuWkqeesuOOBrue6geWvhuWfuuWcsyIsCiAgInNob3J0X25hbWUiOiAi5aSp56yY5Z+65ZywIiwKICAic3RhcnRfdXJsIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmNjY5OSIsCiAgImRlc2NyaXB0aW9uIjogIuWkqeesuOOBrue6geWvhuWfuuWcsyAtIOa4uOaIj+S4k+WxnuWIhuS6q+W5s+WPsCIsCiAgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0l4TWpnaUlHaGxhV2RvZEQwaU1USTRJajQ4Y21WamRDQjNhV1IwYUQwaU1USTRJaUJvWldsbmFIUTlJakV5T0NJZ2NuZzlJakl3SWlCbWFXeHNQU0lqWm1ZMk5qazVJaTgrUEM5eVpXTjBQangwWlhoMElIZzlJall5SWlCNVBTSTJOQ0lnWm05dWRDMXphWHBsUFNJME1DSWdabWxzYkQwaUkyWm1abVptWmlJK/CfjIY8TDNSbGVIUStQQzl6ZG1jKyIsCiAgICAgICJzaXplcyI6ICIxMjh4MTI4IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsCiAgICAgICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIKICAgIH0KICBdCn0=">
@@ -60,14 +60,12 @@
         }
         [data-theme="dark"] main { background: transparent; }
         [data-theme="dark"] .card {
-            background: transparent !important;
-            border-color: transparent !important;
-            box-shadow: none !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
+            background: rgba(28,12,24,0.85) !important;
+            border-color: rgba(255,102,153,0.25) !important;
+            box-shadow: 3px 3px 0 rgba(255,102,153,0.15) !important;
         }
         [data-theme="dark"] .card.is-pinned { border-color: #ff9800 !important; }
-        [data-theme="dark"] .info-box { background: rgba(0,0,0,0.18) !important; }
+        [data-theme="dark"] .info-box { background: rgba(0,0,0,0.3) !important; }
         [data-theme="dark"] .g-name {
             color: #ffd0e8 !important;
             text-shadow: 0 1px 4px rgba(0,0,0,0.9);
@@ -77,7 +75,6 @@
             background: rgba(255,102,153,0.1);
             border-color: rgba(255,102,153,0.3);
             color: #ffb3cc;
-            box-shadow: none;
         }
         [data-theme="dark"] .tag-prefix { color: rgba(255,180,210,0.5); }
         [data-theme="dark"] .desc-wrap {
@@ -169,7 +166,7 @@
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
         [data-theme="dark"] .card-preview {
-            background: linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 100%);
+            background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 100%);
         }
         [data-theme="dark"] .direct-dl-edit input {
             background: #2a0f20;
@@ -668,8 +665,7 @@
         /* 默认折叠状态 - 紧凑模式 */
         .card:not(.card-expanded) {
             flex-direction: row;
-            min-height: 120px;
-            height: auto;
+            height: 120px;
         }
         
         /* 展开状态 - 完整模式 */
@@ -707,8 +703,7 @@
         /* 紧凑模式的缩略图 */
         .card-thumb {
             width: 155px;
-            min-height: 120px;
-            align-self: stretch;
+            height: 120px;
             flex-shrink: 0;
             background: linear-gradient(135deg, #ffd6e8, #ffe8f2);
             position: relative;
@@ -1513,23 +1508,6 @@
     }
     .next { border-radius: 6px 0 0 6px !important; }
 
-
-    /* 夜间模式额外修复 */
-    [data-theme="dark"] .card-preview-tags .pt {
-        border-color: rgba(255,102,153,0.3) !important;
-        background: rgba(255,102,153,0.08) !important;
-        box-shadow: none !important;
-    }
-    [data-theme="dark"] .tag-pill {
-        box-shadow: none !important;
-    }
-    /* 夜间link-wrap透明 */
-    [data-theme="dark"] .link-wrap {
-        background: rgba(0,0,0,0.25) !important;
-    }
-    [data-theme="dark"] .info-box {
-        background: rgba(0,0,0,0.18) !important;
-    }
 </style>
 </head>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
