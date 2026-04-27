@@ -1199,7 +1199,46 @@
         #imagePreviewModal img { max-width: 95%; max-height: 95%; object-fit: contain; }
         #imagePreviewModal .close-btn { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; }
         #imagePreviewModal .close-btn:active { background: rgba(255,255,255,0.4); }
-    </style>
+    
+/* === 夜间模式玻璃卡片修复：避免纯黑，改为黑色半透明玻璃质感 === */
+[data-theme="dark"] .card{
+    background: rgba(22, 12, 20, 0.58) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid rgba(255,102,153,0.22) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.28) !important;
+}
+
+[data-theme="dark"] .card-preview,
+[data-theme="dark"] .info-box,
+[data-theme="dark"] .desc-wrap,
+[data-theme="dark"] .link-wrap{
+    background: rgba(28, 14, 24, 0.42) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-color: rgba(255,102,153,0.16) !important;
+    box-shadow: none !important;
+}
+
+/* 紧凑模式标签 */
+[data-theme="dark"] .card-preview-tags,
+[data-theme="dark"] .g-tags{
+    color: #ffc3d8 !important;
+}
+
+[data-theme="dark"] .card-preview-tags .pt,
+[data-theme="dark"] .tag-pill{
+    background: rgba(255,102,153,0.10) !important;
+    border: 1px solid rgba(255,179,204,0.35) !important;
+    color: #ffd2e3 !important;
+    box-shadow: none !important;
+}
+
+[data-theme="dark"] .tag-prefix{
+    color: rgba(255,210,230,0.60) !important;
+}
+
+</style>
 <style>
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
