@@ -1428,6 +1428,120 @@
     ) !important;
 }
 
+
+/* === 修复：日夜模式切换时游戏标签大小变化 === */
+/* 统一以夜间模式尺寸为准，包含 padding + border + line-height */
+
+.tag-pill,
+[data-theme="dark"] .tag-pill,
+.card-preview-tags .pt,
+[data-theme="dark"] .card-preview-tags .pt{
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-height: 30px !important;
+    height: 30px !important;
+    padding: 0 12px !important;
+
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-radius: 999px !important;
+
+    font-size: 13px !important;
+    line-height: 26px !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+}
+
+/* 前缀文字避免跟着跳 */
+.tag-prefix,
+[data-theme="dark"] .tag-prefix{
+    line-height: 30px !important;
+}
+
+/* 管理员模式标签区域也保持一致 */
+.g-tags,
+[data-theme="dark"] .g-tags{
+    min-height: 30px !important;
+}
+
+
+/* === 修复：标签尺寸过大，精准同步为原夜间模式尺寸（不是放大） === */
+/* 仅让日间模式匹配夜间模式原本大小，不再整体放大 */
+
+.tag-pill,
+[data-theme="dark"] .tag-pill,
+.card-preview-tags .pt,
+[data-theme="dark"] .card-preview-tags .pt{
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+
+    /* 使用原夜间模式的正常尺寸 */
+    height: 24px !important;
+    min-height: 24px !important;
+    padding: 0 10px !important;
+
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-radius: 999px !important;
+
+    font-size: 12px !important;
+    line-height: 20px !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+}
+
+.tag-prefix,
+[data-theme="dark"] .tag-prefix{
+    line-height: 24px !important;
+}
+
+.g-tags,
+[data-theme="dark"] .g-tags{
+    min-height: 24px !important;
+}
+
+
+/* === 标签尺寸还原：严格贴近原夜间模式，不再偏大 === */
+/* 进一步缩回到原始夜间模式视觉尺寸 */
+
+.tag-pill,
+[data-theme="dark"] .tag-pill,
+.card-preview-tags .pt,
+[data-theme="dark"] .card-preview-tags .pt{
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    height: 20px !important;
+    min-height: 20px !important;
+    padding: 0 8px !important;
+
+    font-size: 11px !important;
+    line-height: 16px !important;
+
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-radius: 999px !important;
+
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+}
+
+.tag-prefix,
+[data-theme="dark"] .tag-prefix{
+    line-height: 20px !important;
+}
+
+.g-tags,
+[data-theme="dark"] .g-tags{
+    min-height: 20px !important;
+}
+
 </style>
 <style>
         @keyframes pulse {
