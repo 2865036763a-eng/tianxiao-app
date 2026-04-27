@@ -1347,6 +1347,87 @@
     width: auto !important;
 }
 
+
+/* === 修复：日夜模式边框厚度不一致导致卡片微小变化 === */
+/* 白天原本多处是 2px，夜间部分被覆盖成 1px，切换时会产生尺寸变化 */
+
+.card,
+[data-theme="dark"] .card{
+    box-sizing: border-box !important;
+    border-width: 2px !important;   /* 强制统一边框厚度 */
+    border-style: solid !important;
+}
+
+/* 紧凑模式缩略图区右侧边框也统一 */
+.card-thumb,
+[data-theme="dark"] .card-thumb{
+    box-sizing: border-box !important;
+    border-right-width: 2px !important;
+    border-right-style: solid !important;
+}
+
+/* 简介 / 信息 / 链接区域边框保持一致 */
+[data-theme="dark"] .info-box,
+[data-theme="dark"] .desc-wrap,
+[data-theme="dark"] .link-wrap{
+    box-sizing: border-box !important;
+    border-width: 2px !important;
+}
+
+/* 防止夜间模式单独覆盖成细边框 */
+[data-theme="dark"] .tag-pill{
+    border-width: 2px !important;
+}
+
+
+/* === 夜间模式：卡片改为左→右渐变玻璃透明效果 === */
+/* 左侧稍深保证文字可读，右侧更透明让背景图明显透出 */
+
+[data-theme="dark"] .card{
+    background: linear-gradient(
+        to right,
+        rgba(18, 8, 16, 0.34) 0%,
+        rgba(18, 8, 16, 0.20) 45%,
+        rgba(18, 8, 16, 0.10) 75%,
+        rgba(18, 8, 16, 0.05) 100%
+    ) !important;
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+}
+
+/* 紧凑模式右侧信息区更透明 */
+[data-theme="dark"] .card-preview{
+    background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.16) 0%,
+        rgba(0,0,0,0.08) 55%,
+        rgba(0,0,0,0.03) 100%
+    ) !important;
+}
+
+/* 展开后的内容区同步渐变 */
+[data-theme="dark"] .info-box,
+[data-theme="dark"] .desc-wrap,
+[data-theme="dark"] .link-wrap{
+    background: linear-gradient(
+        to right,
+        rgba(24, 10, 20, 0.20) 0%,
+        rgba(24, 10, 20, 0.12) 60%,
+        rgba(24, 10, 20, 0.06) 100%
+    ) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+}
+
+/* 缩略图区保持轻微暗色，不死黑 */
+[data-theme="dark"] .card-thumb{
+    background: linear-gradient(
+        to right,
+        rgba(14, 8, 14, 0.18) 0%,
+        rgba(14, 8, 14, 0.08) 100%
+    ) !important;
+}
+
 </style>
 <style>
         @keyframes pulse {
