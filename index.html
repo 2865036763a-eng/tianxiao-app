@@ -1745,6 +1745,8 @@ async function loadFromGrave() {
                     document.querySelectorAll('.slider-box').forEach(function(b) {
                         initSliderTrack(b);
                     });
+                    // 🧹 清理粘贴带入的富文本 inline style
+                    stripInlineStyles();
                     
                     // ✨ v3.4.0：从云端恢复轮播图配置
                     if (content.banner && Array.isArray(content.banner)) {
@@ -2941,7 +2943,10 @@ function enterAdmin() {
         if (delBtn) delBtn.onclick = function() { deleteCard(this); };
     });
 
-    document.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+    document.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => {
+        el.contentEditable = "true";
+        el.onpaste = handlePlainPaste;
+    });
     // g-tags 单独处理：只让标签内容可编辑，"标签:"前缀不可删除
     document.querySelectorAll(".g-tags").forEach(el => {
         el.contentEditable = "true";
@@ -3070,7 +3075,10 @@ function addCard() {
     
     // 🔒 安全修复：仅在管理员模式下设置为可编辑
     if (isEditMode) {
-        div.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => el.contentEditable = "true");
+        div.querySelectorAll(".g-name, .link-text, .desc-text").forEach(el => {
+            el.contentEditable = "true";
+            el.onpaste = handlePlainPaste;
+        });
         div.querySelectorAll(".g-tags").forEach(el => {
             el.contentEditable = "true";
             el.addEventListener('keydown', function(e) {
@@ -3561,6 +3569,16 @@ function ensureDescriptionAreas() {
 // card-thumb / card-preview / card-close-hint 是运行时生成的，不能存入云端
 // 否则下次加载时 generateCompactCardHTML 会因检测到已存在而跳过重新生成，
 // 导致缩略图/标签内容错误（保存时可能是空值或旧值）
+// 清理粘贴带入的富文本格式（font、span with style、color 等）
+function stripInlineStyles() {
+    document.querySelectorAll('.g-name, .desc-text, .g-tags').forEach(el => {
+        // 如果有子元素（说明有富文本），提取纯文字替换
+        if (el.children.length > 0) {
+            el.textContent = el.textContent;
+        }
+    });
+}
+
 function stripCompactCardElements() {
     document.querySelectorAll('.card').forEach(card => {
         const thumb = card.querySelector('.card-thumb');
@@ -3614,6 +3632,18 @@ function handleTagPaste(event) {
     // 如果不是以"标签:"开头，自动添加
     const finalText = cleanText.startsWith('标签:') ? cleanText : `标签: ${cleanText}`;
     document.execCommand('insertText', false, finalText);
+    autoSave();
+}
+
+// 通用纯文本粘贴：清除 inline style/font/color，只保留纯文字
+function handlePlainPaste(event) {
+    event.preventDefault();
+    const text = (event.clipboardData || window.clipboardData).getData('text/plain');
+    // 保留换行，其他格式全清
+    const clean = text.replace(/
+/g, '\n').replace(/
+/g, '\n');
+    document.execCommand('insertText', false, clean);
     autoSave();
 }
 
