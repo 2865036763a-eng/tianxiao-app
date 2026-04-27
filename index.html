@@ -1741,6 +1741,8 @@ async function loadFromGrave() {
 
                     // ✨ 重置所有卡片UI状态：收起展开、图片回第一张
                     resetAllCardStates();
+                    // 🧹 清理粘贴带入的富文本 inline style（不破坏文字结构）
+                    stripInlineStyles();
                     // 🖼️ 预初始化所有 slider 结构（不 update，避免 clientWidth=0）
                     document.querySelectorAll('.slider-box').forEach(function(b) {
                         initSliderTrack(b);
@@ -3579,6 +3581,32 @@ function stripInlineStyles() {
     });
 }
 
+// 清理粘贴带入的富文本格式（保留文字结构，只去除 inline style/font/color 标签）
+function stripInlineStyles() {
+    document.querySelectorAll('.g-name, .desc-text').forEach(el => {
+        if (el.children.length === 0) return;
+        // 递归清除所有子元素的 style 属性，并把 font/span 标签展平
+        function cleanNode(node) {
+            Array.from(node.children).forEach(child => {
+                child.removeAttribute('style');
+                child.removeAttribute('color');
+                child.removeAttribute('size');
+                child.removeAttribute('face');
+                // 把无语义的 span/font/b/i/u 展平为文字节点
+                if (['SPAN','FONT','B','I','U','STRONG','EM'].includes(child.tagName)) {
+                    cleanNode(child);
+                    // 把子节点移到父节点，删除空壳
+                    while (child.firstChild) child.parentNode.insertBefore(child.firstChild, child);
+                    child.remove();
+                } else {
+                    cleanNode(child);
+                }
+            });
+        }
+        cleanNode(el);
+    });
+}
+
 function stripCompactCardElements() {
     document.querySelectorAll('.card').forEach(card => {
         const thumb = card.querySelector('.card-thumb');
@@ -4078,7 +4106,7 @@ function getDomTextWithNewlines(el) {
 // 提取URL并附带上下文说明（前面一行的非URL文字）
 // 修复：同一行有多个URL时全部提取，不只取第一个
 function extractUrlsWithContext(text) {
-    const urlRe = /https?:\/\/[A-Za-z0-9\-._~:\/?#\[\]@!$&'()*+,;=%]+/g;
+    const urlRe = /https?:\/\/[^\s<>"']+/g;
     const lines = text.split(/\n|<br\s*\/?>/i);
     const result = [];
     let pendingLabel = '';
@@ -4086,24 +4114,39 @@ function extractUrlsWithContext(text) {
     lines.forEach(line => {
         const cleanLine = line.replace(/<[^>]+>/g, '').trim();
         const allMatches = [...cleanLine.matchAll(urlRe)];
+
         if (allMatches.length > 0) {
             allMatches.forEach((m, mi) => {
-                const rawUrl = m[0].replace(/[,\uff0c\u3002.;\uff1b!\uff01?\uff1f\)\uff09\]\u300b}>\u300b\u203a'"]+$/, '');
-                try {
-                    const urlObj = new URL(rawUrl);
-                    if (!urlObj.hostname.includes('.')) return;
-                    const before = mi === 0
-                        ? cleanLine.substring(0, m.index).replace(/https?:\/\/\S+/g, '').trim()
-                        : '';
-                    const label = mi === 0 ? (pendingLabel || before || '').trim() : '';
-                    const afterStart = m.index + m[0].length;
-                    const nextMatch = allMatches[mi + 1];
-                    const afterEnd = nextMatch ? nextMatch.index : cleanLine.length;
-                    const extra = cleanLine.substring(afterStart, afterEnd)
-                        .replace(/https?:\/\/\S+/g, '').trim();
-                    result.push({ url: rawUrl, label, extra });
-                } catch(e) {}
+                let rawUrl = (m[0] || '').trim();
+
+                // 仅去掉末尾常见中文/英文标点，不做过度过滤
+                rawUrl = rawUrl.replace(/[，。；;！!？?）)】\]>'"”、]+$/g, '');
+
+                if (!/^https?:\/\//i.test(rawUrl)) return;
+
+                const before = mi === 0
+                    ? cleanLine.substring(0, m.index).replace(/https?:\/\/\S+/g, '').trim()
+                    : '';
+
+                const label = mi === 0
+                    ? (pendingLabel || before || '').trim()
+                    : '';
+
+                const afterStart = m.index + m[0].length;
+                const nextMatch = allMatches[mi + 1];
+                const afterEnd = nextMatch ? nextMatch.index : cleanLine.length;
+
+                const extra = cleanLine.substring(afterStart, afterEnd)
+                    .replace(/https?:\/\/\S+/g, '')
+                    .trim();
+
+                result.push({
+                    url: rawUrl,
+                    label,
+                    extra
+                });
             });
+
             pendingLabel = '';
         } else if (cleanLine) {
             pendingLabel = cleanLine;
@@ -4112,7 +4155,7 @@ function extractUrlsWithContext(text) {
 
     const seen = new Set();
     return result.filter(item => {
-        if (seen.has(item.url)) return false;
+        if (!item.url || seen.has(item.url)) return false;
         seen.add(item.url);
         return true;
     });
