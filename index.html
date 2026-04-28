@@ -3860,7 +3860,14 @@ function editCurrentImg(btn) {
 // 管理员：追加一张新图到末尾，并滑动过去
 function addImgSlot(btn) {
     const box = btn.parentElement;
-    const track = box.querySelector('.slider-track') || box;
+
+    // 必须先确保 slider-track 已初始化
+    // 否则新图加到 box 上，下次 changeSlide 检测 isNew=true，
+    // 调 initSliderTrack 重置 slideIdx=0，导致切图时多走一步
+    if (!box.querySelector('.slider-track')) {
+        initSliderTrack(box);
+    }
+    const track = box.querySelector('.slider-track');
 
     const newImg = document.createElement('img');
     newImg.loading = 'lazy';
