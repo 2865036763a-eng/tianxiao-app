@@ -396,13 +396,6 @@
             z-index: 100;
             position: relative;
         }
-        /* 宽屏下约束 header 内容居中，与 .grid 的 max-width:550px 对齐 */
-        header > *:not(.px-title-bar) {
-            max-width: 550px;
-            margin-left: auto;
-            margin-right: auto;
-            box-sizing: border-box;
-        }
         #adminBar {
             max-width: 550px;
             margin-left: auto !important;
@@ -687,7 +680,7 @@
         /* 默认折叠状态 - 紧凑模式 */
         .card:not(.card-expanded) {
             flex-direction: row;
-            height: 125px;
+            height: 126px;
         }
         
         /* 展开状态 - 完整模式 */
@@ -725,7 +718,7 @@
         /* 紧凑模式的缩略图 */
         .card-thumb {
             width: 155px;
-            height: 125px;
+            height: 126px;
             flex-shrink: 0;
             background: linear-gradient(135deg, #ffd6e8, #ffe8f2);
             position: relative;
@@ -780,7 +773,7 @@
             align-items: center;
         }
         .card-preview-tags .pt {
-            border: 1px solid var(--primary);
+            border: 2px solid var(--primary);
             border-radius: 10px;
             padding: 1px 7px;
             white-space: nowrap;
@@ -1228,7 +1221,7 @@
     background: rgba(22, 12, 20, 0.58) !important;
     backdrop-filter: blur(14px) !important;
     -webkit-backdrop-filter: blur(14px) !important;
-    border: 1px solid rgba(255,102,153,0.22) !important;
+    border: 2px solid rgba(255,102,153,0.22) !important;
     box-shadow: 0 8px 24px rgba(0,0,0,0.28) !important;
 }
 
@@ -1252,7 +1245,7 @@
 [data-theme="dark"] .card-preview-tags .pt,
 [data-theme="dark"] .tag-pill{
     background: rgba(255,102,153,0.10) !important;
-    border: 1px solid rgba(255,179,204,0.35) !important;
+    border: 2px solid rgba(255,179,204,0.35) !important;
     color: #ffd2e3 !important;
     box-shadow: none !important;
 }
@@ -1267,7 +1260,7 @@
     background: rgba(18, 8, 16, 0.32) !important;
     backdrop-filter: blur(18px) saturate(140%) !important;
     -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
-    border: 1px solid rgba(255,102,153,0.18) !important;
+    border: 2px solid rgba(255,102,153,0.18) !important;
     box-shadow: 0 10px 30px rgba(0,0,0,0.18) !important;
 }
 
@@ -1298,7 +1291,7 @@
     background: rgba(12, 6, 10, 0.14) !important;
     backdrop-filter: blur(6px) saturate(125%) !important;
     -webkit-backdrop-filter: blur(6px) saturate(125%) !important;
-    border: 1px solid rgba(255,182,210,0.14) !important;
+    border: 2px solid rgba(255,182,210,0.14) !important;
     box-shadow: 0 6px 18px rgba(0,0,0,0.10) !important;
 }
 
@@ -1704,12 +1697,12 @@ function __safeFixDeleteImage(card){
         <div class="sidebar-burger" onclick="openSidebar()">☰</div>
         <div class="site-title">天笑の窝</div>
     </div>
-    <div class="search-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px 0 14px;max-width:550px;margin-left:auto;margin-right:auto;">
+    <div class="search-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px 0 14px;">
         <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1); checkSearchEgg(this.value)" style="margin-bottom:0;flex:1;">
         <button id="filterBtn" onclick="openFilterPanel()" style="flex-shrink:0;padding:9px 14px;border:1px solid rgba(255,255,255,0.5);border-radius:10px;background:rgba(255,255,255,0.35);color:#333;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:all 0.2s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="设置屏蔽标签">🚫 过滤</button>
     </div>
     <div id="filterTagsBar" style="display:none;flex-wrap:wrap;gap:6px;padding:0 14px 8px 14px;"></div>
-    <div id="nav" style="padding-left:14px;padding-right:14px;max-width:550px;margin-left:auto;margin-right:auto;">
+    <div id="nav" style="padding-left:14px;padding-right:14px;">
         <!-- 由 renderNav() 动态生成 -->
     </div>
     <div id="adminBar" style="display: none;">
