@@ -2772,21 +2772,20 @@ function refreshUI(targetPage) {
         return matchCat && matchSearch;
     });
 
-    // 2. ✨ 核心排序修复：使用 Array.sort 重新确定数组顺序
+    // 2. 排序：置顶卡片按置顶时间戳降序（最新置顶的排最前），非置顶按原顺序
     filtered.sort((a, b) => {
-        const aP = a.classList.contains("is-pinned") ? 1 : 0;
-        const bP = b.classList.contains("is-pinned") ? 1 : 0;
-        return bP - aP; // 置顶权重最高
+        const aP = a.classList.contains("is-pinned");
+        const bP = b.classList.contains("is-pinned");
+        if (aP && bP) {
+            // 两张都置顶：pinTime 越大（越晚置顶）越靠前
+            return (b.dataset.pinTime || 0) - (a.dataset.pinTime || 0);
+        }
+        return bP - aP; // 置顶 > 非置顶
     });
 
-    // 3. ✨ 关键步骤：根据排序结果，动态给 DOM 元素分配 order 权重
-    // 强制置顶的 order 为极小值，普通卡片按照它们在数组中的顺序分配递增的 order
+    // 3. 按排序结果分配 order
     filtered.forEach((card, index) => {
-        if (card.classList.contains("is-pinned")) {
-            card.style.order = "-1000"; // 绝对置顶
-        } else {
-            card.style.order = index; // 保持过滤后的自然顺序
-        }
+        card.style.order = index;
     });
 
     allCards.forEach(c => c.classList.remove("active-render"));
@@ -3587,8 +3586,13 @@ function exitAdmin() {
 
 function togglePin(btn) {
     const card = btn.parentElement;
-    card.classList.toggle("is-pinned");
-    // ✨ 核心修复：点击置顶后立刻重排 order 权重
+    const isPinned = card.classList.toggle("is-pinned");
+    if (isPinned) {
+        // 置顶时记录时间戳，越新置顶的数值越大
+        card.dataset.pinTime = Date.now();
+    } else {
+        delete card.dataset.pinTime;
+    }
     refreshUI();
     autoSave();
 }
