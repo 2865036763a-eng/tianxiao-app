@@ -396,6 +396,18 @@
             z-index: 100;
             position: relative;
         }
+        /* 宽屏下约束 header 内容居中，与 .grid 的 max-width:550px 对齐 */
+        header > *:not(.px-title-bar) {
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+        #adminBar {
+            max-width: 550px;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
 
         /* 顶部标题栏 - 像素装饰带 */
         .px-title-bar {
@@ -408,6 +420,16 @@
             position: relative;
             overflow: hidden;
             margin-bottom: 0;
+            max-width: 100%;
+        }
+        /* 标题栏内容区宽屏居中 */
+        .px-title-bar-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 550px;
+            margin: 0 auto;
+            width: 100%;
         }
         .px-title-bar::before {
             content: '';
@@ -1117,10 +1139,11 @@
         }
         .sidebar-burger:active { background: rgba(255,102,153,0.1); }
 
-        #adminBar { margin-top: 10px; display: none; gap: 10px; padding-top: 12px; border-top: 1px solid #eee; flex-wrap: wrap; }
-        #adminBar button { flex: 1; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 10px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; min-width: calc(33% - 7px); box-shadow: 2px 2px 0 rgba(0,0,0,0.15); font-size: 12px; }
+        #adminBar { margin-top: 10px; display: none; padding-top: 12px; border-top: 1px solid #eee; width: 100%; box-sizing: border-box; }
+        #adminBarBtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 550px; margin: 0 auto; width: 100%; box-sizing: border-box; padding: 0 14px; justify-content: center; }
+        #adminBarBtns button { flex: 1 1 calc(33.333% - 7px); min-width: calc(33.333% - 7px); max-width: calc(33.333% - 7px); cursor: pointer; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 10px; background: var(--primary); color: #fff; font-weight: bold; touch-action: manipulation; box-shadow: 2px 2px 0 rgba(0,0,0,0.15); font-size: 12px; box-sizing: border-box; }
         .btn-save { background: #28a745 !important; }
-        .btn-exit { background: #666 !important; }
+        .btn-exit { background: #666 !important; flex: 1 1 100% !important; min-width: 100% !important; max-width: 100% !important; }
 
         /* ===== 🏷️ 分类管理面板 ===== */
         #catPanel { display: none; background: #fff0f8; border: 1px dashed #ff6699; border-radius: 12px; padding: 12px; margin: 0 auto 12px auto; max-width: 550px; }
@@ -1681,28 +1704,28 @@ function __safeFixDeleteImage(card){
         <div class="sidebar-burger" onclick="openSidebar()">☰</div>
         <div class="site-title">天笑の窝</div>
     </div>
-    <div class="search-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px 0 14px;">
+    <div class="search-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 14px 0 14px;max-width:550px;margin-left:auto;margin-right:auto;">
         <input type="text" id="search" placeholder="🔍 搜搜看..." oninput="refreshUI(1); checkSearchEgg(this.value)" style="margin-bottom:0;flex:1;">
         <button id="filterBtn" onclick="openFilterPanel()" style="flex-shrink:0;padding:9px 14px;border:1px solid rgba(255,255,255,0.5);border-radius:10px;background:rgba(255,255,255,0.35);color:#333;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:all 0.2s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="设置屏蔽标签">🚫 过滤</button>
     </div>
     <div id="filterTagsBar" style="display:none;flex-wrap:wrap;gap:6px;padding:0 14px 8px 14px;"></div>
-    <div id="nav" style="padding-left:14px;padding-right:14px;">
+    <div id="nav" style="padding-left:14px;padding-right:14px;max-width:550px;margin-left:auto;margin-right:auto;">
         <!-- 由 renderNav() 动态生成 -->
     </div>
     <div id="adminBar" style="display: none;">
-        <div id="adminBarToggleRow" style="width:100%;display:flex;justify-content:center;margin-bottom:4px;">
-            <button id="adminBarToggleBtn" onclick="toggleAdminBarCollapse()" style="background:#555!important;padding:4px 20px;font-size:12px;border-radius:20px;min-width:unset;flex:unset;">▲ 收起面板</button>
+        <div id="adminBarToggleRow" style="max-width:550px;margin:0 auto 8px auto;display:flex;justify-content:center;">
+            <button id="adminBarToggleBtn" onclick="toggleAdminBarCollapse()" style="background:#555!important;padding:4px 20px;font-size:12px;border-radius:20px;min-width:unset!important;max-width:unset!important;flex:unset!important;">▲ 收起面板</button>
         </div>
         <div id="adminBarBtns">
         <button onclick="addCard()">➕ 新增</button>
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
-        <button onclick="toggleCatPanel()" style="background: #e91e63 !important;">🏷️ 分类</button>
-        <button onclick="toggleBannerEdit()" style="background: #ff9800 !important;">🖼️ 轮播图</button>
-        <button onclick="toggleShortlinkPanel()" style="background: #9c27b0 !important;">🔗 短链</button>
-        <button onclick="exportHTML()" style="background: #17a2b8 !important;">💾 导出备份</button>
-        <button onclick="migrateAllLinksToKV()" style="background: #c62828 !important;">🔒 迁移链接</button>
-        
-        <button onclick="debugCardStructure()" style="background:#333!important;">🐛 调试</button> <button onclick="clearCacheAndReload()" style="background: #ff9800 !important;">🔄 清缓存</button>
+        <button onclick="toggleCatPanel()" style="background:#e91e63!important;">🏷️ 分类</button>
+        <button onclick="toggleBannerEdit()" style="background:#ff9800!important;">🖼️ 轮播图</button>
+        <button onclick="toggleShortlinkPanel()" style="background:#9c27b0!important;">🔗 短链</button>
+        <button onclick="exportHTML()" style="background:#17a2b8!important;">💾 导出备份</button>
+        <button onclick="migrateAllLinksToKV()" style="background:#c62828!important;">🔒 迁移链接</button>
+        <button onclick="debugCardStructure()" style="background:#333!important;">🐛 调试</button>
+        <button onclick="clearCacheAndReload()" style="background:#ff9800!important;">🔄 清缓存</button>
         <button class="btn-exit" onclick="exitAdmin()">🚪 退出</button>
         </div>
     </div>
@@ -3729,10 +3752,9 @@ function initSliderTrack(box) {
     box.insertBefore(track, box.firstChild);
     box.dataset.slideIdx = '0';
     imgs[0].classList.add('active');
-    // 单张图隐藏切换按钮
     const btns = box.querySelectorAll('.slide-btn');
     btns.forEach(b => b.style.display = imgs.length <= 1 ? 'none' : '');
-    // touch 滑动支持
+    // touch 滑动：每次从 track 实时查询，避免闭包捕获旧数组
     let touchStartX = 0;
     track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
     track.addEventListener('touchend', e => {
@@ -3740,7 +3762,8 @@ function initSliderTrack(box) {
         if (Math.abs(dx) > 40) {
             const dir = dx < 0 ? 1 : -1;
             const curIdx = parseInt(box.dataset.slideIdx || '0');
-            const newIdx = Math.max(0, Math.min(imgs.length - 1, curIdx + dir));
+            const liveImgs = track.querySelectorAll('img');
+            const newIdx = Math.max(0, Math.min(liveImgs.length - 1, curIdx + dir));
             box.dataset.slideIdx = newIdx;
             updateSliderTrack(box);
         }
@@ -3755,7 +3778,6 @@ function updateSliderTrack(box) {
     imgs.forEach((img, i) => img.classList.toggle('active', i === idx));
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
-    // transform 方案：不依赖 clientWidth，直接用百分比
     track.style.transform = `translateX(${-idx * 100}%)`;
 }
 
@@ -3768,7 +3790,6 @@ function changeSlide(btn, dir) {
     let idx = parseInt(box.dataset.slideIdx || '0');
     idx = (idx + dir + imgs.length) % imgs.length;
     box.dataset.slideIdx = idx;
-    // 新初始化的 track 需要等浏览器渲染一帧才有 transition，否则第一次切换无动画
     if (isNew) {
         requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
     } else {
@@ -3779,66 +3800,147 @@ function changeSlide(btn, dir) {
 function editCurrentImg(btn) {
     const box = btn.parentElement;
     const activeImg = box.querySelector('img.active');
-    const url = prompt("🖼️ 输入图片URL:", activeImg ? activeImg.src : '');
-    if (url && url.startsWith('http')) {
-        if (activeImg) {
-            activeImg.src = url;
-            activeImg.style.visibility = '';
-            activeImg.style.opacity = '1';
-            activeImg.classList.remove('img-error');
-            delete activeImg.dataset.errorBound;
-            requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
+    // 显示当前真实URL（占位图则留空）
+    const currentSrc = (activeImg && activeImg.src && !activeImg.src.includes('via.placeholder'))
+        ? activeImg.src : '';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.cssText = 'display:flex; z-index:3000;';
+
+    const modalBox = document.createElement('div');
+    modalBox.className = 'modal-box';
+    modalBox.style.cssText = 'width:88%; max-width:400px;';
+    modalBox.onclick = e => e.stopPropagation();
+
+    const title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = '🖼️ 更换图片URL';
+    title.style.marginBottom = '14px';
+    modalBox.appendChild(title);
+
+    const inputRow = document.createElement('div');
+    inputRow.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:18px;';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'https://...';
+    input.value = currentSrc;
+    input.style.cssText = 'flex:1; padding:10px; border:2px solid var(--primary-light); border-radius:8px; font-size:14px; outline:none; margin:0; width:0; box-sizing:border-box;';
+    inputRow.appendChild(input);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = '🗑️';
+    clearBtn.title = '一键清空';
+    clearBtn.style.cssText = 'flex-shrink:0; padding:8px 10px; border:2px solid #ffb3cc; border-radius:8px; background:#fff0f5; cursor:pointer; font-size:16px; line-height:1;';
+    clearBtn.onclick = () => { input.value = ''; input.focus(); };
+    inputRow.appendChild(clearBtn);
+    modalBox.appendChild(inputRow);
+
+    const btns = document.createElement('div');
+    btns.className = 'modal-btns';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'modal-btn btn-cancel';
+    cancelBtn.textContent = '取消';
+    cancelBtn.onclick = () => document.body.removeChild(overlay);
+
+    const okBtn = document.createElement('button');
+    okBtn.className = 'modal-btn btn-confirm';
+    okBtn.textContent = '确定';
+    okBtn.onclick = () => {
+        const url = input.value.trim();
+        if (url && url.startsWith('http')) {
+            if (activeImg) {
+                activeImg.src = url;
+                activeImg.style.visibility = '';
+                activeImg.style.opacity = '1';
+                activeImg.classList.remove('img-error');
+                delete activeImg.dataset.errorBound;
+                requestAnimationFrame(() => requestAnimationFrame(() => updateSliderTrack(box)));
+            }
+            autoSave();
         }
-        autoSave();
-    }
+        document.body.removeChild(overlay);
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') okBtn.click(); });
+
+    btns.appendChild(cancelBtn);
+    btns.appendChild(okBtn);
+    modalBox.appendChild(btns);
+    overlay.appendChild(modalBox);
+    overlay.onclick = () => document.body.removeChild(overlay);
+    document.body.appendChild(overlay);
+    setTimeout(() => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 50);
 }
 
-// 管理员：在当前图后插入一张新图
+// 管理员：追加一张新图到末尾，并滑动过去
 function addImgSlot(btn) {
     const box = btn.parentElement;
     const track = box.querySelector('.slider-track') || box;
-    const activeImg = track.querySelector('img.active');
+
     const newImg = document.createElement('img');
     newImg.loading = 'lazy';
-    newImg.src = 'https://via.placeholder.com';
-    activeImg.after(newImg);
-    activeImg.classList.remove('active');
+    newImg.src = 'https://via.placeholder.com/1x1/111111/111111';
+    track.appendChild(newImg);
+
+    const prevActive = track.querySelector('img.active');
+    if (prevActive) prevActive.classList.remove('active');
     newImg.classList.add('active');
-    // 更新索引到新图
-    const imgs = track.querySelectorAll('img');
-    box.dataset.slideIdx = Array.from(imgs).indexOf(newImg);
+
+    const liveImgs = Array.from(track.querySelectorAll('img'));
+    const newIdx = liveImgs.length - 1;
+    box.dataset.slideIdx = newIdx;
     updateSliderTrack(box);
-    updateImgIndex(box);
-    // 为新图初始化预览
-    initImagePreview();
+
+    const slideBtns = box.querySelectorAll('.slide-btn');
+    slideBtns.forEach(b => b.style.display = liveImgs.length <= 1 ? 'none' : '');
+
+    const indexTag = box.querySelector('.img-index');
+    if (indexTag) indexTag.innerText = `${newIdx + 1} / ${liveImgs.length}`;
+
     autoSave();
 }
 
 // 管理员：删除当前图（至少保留1张）
 function delImgSlot(btn) {
     const box = btn.parentElement;
-    const imgs = box.querySelectorAll('img');
-    if (imgs.length <= 1) { showToast('❌ 至少保留一张图片'); return; }
-    const activeImg = box.querySelector('img.active');
-    const allImgs = Array.from(imgs);
-    const idx = allImgs.indexOf(activeImg);
-    // 删除后跳到前一张，如果是第一张则跳到新的第一张
-    const nextIdx = idx > 0 ? idx - 1 : 1;
-    allImgs[nextIdx].classList.add('active');
+    const track = box.querySelector('.slider-track') || box;
+    const liveImgs = Array.from(track.querySelectorAll('img'));
+    if (liveImgs.length <= 1) { showToast('❌ 至少保留一张图片'); return; }
+
+    const activeImg = track.querySelector('img.active');
+    const idx = liveImgs.indexOf(activeImg);
+    const targetImg = liveImgs[idx > 0 ? idx - 1 : 1];
+
+    targetImg.classList.add('active');
     activeImg.remove();
-    // 同步更新 slideIdx 为新 active 图片的实际位置
-    const remainImgs = Array.from(box.querySelectorAll('img'));
-    const newActiveImg = box.querySelector('img.active');
-    box.dataset.slideIdx = remainImgs.indexOf(newActiveImg);
-    updateSliderTrack(box);
-    updateImgIndex(box);
+
+    const remainImgs = Array.from(track.querySelectorAll('img'));
+    const newIdx = remainImgs.indexOf(targetImg);
+    box.dataset.slideIdx = newIdx;
+
+    // 无动画直接定位，避免黑屏
+    const trackEl = box.querySelector('.slider-track');
+    if (trackEl) {
+        trackEl.style.transition = 'none';
+        trackEl.style.transform = `translateX(${-newIdx * 100}%)`;
+        requestAnimationFrame(() => { trackEl.style.transition = ''; });
+    }
+
+    const indexTag = box.querySelector('.img-index');
+    if (indexTag) indexTag.innerText = `${newIdx + 1} / ${remainImgs.length}`;
+    const slideBtns = box.querySelectorAll('.slide-btn');
+    slideBtns.forEach(b => b.style.display = remainImgs.length <= 1 ? 'none' : '');
+
     autoSave();
 }
 
-// 更新图片计数器和上下限按钮状态
+// 更新图片计数器
 function updateImgIndex(box) {
-    const imgs = box.querySelectorAll('img');
-    const activeImg = box.querySelector('img.active');
+    const track = box.querySelector('.slider-track') || box;
+    const imgs = track.querySelectorAll('img');
+    const activeImg = track.querySelector('img.active');
     const idx = Array.from(imgs).indexOf(activeImg);
     const indexTag = box.querySelector('.img-index');
     if (indexTag) indexTag.innerText = `${idx + 1} / ${imgs.length}`;
