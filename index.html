@@ -60,9 +60,7 @@
         }
         [data-theme="dark"] main { background: transparent; }
         [data-theme="dark"] .card {
-            background: rgba(28,12,24,0.85) !important;
             border-color: rgba(255,102,153,0.25) !important;
-            box-shadow: 3px 3px 0 rgba(255,102,153,0.15) !important;
         }
         [data-theme="dark"] .card.is-pinned { border-color: #ff9800 !important; }
         [data-theme="dark"] .info-box { background: rgba(0,0,0,0.3) !important; }
@@ -1217,13 +1215,7 @@
         #imagePreviewModal .close-btn:active { background: rgba(255,255,255,0.4); }
     
 /* === 夜间模式玻璃卡片修复：避免纯黑，改为黑色半透明玻璃质感 === */
-[data-theme="dark"] .card{
-    background: rgba(22, 12, 20, 0.58) !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
-    border: 2px solid rgba(255,102,153,0.22) !important;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.28) !important;
-}
+
 
 [data-theme="dark"] .card-preview,
 [data-theme="dark"] .info-box,
@@ -1256,13 +1248,7 @@
 
 
 /* === 更强透明度：紧凑卡片真正能透出背景图 === */
-[data-theme="dark"] .card{
-    background: rgba(18, 8, 16, 0.32) !important;
-    backdrop-filter: blur(18px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
-    border: 2px solid rgba(255,102,153,0.18) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.18) !important;
-}
+
 
 [data-theme="dark"] .card-preview,
 [data-theme="dark"] .info-box,
@@ -1286,23 +1272,23 @@
 }
 
 
-/* === 极致透明夜间模式：背景图清晰可见，不再只有模糊黑块 === */
+/* === 极致透明夜间模式：背景图清晰可见 === */
 [data-theme="dark"] .card{
-    background: rgba(12, 6, 10, 0.14) !important;
-    backdrop-filter: blur(6px) saturate(125%) !important;
-    -webkit-backdrop-filter: blur(6px) saturate(125%) !important;
-    border: 2px solid rgba(255,182,210,0.14) !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.10) !important;
+    background: rgba(0, 0, 0, 0.06) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 2px solid rgba(255,182,210,0.20) !important;
+    box-shadow: none !important;
 }
 
 [data-theme="dark"] .card-preview,
 [data-theme="dark"] .info-box,
 [data-theme="dark"] .desc-wrap,
 [data-theme="dark"] .link-wrap{
-    background: rgba(18, 8, 14, 0.08) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    border-color: rgba(255,182,210,0.08) !important;
+    background: rgba(0, 0, 0, 0.04) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(255,182,210,0.10) !important;
     box-shadow: none !important;
 }
 
@@ -1319,8 +1305,8 @@
 [data-theme="dark"] .card-preview{
     background: linear-gradient(
         to right,
-        rgba(0,0,0,0.12) 0%,
-        rgba(0,0,0,0.03) 100%
+        rgba(0,0,0,0.08) 0%,
+        rgba(0,0,0,0.01) 100%
     ) !important;
 }
 
