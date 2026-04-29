@@ -2004,7 +2004,6 @@ const ACCESS_PASS = "tianxiao";
 // 🔒 管理员密码已移至 Cloudflare Worker（环境变量加密存储）
 const PAGE_SIZE = 30;
 const FAV_KEY = "TX_FAVORITES";
-const WEBNAV_KEY = 'TX_WEBNAV';
 const NOTICE_KEY = 'TX_NOTICE_CONTENT';
 const APP_VERSION = "3.3.0"; // 链接复制功能 + 识别所有链接
 const VERSION_KEY = "TX_APP_VERSION";
@@ -6743,10 +6742,9 @@ function webNavRenderGrid() {
 
         // 编辑按钮（管理员长按卡片）
         let cardPressTimer;
-        card.addEventListener('touchstart', () => {
+        card.addEventListener('touchstart', (e) => {
             cardPressTimer = setTimeout(() => {
                 if (document.body.classList.contains('admin-mode')) {
-                    e => e.stopPropagation();
                     webNavEditSite(site.id);
                 }
             }, 600);
