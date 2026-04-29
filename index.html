@@ -4220,7 +4220,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-//   修复：确保所有卡片都包含简介区域
+// � 修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4323,7 +4323,7 @@ function resetAllCardStates() {
     });
 }
 
-//  🐛 修复：处理标签粘贴，清理格式
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -5739,9 +5739,10 @@ function createServiceWorkerBlob() {
     display: none;
     position: fixed;
     inset: 0;
-    z-index: 500;
+    z-index: 1300;
     flex-direction: column;
-    background: transparent;
+    background: var(--bg);
+    overflow: hidden;
 }
 #webNavPage.show { display: flex; }
 
@@ -6671,16 +6672,16 @@ function webNavLoadLocal() {
 // ---------- 打开/关闭 ----------
 async function sidebarGoWebNav() {
     closeSidebar();
-    // 侧边栏高亮
-    document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-    document.getElementById('sidebarWebNav').classList.add('active');
-    // 加载数据
-    webNavLoadLocal();
-    webNavRenderPage();
-    document.getElementById('webNavPage').classList.add('show');
-    // 后台同步云端
-    await webNavLoadCloud();
-    webNavRenderPage();
+    // 等侧边栏关闭动画完成（280ms）再显示页面
+    setTimeout(async () => {
+        document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('sidebarWebNav').classList.add('active');
+        webNavLoadLocal();
+        webNavRenderPage();
+        document.getElementById('webNavPage').classList.add('show');
+        await webNavLoadCloud();
+        webNavRenderPage();
+    }, 300);
 }
 function closeWebNav() {
     document.getElementById('webNavPage').classList.remove('show');
