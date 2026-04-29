@@ -6149,6 +6149,10 @@ function copyText(text) {
             <span class="sidebar-item-icon">🏠</span>
             <span>首页</span>
         </div>
+        <div class="sidebar-item" id="sidebarNav" onclick="sidebarGoNav()">
+            <span class="sidebar-item-icon">🌐</span>
+            <span>天笑导航</span>
+        </div>
         <div class="sidebar-item" id="sidebarNotice" onclick="sidebarGoNotice()">
             <span class="sidebar-item-icon">📢</span>
             <span>公告</span>
@@ -6177,6 +6181,12 @@ function copyText(text) {
 </div>
 
 <script>
+function closeNavPanel() {
+    document.getElementById('navPanelPage').style.display = 'none';
+    document.getElementById('sidebarHome').classList.add('active');
+    document.getElementById('sidebarNav').classList.remove('active');
+}
+
 function clearAllData() {
     if (!confirm('⚠️ 确定要清理全部本地数据吗？\n\n将清除：本地缓存、收藏、分类配置、公告、轮播图等所有本地存储。\n\n云端数据不受影响，刷新后会重新从云端加载。')) return;
     localStorage.clear();
@@ -6240,14 +6250,32 @@ function sidebarGoHome() {
     // 关闭公告面板（如果开着）
     const np = document.getElementById('noticePanelPage');
     if (np) np.style.display = 'none';
+    // 关闭导航面板（如果开着）
+    const navp = document.getElementById('navPanelPage');
+    if (navp) navp.style.display = 'none';
     document.getElementById('sidebarHome').classList.add('active');
     document.getElementById('sidebarNotice').classList.remove('active');
+    document.getElementById('sidebarNav').classList.remove('active');
 }
 function sidebarGoNotice() {
     closeSidebar();
     document.getElementById('sidebarHome').classList.remove('active');
     document.getElementById('sidebarNotice').classList.add('active');
+    document.getElementById('sidebarNav').classList.remove('active');
     openNoticePanel();
+}
+function sidebarGoNav() {
+    closeSidebar();
+    document.getElementById('sidebarHome').classList.remove('active');
+    document.getElementById('sidebarNotice').classList.remove('active');
+    document.getElementById('sidebarNav').classList.add('active');
+    const panel = document.getElementById('navPanelPage');
+    panel.style.display = 'flex';
+    requestAnimationFrame(() => {
+        const hdr = panel.querySelector('.fullpage-header');
+        const body = panel.querySelector('.fullpage-body');
+        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+    });
 }
 // 公告面板关闭时把侧边栏高亮还原到首页
 const _origCloseNotice = window.closeNoticePanel;
@@ -6255,6 +6283,196 @@ window.closeNoticePanel = function() {
     if (typeof _origCloseNotice === 'function') _origCloseNotice();
     document.getElementById('sidebarHome').classList.add('active');
     document.getElementById('sidebarNotice').classList.remove('active');
+    document.getElementById('sidebarNav').classList.remove('active');
+};
+</script>
+
+<!-- 天笑导航 全屏面板 -->
+<style>
+/* ── 天笑导航面板专用样式 ── */
+#navPanelPage .fullpage-body {
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+}
+.txnav-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px 10px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+.txnav-tabs::-webkit-scrollbar { display: none; }
+.txnav-tab {
+    flex-shrink: 0;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.18s;
+}
+.txnav-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+.txnav-grid-wrap {
+    flex: 1;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 10px 24px;
+    overscroll-behavior-y: contain;
+}
+.txnav-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.txnav-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 11px 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+    transition: box-shadow 0.15s, transform 0.12s;
+    min-width: 0;
+    position: relative;
+}
+.txnav-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px var(--shadow-pink);
+}
+.txnav-card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    overflow: hidden;
+}
+.txnav-card-icon img {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+}
+.txnav-card-info {
+    flex: 1;
+    min-width: 0;
+}
+.txnav-card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.txnav-card-desc {
+    font-size: 11px;
+    color: #aaa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+.txnav-card-arrow {
+    font-size: 13px;
+    color: #ccc;
+    flex-shrink: 0;
+}
+[data-theme="dark"] .txnav-card { border-color: rgba(255,102,153,0.2); }
+[data-theme="dark"] .txnav-card-desc { color: #886070; }
+[data-theme="dark"] .txnav-card-arrow { color: #553040; }
+[data-theme="dark"] .txnav-tab { border-color: rgba(255,102,153,0.25); color: #f0d0e0; }
+</style>
+
+<div id="navPanelPage" class="fullpage-panel" style="display:none;">
+    <div class="fullpage-header">
+        <div class="fullpage-back-btn" onclick="closeNavPanel()">←</div>
+        <div class="fullpage-header-title">🌐 天笑导航</div>
+        <div style="width:40px;"></div>
+    </div>
+    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;">
+        <!-- 分类 Tab -->
+        <div class="txnav-tabs" id="txnavTabs">
+            <div class="txnav-tab active" onclick="txnavSwitchTab('all', this)">全部</div>
+            <div class="txnav-tab" onclick="txnavSwitchTab('anime', this)">动画</div>
+        </div>
+        <!-- 网站卡片网格 -->
+        <div class="txnav-grid-wrap">
+            <div class="txnav-grid" id="txnavGrid"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── 天笑导航数据 ──
+const TXNAV_SITES = [
+    // 示例数据，之后可自行增删
+    // { name, desc, url, icon(emoji或图片url), cat }
+    // cat: 'anime' = 动画
+];
+
+function txnavRender(cat) {
+    const grid = document.getElementById('txnavGrid');
+    const list = cat === 'all' ? TXNAV_SITES : TXNAV_SITES.filter(s => s.cat === cat);
+    if (list.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#bbb;font-size:14px;padding:48px 0;">🚧 该分类暂无内容，敬请期待～</div>';
+        return;
+    }
+    grid.innerHTML = list.map(site => {
+        const iconHtml = site.icon && site.icon.startsWith('http')
+            ? `<img src="${site.icon}" alt="" onerror="this.parentElement.textContent='🌐'">`
+            : (site.icon || '🌐');
+        return `<a class="txnav-card" href="${site.url}" target="_blank" rel="noopener">
+            <div class="txnav-card-icon">${iconHtml}</div>
+            <div class="txnav-card-info">
+                <div class="txnav-card-name">${site.name}</div>
+                <div class="txnav-card-desc">${site.desc || site.name}</div>
+            </div>
+            <span class="txnav-card-arrow">›</span>
+        </a>`;
+    }).join('');
+}
+
+function txnavSwitchTab(cat, el) {
+    document.querySelectorAll('.txnav-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    txnavRender(cat);
+}
+
+// 打开导航面板时渲染
+const _origSidebarGoNav = window.sidebarGoNav;
+window.sidebarGoNav = function() {
+    if (typeof _origSidebarGoNav === 'function') _origSidebarGoNav();
+    // 默认渲染"全部"
+    txnavRender('all');
+    // 重置Tab高亮
+    document.querySelectorAll('.txnav-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
 };
 </script>
 
