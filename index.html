@@ -4219,7 +4219,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-// � 修复：确保所有卡片都包含简介区域
+//   修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4322,7 +4322,7 @@ function resetAllCardStates() {
     });
 }
 
-// �🐛 修复：处理标签粘贴，清理格式
+//  🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -6295,21 +6295,28 @@ window.closeNoticePanel = function() {
     display: flex;
     flex-direction: column;
 }
-.txnav-tabs {
+.txnav-header-row {
     display: flex;
-    gap: 8px;
-    padding: 12px 14px 10px;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px 8px;
     background: var(--card);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+}
+.txnav-tabs {
+    display: flex;
+    gap: 7px;
+    flex: 1;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    align-items: center;
 }
 .txnav-tabs::-webkit-scrollbar { display: none; }
 .txnav-tab {
     flex-shrink: 0;
-    padding: 6px 18px;
+    padding: 5px 16px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
@@ -6319,17 +6326,60 @@ window.closeNoticePanel = function() {
     background: transparent;
     color: var(--text);
     transition: all 0.18s;
+    position: relative;
+    user-select: none;
 }
 .txnav-tab.active {
     background: var(--primary);
     border-color: var(--primary);
     color: #fff;
 }
+/* 管理员模式：Tab 右上角删除按钮 */
+.txnav-tab .txnav-tab-del {
+    display: none;
+    position: absolute;
+    top: -6px; right: -6px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #ff4466;
+    color: #fff;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    z-index: 2;
+    cursor: pointer;
+}
+.admin-mode .txnav-tab .txnav-tab-del { display: block; }
+/* 管理员编辑按钮区 */
+.txnav-admin-btns {
+    display: none;
+    flex-shrink: 0;
+    gap: 6px;
+    align-items: center;
+}
+.admin-mode .txnav-admin-btns { display: flex; }
+.txnav-btn-sm {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 14px;
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    touch-action: manipulation;
+    font-weight: 600;
+}
+.txnav-btn-sm.filled {
+    background: var(--primary);
+    color: #fff;
+}
+/* 卡片网格 */
 .txnav-grid-wrap {
     flex: 1;
     overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    padding: 12px 10px 24px;
+    padding: 12px 10px 80px;
     overscroll-behavior-y: contain;
 }
 .txnav-grid {
@@ -6355,17 +6405,28 @@ window.closeNoticePanel = function() {
     min-width: 0;
     position: relative;
 }
-.txnav-card:active {
-    transform: scale(0.97);
-    box-shadow: 0 1px 4px var(--shadow-pink);
+.txnav-card:active { transform: scale(0.97); }
+.txnav-card-del {
+    display: none;
+    position: absolute;
+    top: -7px; right: -7px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #ff4466;
+    color: #fff;
+    font-size: 13px;
+    line-height: 20px;
+    text-align: center;
+    z-index: 2;
+    cursor: pointer;
+    font-weight: 700;
 }
+.admin-mode .txnav-card-del { display: block; }
 .txnav-card-icon {
-    width: 42px;
-    height: 42px;
+    width: 42px; height: 42px;
     border-radius: 10px;
     flex-shrink: 0;
-    object-fit: cover;
-    background: #eee;
+    background: #f0e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -6373,41 +6434,105 @@ window.closeNoticePanel = function() {
     overflow: hidden;
 }
 .txnav-card-icon img {
-    width: 42px;
-    height: 42px;
+    width: 42px; height: 42px;
     border-radius: 10px;
     object-fit: cover;
     display: block;
 }
-.txnav-card-info {
-    flex: 1;
-    min-width: 0;
-}
+.txnav-card-info { flex: 1; min-width: 0; }
 .txnav-card-name {
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 13px; font-weight: 700;
     color: var(--text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .txnav-card-desc {
-    font-size: 11px;
-    color: #aaa;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 11px; color: #aaa;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     margin-top: 2px;
 }
-.txnav-card-arrow {
+.txnav-card-arrow { font-size: 13px; color: #ccc; flex-shrink: 0; }
+/* 添加网站浮动按钮 */
+.txnav-add-fab {
+    display: none;
+    position: absolute;
+    bottom: 20px; right: 16px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--shadow-pink);
+    z-index: 10;
+    touch-action: manipulation;
+}
+.admin-mode .txnav-add-fab { display: block; }
+/* 弹窗通用 */
+.txnav-modal-mask {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+}
+.txnav-modal-mask.show { display: flex; }
+.txnav-modal {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 22px 18px 16px;
+    width: min(90vw, 360px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.txnav-modal h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: var(--primary);
+}
+.txnav-modal input, .txnav-modal select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+}
+.txnav-modal input:focus { border-color: var(--primary); }
+.txnav-modal-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+.txnav-modal-btns button {
+    padding: 8px 18px;
+    border-radius: 12px;
     font-size: 13px;
-    color: #ccc;
-    flex-shrink: 0;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+.txnav-modal-btns .btn-cancel {
+    background: var(--border);
+    color: var(--text);
+}
+.txnav-modal-btns .btn-ok {
+    background: var(--primary);
+    color: #fff;
 }
 [data-theme="dark"] .txnav-card { border-color: rgba(255,102,153,0.2); }
 [data-theme="dark"] .txnav-card-desc { color: #886070; }
 [data-theme="dark"] .txnav-card-arrow { color: #553040; }
 [data-theme="dark"] .txnav-tab { border-color: rgba(255,102,153,0.25); color: #f0d0e0; }
+[data-theme="dark"] .txnav-card-icon { background: #2a1a22; }
 </style>
 
 <div id="navPanelPage" class="fullpage-panel" style="display:none;">
@@ -6416,63 +6541,332 @@ window.closeNoticePanel = function() {
         <div class="fullpage-header-title">🌐 天笑导航</div>
         <div style="width:40px;"></div>
     </div>
-    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;">
-        <!-- 分类 Tab -->
-        <div class="txnav-tabs" id="txnavTabs">
-            <div class="txnav-tab active" onclick="txnavSwitchTab('all', this)">全部</div>
-            <div class="txnav-tab" onclick="txnavSwitchTab('anime', this)">动画</div>
+    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;">
+        <!-- 分类Tab行 -->
+        <div class="txnav-header-row">
+            <div class="txnav-tabs" id="txnavTabs"></div>
+            <!-- 管理员按钮区（仅管理员模式显示） -->
+            <div class="txnav-admin-btns">
+                <button class="txnav-btn-sm" onclick="txnavAddCat()">＋分类</button>
+            </div>
         </div>
-        <!-- 网站卡片网格 -->
-        <div class="txnav-grid-wrap">
+        <!-- 卡片网格区 -->
+        <div class="txnav-grid-wrap" style="position:relative;">
             <div class="txnav-grid" id="txnavGrid"></div>
+            <!-- 添加网站浮动按钮（仅管理员） -->
+            <button class="txnav-add-fab" onclick="txnavAddSite()">＋ 添加网站</button>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑网站弹窗 -->
+<div class="txnav-modal-mask" id="txnavSiteModal">
+    <div class="txnav-modal">
+        <h3 id="txnavSiteModalTitle">➕ 添加网站</h3>
+        <input id="txnavSiteName" placeholder="网站名称（必填）" maxlength="20">
+        <input id="txnavSiteDesc" placeholder="简介（选填）" maxlength="30">
+        <input id="txnavSiteUrl" placeholder="网址 https://..." maxlength="200">
+        <input id="txnavSiteIcon" placeholder="图标：emoji 或图片URL（选填）" maxlength="200">
+        <select id="txnavSiteCat"></select>
+        <div class="txnav-modal-btns">
+            <button class="btn-cancel" onclick="txnavCloseSiteModal()">取消</button>
+            <button class="btn-ok" onclick="txnavConfirmSite()">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 添加分类弹窗 -->
+<div class="txnav-modal-mask" id="txnavCatModal">
+    <div class="txnav-modal">
+        <h3>➕ 添加分类</h3>
+        <input id="txnavCatName" placeholder="分类名称（如：动画、工具）" maxlength="10">
+        <div class="txnav-modal-btns">
+            <button class="btn-cancel" onclick="txnavCloseCatModal()">取消</button>
+            <button class="btn-ok" onclick="txnavConfirmCat()">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 重命名分类弹窗 -->
+<div class="txnav-modal-mask" id="txnavRenameCatModal">
+    <div class="txnav-modal">
+        <h3>✏️ 重命名分类</h3>
+        <input id="txnavRenameCatInput" placeholder="新名称" maxlength="10">
+        <div class="txnav-modal-btns">
+            <button class="btn-cancel" onclick="txnavCloseRenameCatModal()">取消</button>
+            <button class="btn-ok" onclick="txnavConfirmRenameCat()">确定</button>
         </div>
     </div>
 </div>
 
 <script>
-// ── 天笑导航数据 ──
-const TXNAV_SITES = [
-    // 示例数据，之后可自行增删
-    // { name, desc, url, icon(emoji或图片url), cat }
-    // cat: 'anime' = 动画
-];
+// ════════════════════════════════════════
+//  天笑导航 —— 数据 & 状态
+// ════════════════════════════════════════
+// 数据结构：
+// txnavData = {
+//   cats: [ { id, name } ],         // 分类列表（id用时间戳）
+//   sites: [ { id, name, desc, url, icon, catId } ]
+// }
+let txnavData = { cats: [], sites: [] };
+let txnavCurrentCat = 'all'; // 'all' 或 catId
+let txnavEditingSiteId = null; // 编辑时用
+let txnavRenamingCatId = null;
 
-function txnavRender(cat) {
+// ── 从 KV 加载 ──
+async function txnavLoad() {
+    try {
+        const res = await fetch(`${WORKER_BASE}/api/nav?t=${Date.now()}`);
+        if (res.ok) {
+            const json = await res.json();
+            if (json.data) {
+                txnavData = JSON.parse(json.data);
+            }
+        }
+    } catch (e) { /* 离线时用空数据 */ }
+    txnavRenderTabs();
+    txnavRenderGrid();
+}
+
+// ── 保存到 KV ──
+async function txnavSave() {
+    const token = adminToken || sessionStorage.getItem('ADMIN_TOKEN');
+    if (!token) return;
+    try {
+        await fetch(`${WORKER_BASE}/api/nav`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ data: JSON.stringify(txnavData) })
+        });
+    } catch (e) { console.error('导航保存失败', e); }
+}
+
+// ── 渲染 Tab ──
+function txnavRenderTabs() {
+    const wrap = document.getElementById('txnavTabs');
+    const cats = txnavData.cats || [];
+
+    const allTab = `<div class="txnav-tab${txnavCurrentCat === 'all' ? ' active' : ''}"
+        onclick="txnavSwitchCat('all',this)">全部</div>`;
+
+    const catTabs = cats.map(c => `
+        <div class="txnav-tab${txnavCurrentCat === c.id ? ' active' : ''}"
+             onclick="txnavSwitchCat('${c.id}',this)"
+             ondblclick="txnavRenameCat('${c.id}')">
+            ${c.name}
+            <span class="txnav-tab-del" onclick="event.stopPropagation();txnavDeleteCat('${c.id}')">×</span>
+        </div>`).join('');
+
+    wrap.innerHTML = allTab + catTabs;
+}
+
+// ── 渲染卡片 ──
+function txnavRenderGrid() {
     const grid = document.getElementById('txnavGrid');
-    const list = cat === 'all' ? TXNAV_SITES : TXNAV_SITES.filter(s => s.cat === cat);
+    const sites = txnavData.sites || [];
+    const list = txnavCurrentCat === 'all' ? sites
+        : sites.filter(s => s.catId === txnavCurrentCat);
+
     if (list.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#bbb;font-size:14px;padding:48px 0;">🚧 该分类暂无内容，敬请期待～</div>';
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#bbb;
+            font-size:14px;padding:48px 0;">🚧 ${txnavCurrentCat==='all'?'暂无网站':'该分类暂无内容'}，敬请期待～</div>`;
         return;
     }
+
     grid.innerHTML = list.map(site => {
         const iconHtml = site.icon && site.icon.startsWith('http')
             ? `<img src="${site.icon}" alt="" onerror="this.parentElement.textContent='🌐'">`
             : (site.icon || '🌐');
-        return `<a class="txnav-card" href="${site.url}" target="_blank" rel="noopener">
+        return `<a class="txnav-card" href="${site.url}" target="_blank" rel="noopener" onclick="txnavCardClick(event,'${site.id}')">
+            <span class="txnav-card-del" onclick="event.preventDefault();event.stopPropagation();txnavDeleteSite('${site.id}')">×</span>
             <div class="txnav-card-icon">${iconHtml}</div>
             <div class="txnav-card-info">
                 <div class="txnav-card-name">${site.name}</div>
-                <div class="txnav-card-desc">${site.desc || site.name}</div>
+                <div class="txnav-card-desc">${site.desc || ''}</div>
             </div>
             <span class="txnav-card-arrow">›</span>
         </a>`;
     }).join('');
 }
 
-function txnavSwitchTab(cat, el) {
-    document.querySelectorAll('.txnav-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    txnavRender(cat);
+// 管理员模式下长按卡片进入编辑
+function txnavCardClick(e, siteId) {
+    if (!isEditMode) return; // 普通用户正常跳转
+    // 管理员点击弹出编辑弹窗
+    e.preventDefault();
+    txnavEditSite(siteId);
 }
 
-// 打开导航面板时渲染
+// ── 切换分类 ──
+function txnavSwitchCat(catId, el) {
+    txnavCurrentCat = catId;
+    txnavRenderTabs();
+    txnavRenderGrid();
+}
+
+// ════════════════════════════════════════
+//  分类管理
+// ════════════════════════════════════════
+function txnavAddCat() {
+    document.getElementById('txnavCatName').value = '';
+    document.getElementById('txnavCatModal').classList.add('show');
+    setTimeout(() => document.getElementById('txnavCatName').focus(), 50);
+}
+function txnavCloseCatModal() {
+    document.getElementById('txnavCatModal').classList.remove('show');
+}
+function txnavConfirmCat() {
+    const name = document.getElementById('txnavCatName').value.trim();
+    if (!name) { alert('请输入分类名称'); return; }
+    const id = 'cat_' + Date.now();
+    txnavData.cats.push({ id, name });
+    txnavCloseCatModal();
+    txnavCurrentCat = id;
+    txnavRenderTabs();
+    txnavRenderGrid();
+    txnavSave();
+}
+
+function txnavDeleteCat(catId) {
+    const cat = txnavData.cats.find(c => c.id === catId);
+    if (!cat) return;
+    const count = (txnavData.sites || []).filter(s => s.catId === catId).length;
+    const msg = count > 0
+        ? `删除分类「${cat.name}」？该分类下 ${count} 个网站将变为未分类（仍在全部中显示）。`
+        : `删除分类「${cat.name}」？`;
+    if (!confirm(msg)) return;
+    txnavData.cats = txnavData.cats.filter(c => c.id !== catId);
+    // 该分类的网站 catId 置为 null（全部仍能显示）
+    (txnavData.sites || []).forEach(s => { if (s.catId === catId) s.catId = null; });
+    if (txnavCurrentCat === catId) txnavCurrentCat = 'all';
+    txnavRenderTabs();
+    txnavRenderGrid();
+    txnavSave();
+}
+
+function txnavRenameCat(catId) {
+    if (!isEditMode) return;
+    txnavRenamingCatId = catId;
+    const cat = txnavData.cats.find(c => c.id === catId);
+    document.getElementById('txnavRenameCatInput').value = cat ? cat.name : '';
+    document.getElementById('txnavRenameCatModal').classList.add('show');
+    setTimeout(() => document.getElementById('txnavRenameCatInput').focus(), 50);
+}
+function txnavCloseRenameCatModal() {
+    document.getElementById('txnavRenameCatModal').classList.remove('show');
+    txnavRenamingCatId = null;
+}
+function txnavConfirmRenameCat() {
+    const name = document.getElementById('txnavRenameCatInput').value.trim();
+    if (!name) { alert('请输入分类名称'); return; }
+    const cat = txnavData.cats.find(c => c.id === txnavRenamingCatId);
+    if (cat) { cat.name = name; }
+    txnavCloseRenameCatModal();
+    txnavRenderTabs();
+    txnavSave();
+}
+
+// ════════════════════════════════════════
+//  网站管理
+// ════════════════════════════════════════
+function txnavPopulateCatSelect(selectedCatId) {
+    const sel = document.getElementById('txnavSiteCat');
+    sel.innerHTML = '<option value="">-- 不指定分类 --</option>' +
+        (txnavData.cats || []).map(c =>
+            `<option value="${c.id}"${c.id === selectedCatId ? ' selected' : ''}>${c.name}</option>`
+        ).join('');
+}
+
+function txnavAddSite() {
+    txnavEditingSiteId = null;
+    document.getElementById('txnavSiteModalTitle').textContent = '➕ 添加网站';
+    document.getElementById('txnavSiteName').value = '';
+    document.getElementById('txnavSiteDesc').value = '';
+    document.getElementById('txnavSiteUrl').value = '';
+    document.getElementById('txnavSiteIcon').value = '';
+    txnavPopulateCatSelect(txnavCurrentCat === 'all' ? '' : txnavCurrentCat);
+    document.getElementById('txnavSiteModal').classList.add('show');
+    setTimeout(() => document.getElementById('txnavSiteName').focus(), 50);
+}
+
+function txnavEditSite(siteId) {
+    const site = (txnavData.sites || []).find(s => s.id === siteId);
+    if (!site) return;
+    txnavEditingSiteId = siteId;
+    document.getElementById('txnavSiteModalTitle').textContent = '✏️ 编辑网站';
+    document.getElementById('txnavSiteName').value = site.name || '';
+    document.getElementById('txnavSiteDesc').value = site.desc || '';
+    document.getElementById('txnavSiteUrl').value = site.url || '';
+    document.getElementById('txnavSiteIcon').value = site.icon || '';
+    txnavPopulateCatSelect(site.catId || '');
+    document.getElementById('txnavSiteModal').classList.add('show');
+}
+
+function txnavCloseSiteModal() {
+    document.getElementById('txnavSiteModal').classList.remove('show');
+    txnavEditingSiteId = null;
+}
+
+function txnavConfirmSite() {
+    const name = document.getElementById('txnavSiteName').value.trim();
+    const url  = document.getElementById('txnavSiteUrl').value.trim();
+    if (!name) { alert('请输入网站名称'); return; }
+    if (!url)  { alert('请输入网址'); return; }
+
+    const siteData = {
+        name,
+        desc:  document.getElementById('txnavSiteDesc').value.trim(),
+        url,
+        icon:  document.getElementById('txnavSiteIcon').value.trim(),
+        catId: document.getElementById('txnavSiteCat').value || null,
+    };
+
+    if (txnavEditingSiteId) {
+        // 编辑
+        const idx = (txnavData.sites || []).findIndex(s => s.id === txnavEditingSiteId);
+        if (idx !== -1) Object.assign(txnavData.sites[idx], siteData);
+    } else {
+        // 新增
+        if (!txnavData.sites) txnavData.sites = [];
+        txnavData.sites.push({ id: 'site_' + Date.now(), ...siteData });
+    }
+
+    txnavCloseSiteModal();
+    txnavRenderGrid();
+    txnavSave();
+}
+
+function txnavDeleteSite(siteId) {
+    const site = (txnavData.sites || []).find(s => s.id === siteId);
+    if (!site || !confirm(`删除「${site.name}」？`)) return;
+    txnavData.sites = txnavData.sites.filter(s => s.id !== siteId);
+    txnavRenderGrid();
+    txnavSave();
+}
+
+// ════════════════════════════════════════
+//  面板开关
+// ════════════════════════════════════════
+function closeNavPanel() {
+    document.getElementById('navPanelPage').style.display = 'none';
+    document.getElementById('sidebarHome').classList.add('active');
+    document.getElementById('sidebarNav').classList.remove('active');
+}
+
+// 打开导航面板时加载数据
 const _origSidebarGoNav = window.sidebarGoNav;
 window.sidebarGoNav = function() {
-    if (typeof _origSidebarGoNav === 'function') _origSidebarGoNav();
-    // 默认渲染"全部"
-    txnavRender('all');
-    // 重置Tab高亮
-    document.querySelectorAll('.txnav-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+    closeSidebar();
+    document.getElementById('sidebarHome').classList.remove('active');
+    document.getElementById('sidebarNotice') && document.getElementById('sidebarNotice').classList.remove('active');
+    document.getElementById('sidebarNav').classList.add('active');
+    const panel = document.getElementById('navPanelPage');
+    panel.style.display = 'flex';
+    // 每次打开时重新加载
+    txnavLoad();
 };
 </script>
 
