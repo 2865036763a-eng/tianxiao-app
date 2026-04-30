@@ -6181,11 +6181,6 @@ function copyText(text) {
 </div>
 
 <script>
-function closeNavPanel() {
-    document.getElementById('navPanelPage').style.display = 'none';
-    document.getElementById('sidebarHome').classList.add('active');
-    document.getElementById('sidebarNav').classList.remove('active');
-}
 
 function clearAllData() {
     if (!confirm('⚠️ 确定要清理全部本地数据吗？\n\n将清除：本地缓存、收藏、分类配置、公告、轮播图等所有本地存储。\n\n云端数据不受影响，刷新后会重新从云端加载。')) return;
@@ -6536,12 +6531,24 @@ window.closeNoticePanel = function() {
 </style>
 
 <div id="navPanelPage" class="fullpage-panel" style="display:none;">
-    <div class="fullpage-header">
+    <div class="fullpage-header" style="position:relative;z-index:2;">
         <div class="fullpage-back-btn" onclick="closeNavPanel()">←</div>
         <div class="fullpage-header-title">🌐 天笑导航</div>
-        <div style="width:40px;"></div>
+        <!-- 管理员：保存按钮 -->
+        <div id="txnavSaveBtn" style="display:none;">
+            <button onclick="txnavSaveManual()"
+                style="padding:5px 12px;border-radius:12px;border:none;background:var(--primary);
+                       color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                ☁️ 保存
+            </button>
+        </div>
+        <div id="txnavSavePlaceholder" style="width:56px;"></div>
     </div>
-    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;">
+    <!-- 背景图层：自动加载 images/nav_bg.jpg，上传该文件到仓库即生效 -->
+    <div id="txnavBgLayer" style="position:absolute;inset:0;z-index:0;
+         background:url('images/nav_bg.jpg') center/cover no-repeat;
+         pointer-events:none;"></div>
+    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:1;">
         <!-- 分类Tab行 -->
         <div class="txnav-header-row">
             <div class="txnav-tabs" id="txnavTabs"></div>
@@ -6561,13 +6568,35 @@ window.closeNoticePanel = function() {
 
 <!-- 添加/编辑网站弹窗 -->
 <div class="txnav-modal-mask" id="txnavSiteModal">
-    <div class="txnav-modal">
+    <div class="txnav-modal" style="max-height:90vh;overflow-y:auto;">
         <h3 id="txnavSiteModalTitle">➕ 添加网站</h3>
         <input id="txnavSiteName" placeholder="网站名称（必填）" maxlength="20">
-        <input id="txnavSiteDesc" placeholder="简介（选填）" maxlength="30">
+        <input id="txnavSiteDesc" placeholder="简介（选填，卡片显示）" maxlength="40">
+        <textarea id="txnavSiteDetail" placeholder="详细介绍（选填，详情页显示）" maxlength="300"
+            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid var(--border);
+            border-radius:10px;font-size:14px;background:var(--bg);color:var(--text);outline:none;
+            resize:vertical;min-height:72px;font-family:inherit;"></textarea>
         <input id="txnavSiteUrl" placeholder="网址 https://..." maxlength="200">
         <input id="txnavSiteIcon" placeholder="图标：emoji 或图片URL（选填）" maxlength="200">
         <select id="txnavSiteCat"></select>
+        <!-- 预览图管理 -->
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:8px;">🖼️ 预览图</div>
+            <!-- 已添加图片列表 -->
+            <div id="txnavImgList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+            <!-- 输入新图片 -->
+            <div style="display:flex;gap:6px;">
+                <input id="txnavImgInput" placeholder="图片URL https://..." maxlength="500"
+                    style="flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;
+                    font-size:13px;background:var(--bg);color:var(--text);outline:none;box-sizing:border-box;"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();txnavAddImg();}">
+                <button onclick="txnavAddImg()"
+                    style="padding:7px 12px;border-radius:8px;border:none;background:var(--primary);
+                    color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                    添加
+                </button>
+            </div>
+        </div>
         <div class="txnav-modal-btns">
             <button class="btn-cancel" onclick="txnavCloseSiteModal()">取消</button>
             <button class="btn-ok" onclick="txnavConfirmSite()">确定</button>
@@ -6609,9 +6638,10 @@ window.closeNoticePanel = function() {
 //   sites: [ { id, name, desc, url, icon, catId } ]
 // }
 let txnavData = { cats: [], sites: [] };
-let txnavCurrentCat = 'all'; // 'all' 或 catId
-let txnavEditingSiteId = null; // 编辑时用
+let txnavCurrentCat = 'all';
+let txnavEditingSiteId = null;
 let txnavRenamingCatId = null;
+let txnavCurrentImages = []; // 编辑弹窗里临时存放的图片URL数组
 
 // ── 从 KV 加载 ──
 async function txnavLoad() {
@@ -6626,6 +6656,23 @@ async function txnavLoad() {
     } catch (e) { /* 离线时用空数据 */ }
     txnavRenderTabs();
     txnavRenderGrid();
+}
+
+let txnavDirty = false; // 有未保存的改动
+
+// ── 标记有改动（不自动同步）──
+function txnavMarkDirty() {
+    txnavDirty = true;
+}
+
+// ── 手动保存按钮 ──
+async function txnavSaveManual() {
+    const btn = document.querySelector('#txnavSaveBtn button');
+    if (btn) { btn.textContent = '保存中…'; btn.disabled = true; }
+    await txnavSave();
+    txnavDirty = false;
+    if (btn) { btn.textContent = '☁️ 保存'; btn.disabled = false; }
+    showToast('✅ 导航数据已保存云端');
 }
 
 // ── 保存到 KV ──
@@ -6680,24 +6727,25 @@ function txnavRenderGrid() {
         const iconHtml = site.icon && site.icon.startsWith('http')
             ? `<img src="${site.icon}" alt="" onerror="this.parentElement.textContent='🌐'">`
             : (site.icon || '🌐');
-        return `<a class="txnav-card" href="${site.url}" target="_blank" rel="noopener" onclick="txnavCardClick(event,'${site.id}')">
-            <span class="txnav-card-del" onclick="event.preventDefault();event.stopPropagation();txnavDeleteSite('${site.id}')">×</span>
+        return `<div class="txnav-card" onclick="txnavCardClick(event,'${site.id}')">
+            <span class="txnav-card-del" onclick="event.stopPropagation();txnavDeleteSite('${site.id}')">×</span>
             <div class="txnav-card-icon">${iconHtml}</div>
             <div class="txnav-card-info">
                 <div class="txnav-card-name">${site.name}</div>
                 <div class="txnav-card-desc">${site.desc || ''}</div>
             </div>
             <span class="txnav-card-arrow">›</span>
-        </a>`;
+        </div>`;
     }).join('');
 }
 
-// 管理员模式下长按卡片进入编辑
+// 卡片点击：管理员→编辑弹窗，普通用户→详情页
 function txnavCardClick(e, siteId) {
-    if (!isEditMode) return; // 普通用户正常跳转
-    // 管理员点击弹出编辑弹窗
-    e.preventDefault();
-    txnavEditSite(siteId);
+    if (isEditMode) {
+        txnavEditSite(siteId);
+    } else {
+        txnavOpenDetail(siteId);
+    }
 }
 
 // ── 切换分类 ──
@@ -6727,7 +6775,7 @@ function txnavConfirmCat() {
     txnavCurrentCat = id;
     txnavRenderTabs();
     txnavRenderGrid();
-    txnavSave();
+    txnavMarkDirty();
 }
 
 function txnavDeleteCat(catId) {
@@ -6744,7 +6792,7 @@ function txnavDeleteCat(catId) {
     if (txnavCurrentCat === catId) txnavCurrentCat = 'all';
     txnavRenderTabs();
     txnavRenderGrid();
-    txnavSave();
+    txnavMarkDirty();
 }
 
 function txnavRenameCat(catId) {
@@ -6766,7 +6814,7 @@ function txnavConfirmRenameCat() {
     if (cat) { cat.name = name; }
     txnavCloseRenameCatModal();
     txnavRenderTabs();
-    txnavSave();
+    txnavMarkDirty();
 }
 
 // ════════════════════════════════════════
@@ -6782,12 +6830,16 @@ function txnavPopulateCatSelect(selectedCatId) {
 
 function txnavAddSite() {
     txnavEditingSiteId = null;
+    txnavCurrentImages = [];
     document.getElementById('txnavSiteModalTitle').textContent = '➕ 添加网站';
     document.getElementById('txnavSiteName').value = '';
     document.getElementById('txnavSiteDesc').value = '';
+    document.getElementById('txnavSiteDetail').value = '';
     document.getElementById('txnavSiteUrl').value = '';
     document.getElementById('txnavSiteIcon').value = '';
+    document.getElementById('txnavImgInput').value = '';
     txnavPopulateCatSelect(txnavCurrentCat === 'all' ? '' : txnavCurrentCat);
+    txnavRenderImgList();
     document.getElementById('txnavSiteModal').classList.add('show');
     setTimeout(() => document.getElementById('txnavSiteName').focus(), 50);
 }
@@ -6796,13 +6848,55 @@ function txnavEditSite(siteId) {
     const site = (txnavData.sites || []).find(s => s.id === siteId);
     if (!site) return;
     txnavEditingSiteId = siteId;
+    txnavCurrentImages = [...(site.images || [])];
     document.getElementById('txnavSiteModalTitle').textContent = '✏️ 编辑网站';
     document.getElementById('txnavSiteName').value = site.name || '';
     document.getElementById('txnavSiteDesc').value = site.desc || '';
+    document.getElementById('txnavSiteDetail').value = site.detail || '';
     document.getElementById('txnavSiteUrl').value = site.url || '';
     document.getElementById('txnavSiteIcon').value = site.icon || '';
+    document.getElementById('txnavImgInput').value = '';
     txnavPopulateCatSelect(site.catId || '');
+    txnavRenderImgList();
     document.getElementById('txnavSiteModal').classList.add('show');
+}
+
+// 渲染弹窗里的图片列表
+function txnavRenderImgList() {
+    const list = document.getElementById('txnavImgList');
+    if (!list) return;
+    if (txnavCurrentImages.length === 0) {
+        list.innerHTML = '<div style="font-size:12px;color:#bbb;text-align:center;padding:4px 0;">暂无预览图</div>';
+        return;
+    }
+    list.innerHTML = txnavCurrentImages.map((url, i) => `
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg);
+                    border-radius:8px;padding:6px 8px;border:1px solid var(--border);">
+            <img src="${url}" alt="" style="width:48px;height:34px;object-fit:cover;border-radius:6px;flex-shrink:0;"
+                 onerror="this.style.display='none'">
+            <span style="flex:1;font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis;
+                         white-space:nowrap;word-break:break-all;">${url}</span>
+            <span onclick="txnavRemoveImg(${i})"
+                style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#ff4466;
+                       color:#fff;font-size:13px;line-height:20px;text-align:center;cursor:pointer;font-weight:700;">×</span>
+        </div>`).join('');
+}
+
+// 添加一张图片
+function txnavAddImg() {
+    const input = document.getElementById('txnavImgInput');
+    const url = input.value.trim();
+    if (!url) return;
+    if (!url.startsWith('http')) { alert('请输入完整图片URL（https://...）'); return; }
+    txnavCurrentImages.push(url);
+    input.value = '';
+    txnavRenderImgList();
+}
+
+// 删除一张图片
+function txnavRemoveImg(idx) {
+    txnavCurrentImages.splice(idx, 1);
+    txnavRenderImgList();
 }
 
 function txnavCloseSiteModal() {
@@ -6818,10 +6912,12 @@ function txnavConfirmSite() {
 
     const siteData = {
         name,
-        desc:  document.getElementById('txnavSiteDesc').value.trim(),
+        desc:   document.getElementById('txnavSiteDesc').value.trim(),
+        detail: document.getElementById('txnavSiteDetail').value.trim(),
         url,
-        icon:  document.getElementById('txnavSiteIcon').value.trim(),
-        catId: document.getElementById('txnavSiteCat').value || null,
+        icon:   document.getElementById('txnavSiteIcon').value.trim(),
+        catId:  document.getElementById('txnavSiteCat').value || null,
+        images: [...txnavCurrentImages],
     };
 
     if (txnavEditingSiteId) {
@@ -6836,7 +6932,7 @@ function txnavConfirmSite() {
 
     txnavCloseSiteModal();
     txnavRenderGrid();
-    txnavSave();
+    txnavMarkDirty();
 }
 
 function txnavDeleteSite(siteId) {
@@ -6844,16 +6940,110 @@ function txnavDeleteSite(siteId) {
     if (!site || !confirm(`删除「${site.name}」？`)) return;
     txnavData.sites = txnavData.sites.filter(s => s.id !== siteId);
     txnavRenderGrid();
-    txnavSave();
+    txnavMarkDirty();
 }
 
 // ════════════════════════════════════════
-//  面板开关
+//  详情页
 // ════════════════════════════════════════
-function closeNavPanel() {
-    document.getElementById('navPanelPage').style.display = 'none';
-    document.getElementById('sidebarHome').classList.add('active');
-    document.getElementById('sidebarNav').classList.remove('active');
+function txnavOpenDetail(siteId) {
+    const site = (txnavData.sites || []).find(s => s.id === siteId);
+    if (!site) return;
+
+    const cat = site.catId ? (txnavData.cats || []).find(c => c.id === site.catId) : null;
+    const catName = cat ? cat.name : '未分类';
+
+    const iconHtml = site.icon && site.icon.startsWith('http')
+        ? `<img src="${site.icon}" alt="" style="width:72px;height:72px;border-radius:16px;object-fit:cover;display:block;"
+             onerror="this.parentElement.innerHTML='🌐'">`
+        : `<span style="font-size:40px;line-height:72px;">${site.icon || '🌐'}</span>`;
+
+    const detailHtml = site.detail
+        ? `<div style="background:var(--bg);border-radius:14px;padding:14px 16px;font-size:14px;
+               color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word;">${site.detail}</div>`
+        : '';
+
+    // 图片网格（竖向排列，2列）
+    const imgs = site.images || [];
+    const imgsHtml = imgs.length > 0 ? `
+        <div style="padding:12px 16px 4px;">
+            <div style="font-size:12px;font-weight:600;color:#aaa;margin-bottom:8px;">📸 预览图（${imgs.length}张）</div>
+            <div style="display:grid;grid-template-columns:${imgs.length === 1 ? '1fr' : '1fr 1fr'};gap:8px;">
+                ${imgs.map((url, i) => `
+                    <img src="${url}" alt="预览图${i+1}"
+                        onclick="txnavViewImg('${url}')"
+                        style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;
+                               cursor:zoom-in;display:block;box-shadow:0 2px 8px rgba(0,0,0,0.12);"
+                        onerror="this.style.display='none'">`
+                ).join('')}
+            </div>
+        </div>` : '';
+
+    const hasContent = detailHtml || imgs.length > 0;
+
+    document.getElementById('txnavDetailBody').innerHTML = `
+        <!-- 顶部图标+名称区 -->
+        <div style="display:flex;align-items:center;gap:16px;padding:20px 16px 0;">
+            <div style="width:72px;height:72px;border-radius:16px;background:var(--bg);
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
+                        box-shadow:0 2px 12px var(--shadow-pink);">
+                ${iconHtml}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:20px;font-weight:800;color:var(--text);
+                            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${site.name}</div>
+                <div style="font-size:13px;color:#aaa;margin-top:4px;
+                            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${site.desc || ''}</div>
+            </div>
+        </div>
+
+        <!-- 分类标签 -->
+        <div style="padding:12px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:var(--primary);color:#fff;font-size:12px;font-weight:600;
+                         padding:3px 12px;border-radius:20px;">${catName}</span>
+        </div>
+
+        <!-- 详细介绍 -->
+        ${detailHtml ? `<div style="padding:8px 16px;">${detailHtml}</div>` : ''}
+
+        <!-- 预览图 -->
+        ${imgsHtml}
+
+        <!-- 按钮区 -->
+        <div style="padding:${hasContent ? '8px' : '20px'} 16px 36px;display:flex;gap:10px;">
+            <button onclick="txnavGoSite('${site.url}')"
+                style="flex:1;padding:14px 0;border-radius:14px;border:none;
+                       background:var(--primary);color:#fff;font-size:15px;font-weight:700;
+                       cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+                       box-shadow:0 4px 16px var(--shadow-pink);touch-action:manipulation;">
+                🔗 链接直达
+            </button>
+        </div>
+    `;
+
+    const panel = document.getElementById('txnavDetailPage');
+    panel.style.display = 'flex';
+    requestAnimationFrame(() => panel.classList.add('show'));
+}
+
+// 全屏查看图片
+function txnavViewImg(url) {
+    const mask = document.createElement('div');
+    mask.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.92);' +
+        'display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+    mask.innerHTML = `<img src="${url}" style="max-width:96vw;max-height:92vh;object-fit:contain;border-radius:8px;">`;
+    mask.onclick = () => mask.remove();
+    document.body.appendChild(mask);
+}
+
+function txnavCloseDetail() {
+    const panel = document.getElementById('txnavDetailPage');
+    panel.classList.remove('show');
+    setTimeout(() => { panel.style.display = 'none'; }, 220);
+}
+
+function txnavGoSite(url) {
+    window.open(url, '_blank', 'noopener');
 }
 
 // 打开导航面板时加载数据
@@ -6865,10 +7055,63 @@ window.sidebarGoNav = function() {
     document.getElementById('sidebarNav').classList.add('active');
     const panel = document.getElementById('navPanelPage');
     panel.style.display = 'flex';
-    // 每次打开时重新加载
+    // 管理员模式显示保存按钮
+    const saveBtn = document.getElementById('txnavSaveBtn');
+    const savePh  = document.getElementById('txnavSavePlaceholder');
+    if (saveBtn && savePh) {
+        saveBtn.style.display = isEditMode ? 'block' : 'none';
+        savePh.style.display  = isEditMode ? 'none'  : 'block';
+    }
     txnavLoad();
 };
+
+function closeNavPanel() {
+    if (txnavDirty && !confirm('有未保存的改动，确定离开？')) return;
+    txnavDirty = false;
+    document.getElementById('navPanelPage').style.display = 'none';
+    document.getElementById('sidebarHome').classList.add('active');
+    document.getElementById('sidebarNav').classList.remove('active');
+}
 </script>
+
+<!-- 天笑导航 站点详情页 -->
+<style>
+#txnavDetailPage {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+}
+#txnavDetailPage.show { transform: translateX(0); }
+#txnavDetailHeader {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 57px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 8px;
+}
+#txnavDetailBody {
+    flex: 1;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+}
+</style>
+<div id="txnavDetailPage">
+    <div id="txnavDetailHeader">
+        <div class="fullpage-back-btn" onclick="txnavCloseDetail()">←</div>
+        <div class="fullpage-header-title" style="flex:1;text-align:center;">站点详情</div>
+        <div style="width:40px;"></div>
+    </div>
+    <div id="txnavDetailBody"></div>
+</div>
 
 <!-- Turnstile 人机验证弹窗 -->
 <div id="turnstileModal">
