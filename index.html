@@ -53,7 +53,7 @@
             --pixel-deep: #ff99bb;
             --shadow-pink: rgba(255,102,153,0.15);
         }
-        [data-theme="dark"] body { background: none; filter: none; }
+        [data-theme="dark"] #contentBlocker { background: #0e0e10; }
         [data-theme="dark"] header {
             background: rgba(14,8,16,0.88) !important;
             border-bottom-color: rgba(255,102,153,0.2) !important;
@@ -1668,6 +1668,9 @@ function __safeFixDeleteImage(card){
     </div>
 </div>
 
+<!-- 防绕过遮罩：验证通过前挡住所有内容，不影响DOM结构和滚动 -->
+<div id="contentBlocker" style="position:fixed;inset:0;z-index:1999;background:#fff;display:none;pointer-events:all;"></div>
+
 <header>
     <!-- ✨ 像素风标题栏 -->
     <div class="px-title-bar">
@@ -2850,7 +2853,11 @@ function navPage(dir) {
 }
 
 function verifyAccess() {
-    if(document.getElementById("accessPass").value === ACCESS_PASS) document.getElementById("gateKeeper").style.display = "none";
+    if(document.getElementById("accessPass").value === ACCESS_PASS) {
+        sessionStorage.setItem('TX_GATE_PASSED', '1');
+        document.getElementById("gateKeeper").style.display = "none";
+        document.getElementById("contentBlocker").style.display = "none";
+    }
     else alert("你好像不是自己人，自由之地不欢迎你♂");
 }
 
@@ -4219,7 +4226,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-//   修复：确保所有卡片都包含简介区域
+// � 修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4322,7 +4329,7 @@ function resetAllCardStates() {
     });
 }
 
-//  🐛 修复：处理标签粘贴，清理格式
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -5657,7 +5664,14 @@ function toggleDarkMode() {
     showToast(isDark ? '☀️ 已切换日间模式' : '🌙 已切换夜间模式');
 }
 
-window.onload = async () => { 
+window.onload = async () => {
+    // 🔒 验证门禁：未通过则显示遮罩防止缩放绕过
+    const gatePassed = sessionStorage.getItem('TX_GATE_PASSED') === '1';
+    if (!gatePassed) {
+        document.getElementById('contentBlocker').style.display = 'block';
+    } else {
+        document.getElementById('gateKeeper').style.display = 'none';
+    }
     // 预加载夜间背景图，避免首次切换夜间模式时因图片加载导致 transition 丢失
     (function() {
         var img = new Image();
