@@ -6721,7 +6721,23 @@ function txnavConfirmBg() {
 function txnavApplyBg() {
     const layer = document.getElementById('txnavBgLayer');
     if (!layer) return;
-    layer.style.backgroundImage = txnavData.bgUrl ? `url('${txnavData.bgUrl}')` : '';
+    if (txnavData.bgUrl) {
+        layer.style.backgroundImage = `url('${txnavData.bgUrl}')`;
+        // 绑定视差滚动（只绑一次）
+        const gridWrap = document.querySelector('#navPanelPage .txnav-grid-wrap');
+        if (gridWrap && !gridWrap._txnavParallax) {
+            gridWrap._txnavParallax = true;
+            gridWrap.addEventListener('scroll', () => {
+                const scrollable = gridWrap.scrollHeight - gridWrap.clientHeight;
+                const pct = scrollable > 0 ? (gridWrap.scrollTop / scrollable) * 100 : 0;
+                layer.style.backgroundPosition = `center ${pct}%`;
+            }, { passive: true });
+        }
+        layer.style.backgroundPosition = 'center 0%';
+    } else {
+        layer.style.backgroundImage = '';
+        layer.style.backgroundPosition = 'center';
+    }
 }
 
 // ── 渲染 Tab ──
@@ -7005,8 +7021,9 @@ function txnavOpenDetail(siteId) {
                 ${imgs.map((url, i) => `
                     <img src="${url}" alt="预览图${i+1}"
                         onclick="txnavViewImg('${url}')"
-                        style="width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;
-                               cursor:zoom-in;display:block;box-shadow:0 2px 8px rgba(0,0,0,0.12);"
+                        style="width:100%;aspect-ratio:16/9;object-fit:cover;object-position:top;
+                               border-radius:10px;cursor:zoom-in;display:block;
+                               box-shadow:0 2px 8px rgba(0,0,0,0.12);"
                         onerror="this.style.display='none'">`
                 ).join('')}
             </div>
