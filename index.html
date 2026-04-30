@@ -6544,9 +6544,9 @@ window.closeNoticePanel = function() {
         </div>
         <div id="txnavSavePlaceholder" style="width:56px;"></div>
     </div>
-    <!-- 背景图层：自动加载 images/nav_bg.jpg，上传该文件到仓库即生效 -->
+    <!-- 背景图层：由管理员通过图床URL设置 -->
     <div id="txnavBgLayer" style="position:absolute;inset:0;z-index:0;
-         background:url('images/nav_bg.jpg') center/cover no-repeat;
+         background-size:cover;background-position:center;background-repeat:no-repeat;
          pointer-events:none;"></div>
     <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:1;">
         <!-- 分类Tab行 -->
@@ -6555,6 +6555,7 @@ window.closeNoticePanel = function() {
             <!-- 管理员按钮区（仅管理员模式显示） -->
             <div class="txnav-admin-btns">
                 <button class="txnav-btn-sm" onclick="txnavAddCat()">＋分类</button>
+                <button class="txnav-btn-sm" onclick="txnavSetBg()">🖼️ 背景</button>
             </div>
         </div>
         <!-- 卡片网格区 -->
@@ -6600,6 +6601,18 @@ window.closeNoticePanel = function() {
         <div class="txnav-modal-btns">
             <button class="btn-cancel" onclick="txnavCloseSiteModal()">取消</button>
             <button class="btn-ok" onclick="txnavConfirmSite()">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 天笑导航 背景图设置弹窗 -->
+<div class="txnav-modal-mask" id="txnavBgModal">
+    <div class="txnav-modal">
+        <h3>🖼️ 导航背景图</h3>
+        <input id="txnavBgInput" placeholder="图床图片URL（留空则清除背景）" maxlength="500">
+        <div class="txnav-modal-btns">
+            <button class="btn-cancel" onclick="document.getElementById('txnavBgModal').classList.remove('show')">取消</button>
+            <button class="btn-ok" onclick="txnavConfirmBg()">确定</button>
         </div>
     </div>
 </div>
@@ -6656,6 +6669,7 @@ async function txnavLoad() {
     } catch (e) { /* 离线时用空数据 */ }
     txnavRenderTabs();
     txnavRenderGrid();
+    txnavApplyBg();
 }
 
 let txnavDirty = false; // 有未保存的改动
@@ -6689,6 +6703,25 @@ async function txnavSave() {
             body: JSON.stringify({ data: JSON.stringify(txnavData) })
         });
     } catch (e) { console.error('导航保存失败', e); }
+}
+
+// ── 背景图 ──
+function txnavSetBg() {
+    document.getElementById('txnavBgInput').value = txnavData.bgUrl || '';
+    document.getElementById('txnavBgModal').classList.add('show');
+    setTimeout(() => document.getElementById('txnavBgInput').focus(), 50);
+}
+function txnavConfirmBg() {
+    const url = document.getElementById('txnavBgInput').value.trim();
+    txnavData.bgUrl = url;
+    txnavApplyBg();
+    document.getElementById('txnavBgModal').classList.remove('show');
+    txnavMarkDirty();
+}
+function txnavApplyBg() {
+    const layer = document.getElementById('txnavBgLayer');
+    if (!layer) return;
+    layer.style.backgroundImage = txnavData.bgUrl ? `url('${txnavData.bgUrl}')` : '';
 }
 
 // ── 渲染 Tab ──
