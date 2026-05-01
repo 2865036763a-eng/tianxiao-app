@@ -209,7 +209,6 @@
             pointer-events: none;
             will-change: transform;
         }
-        /* 日夜切换用伪类+CSS变量实现过渡，避免 inline style 覆盖 transition */
         #bg-layer.night {
             background-image: url('images/bg_night.jpg');
         }
@@ -4226,7 +4225,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-// � 修复：确保所有卡片都包含简介区域
+//   修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4329,7 +4328,7 @@ function resetAllCardStates() {
     });
 }
 
-// �🐛 修复：处理标签粘贴，清理格式
+//  🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -5637,8 +5636,6 @@ function initDarkMode() {
 function applyDarkMode(dark, save = true) {
     const html = document.documentElement;
     const btn = document.getElementById('darkModeBtn');
-
-    // 先同步更新 data-theme 和按钮文字（不涉及 transition）
     if (dark) {
         html.setAttribute('data-theme', 'dark');
         if (btn) btn.textContent = '☀️';
@@ -5647,9 +5644,6 @@ function applyDarkMode(dark, save = true) {
         if (btn) btn.textContent = '🌙';
     }
     if (save) localStorage.setItem(DARK_KEY, dark ? '1' : '0');
-
-    // bg-layer 和 gateKeeper 用 rAF 切换 class，确保浏览器能识别状态变化并播放 transition
-    // 快速连续点击时，rAF 会合并到下一帧，不会互相干扰
     const bl   = document.getElementById('bg-layer');
     const gate = document.getElementById('gateKeeper');
     requestAnimationFrame(() => {
@@ -6558,9 +6552,9 @@ window.closeNoticePanel = function() {
         </div>
         <div id="txnavSavePlaceholder" style="width:56px;"></div>
     </div>
-    <!-- 背景图层：由管理员通过图床URL设置 -->
+    <!-- 背景图层：固定读取 images/nav_bg.jpg，上传到 GitHub 即生效 -->
     <div id="txnavBgLayer" style="position:absolute;inset:0;z-index:0;
-         background-size:cover;background-position:center;background-repeat:no-repeat;
+         background:url('images/nav_bg.jpg') center top/cover no-repeat;
          pointer-events:none;"></div>
     <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:1;">
         <!-- 分类Tab行 -->
@@ -6569,7 +6563,6 @@ window.closeNoticePanel = function() {
             <!-- 管理员按钮区（仅管理员模式显示） -->
             <div class="txnav-admin-btns">
                 <button class="txnav-btn-sm" onclick="txnavAddCat()">＋分类</button>
-                <button class="txnav-btn-sm" onclick="txnavSetBg()">🖼️ 背景</button>
             </div>
         </div>
         <!-- 卡片网格区 -->
@@ -6615,18 +6608,6 @@ window.closeNoticePanel = function() {
         <div class="txnav-modal-btns">
             <button class="btn-cancel" onclick="txnavCloseSiteModal()">取消</button>
             <button class="btn-ok" onclick="txnavConfirmSite()">确定</button>
-        </div>
-    </div>
-</div>
-
-<!-- 天笑导航 背景图设置弹窗 -->
-<div class="txnav-modal-mask" id="txnavBgModal">
-    <div class="txnav-modal">
-        <h3>🖼️ 导航背景图</h3>
-        <input id="txnavBgInput" placeholder="图床图片URL（留空则清除背景）" maxlength="500">
-        <div class="txnav-modal-btns">
-            <button class="btn-cancel" onclick="document.getElementById('txnavBgModal').classList.remove('show')">取消</button>
-            <button class="btn-ok" onclick="txnavConfirmBg()">确定</button>
         </div>
     </div>
 </div>
@@ -6683,7 +6664,6 @@ async function txnavLoad() {
     } catch (e) { /* 离线时用空数据 */ }
     txnavRenderTabs();
     txnavRenderGrid();
-    txnavApplyBg();
 }
 
 let txnavDirty = false; // 有未保存的改动
@@ -6720,40 +6700,6 @@ async function txnavSave() {
 }
 
 // ── 背景图 ──
-function txnavSetBg() {
-    document.getElementById('txnavBgInput').value = txnavData.bgUrl || '';
-    document.getElementById('txnavBgModal').classList.add('show');
-    setTimeout(() => document.getElementById('txnavBgInput').focus(), 50);
-}
-function txnavConfirmBg() {
-    const url = document.getElementById('txnavBgInput').value.trim();
-    txnavData.bgUrl = url;
-    txnavApplyBg();
-    document.getElementById('txnavBgModal').classList.remove('show');
-    txnavMarkDirty();
-}
-function txnavApplyBg() {
-    const layer = document.getElementById('txnavBgLayer');
-    if (!layer) return;
-    if (txnavData.bgUrl) {
-        layer.style.backgroundImage = `url('${txnavData.bgUrl}')`;
-        // 绑定视差滚动（只绑一次）
-        const gridWrap = document.querySelector('#navPanelPage .txnav-grid-wrap');
-        if (gridWrap && !gridWrap._txnavParallax) {
-            gridWrap._txnavParallax = true;
-            gridWrap.addEventListener('scroll', () => {
-                const scrollable = gridWrap.scrollHeight - gridWrap.clientHeight;
-                const pct = scrollable > 0 ? (gridWrap.scrollTop / scrollable) * 100 : 0;
-                layer.style.backgroundPosition = `center ${pct}%`;
-            }, { passive: true });
-        }
-        layer.style.backgroundPosition = 'center 0%';
-    } else {
-        layer.style.backgroundImage = '';
-        layer.style.backgroundPosition = 'center';
-    }
-}
-
 // ── 渲染 Tab ──
 function txnavRenderTabs() {
     const wrap = document.getElementById('txnavTabs');
