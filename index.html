@@ -6292,6 +6292,9 @@ window.closeNoticePanel = function() {
 
 <!-- 天笑导航 全屏面板 -->
 <style>
+@keyframes txnavSpin {
+    to { transform: rotate(360deg); }
+}
 /* ── 天笑导航面板专用样式 ── */
 #navPanelPage .fullpage-body {
     padding: 0 !important;
@@ -6301,11 +6304,10 @@ window.closeNoticePanel = function() {
 .txnav-header-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 12px 8px;
     background: var(--card);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    position: relative;
 }
 .txnav-tabs {
     display: flex;
@@ -6315,7 +6317,10 @@ window.closeNoticePanel = function() {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     align-items: center;
+    padding: 10px 12px 8px;
+    /* 管理员模式下右侧留空间给＋分类按钮 */
 }
+.admin-mode .txnav-tabs { padding-right: 80px; }
 .txnav-tabs::-webkit-scrollbar { display: none; }
 .txnav-tab {
     flex-shrink: 0;
@@ -6353,12 +6358,17 @@ window.closeNoticePanel = function() {
     cursor: pointer;
 }
 .admin-mode .txnav-tab .txnav-tab-del { display: block; }
-/* 管理员编辑按钮区 */
+/* 管理员编辑按钮区：绝对定位固定在右侧，不参与 Tab 滚动 */
 .txnav-admin-btns {
     display: none;
-    flex-shrink: 0;
-    gap: 6px;
+    position: absolute;
+    right: 0;
+    top: 0; bottom: 0;
     align-items: center;
+    padding: 0 10px;
+    background: linear-gradient(to right, transparent, var(--card) 30%);
+    gap: 6px;
+    z-index: 2;
 }
 .admin-mode .txnav-admin-btns { display: flex; }
 .txnav-btn-sm {
@@ -6556,6 +6566,16 @@ window.closeNoticePanel = function() {
     <div id="txnavBgLayer" style="position:absolute;inset:0;z-index:0;
          background:url('images/nav_bg.jpg') center top/cover no-repeat;
          pointer-events:none;"></div>
+    <!-- 加载遮罩：背景图加载完前覆盖，防止露馅 -->
+    <div id="txnavLoadOverlay" style="position:absolute;inset:0;z-index:10;
+         background:var(--bg);display:flex;flex-direction:column;
+         align-items:center;justify-content:center;gap:16px;
+         transition:opacity 0.4s ease;opacity:1;pointer-events:all;">
+        <div style="width:40px;height:40px;border-radius:50%;
+             border:3px solid var(--border);border-top-color:var(--primary);
+             animation:txnavSpin 0.8s linear infinite;"></div>
+        <div style="font-size:13px;color:#aaa;">少女祈祷中…</div>
+    </div>
     <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:1;">
         <!-- 分类Tab行 -->
         <div class="txnav-header-row">
@@ -7072,6 +7092,21 @@ window.sidebarGoNav = function() {
         saveBtn.style.display = isEditMode ? 'block' : 'none';
         savePh.style.display  = isEditMode ? 'none'  : 'block';
     }
+    // 显示加载遮罩，等背景图加载完再淡出
+    const overlay = document.getElementById('txnavLoadOverlay');
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'all';
+    const img = new Image();
+    img.onload = img.onerror = function() {
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+    };
+    img.src = 'images/nav_bg.jpg?' + Date.now(); // 加时间戳防缓存干扰首次检测
+    // 如果图片已缓存 onload 不触发，3秒兜底
+    setTimeout(() => {
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+    }, 3000);
     txnavLoad();
 };
 
