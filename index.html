@@ -1160,7 +1160,7 @@
         /* 收藏按钮在非管理员模式下也显示 */
         .fav-btn { display: flex !important; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 4000; }
         .modal-box { background: var(--pixel-white); width: 85%; max-width: 350px; border-radius: 8px; padding: 24px; box-shadow: 5px 5px 0 rgba(255,130,180,0.3); border: 2px solid var(--primary-light); }
         .modal-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; }
         .modal-input { width: 100%; padding: 12px 0; border: none; border-bottom: 1px solid #eee; font-size: 15px; outline: none; margin-bottom: 25px; }
@@ -3055,12 +3055,16 @@ function openFavoritePanel() {
 
             setTimeout(() => {
                 if (card.classList.contains('active-render')) {
-                    card.classList.add('card-expanded');
-                    const _sb = card.querySelector('.slider-box');
-                    if (_sb) initSliderTrack(_sb);
+                    // 只定位，不展开
                     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    card.style.boxShadow = '0 0 0 3px var(--primary)';
-                    setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+                    // 绿色边框闪烁1秒
+                    card.style.outline = '3px solid #22c55e';
+                    card.style.outlineOffset = '2px';
+                    card.style.transition = 'outline 0.3s';
+                    setTimeout(() => {
+                        card.style.outline = '';
+                        card.style.outlineOffset = '';
+                    }, 1000);
                 }
             }, 200);
         });
@@ -4016,7 +4020,7 @@ function initCompactCards() {
             if (e.target.tagName === 'IMG' && e.target.closest('.slider-box')) {
                 return;
             }
-            toggleCardExpand(card);
+            openCardDetail(card);
         });
     }
 }
@@ -4225,7 +4229,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-//   修复：确保所有卡片都包含简介区域
+// � 修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4328,7 +4332,7 @@ function resetAllCardStates() {
     });
 }
 
-//  🐛 修复：处理标签粘贴，清理格式
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -4989,8 +4993,11 @@ async function showKvLinkEditor(cardId, wrap) {
                     let part = '';
                     if (label) part += label + '\n';
                     if (extra) {
-                        // 去掉用户可能已填的前缀，统一格式
-                        const cleanExtra = extra.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
+                        // 彻底剥掉所有重复前缀，统一存为 提取码:xxxx
+                        let cleanExtra = extra;
+                        while (/^(提取码|解压码|密码)[：:]\s*/i.test(cleanExtra)) {
+                            cleanExtra = cleanExtra.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
+                        }
                         part += '提取码:' + cleanExtra;
                     }
                     return part.trim();
@@ -5150,7 +5157,11 @@ function renderLinkItems(container, items) {
 
         if (extra) {
             const extraEl = document.createElement('div');
-            const code = extra.replace(/^提取码[：:]\s*/i, '');
+            // 循环剥掉所有重复的"提取码/密码/解压码："前缀
+            let code = extra;
+            while (/^(提取码|解压码|密码)[：:]\s*/i.test(code)) {
+                code = code.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
+            }
             extraEl.style.cssText = 'margin-top:8px; padding:8px 10px; background:#fff; border:1px solid #e0e0e0; border-radius:6px; display:flex; align-items:center; justify-content:space-between;';
             extraEl.innerHTML = `<span style="font-size:13px;color:#555;">提取码：<b style="color:#333;letter-spacing:2px;">${code}</b></span>`;
             const copyCodeBtn = document.createElement('button');
@@ -5535,6 +5546,16 @@ function showSearchImageEgg(src) {
             el.style.top       = '0';
             el.style.left      = '0';
             el.style.transform = 'none';
+        }
+
+        // 导航面板背景层：同样锁定物理尺寸，防键盘上移
+        var txnavBg = document.getElementById('txnavBgLayer');
+        if (txnavBg) {
+            txnavBg.style.width  = screenW + 'px';
+            txnavBg.style.height = screenH + 'px';
+            txnavBg.style.top    = '0';
+            txnavBg.style.left   = '0';
+            txnavBg.style.position = 'fixed';
         }
 
         // gateKeeper
@@ -6190,6 +6211,194 @@ function copyText(text) {
 
 <script>
 
+// ════════════════════════════════════════
+//  资源卡片详情页
+// ════════════════════════════════════════
+let _cardDetailSource = null; // 当前详情页对应的卡片DOM
+
+function openCardDetail(card) {
+    _cardDetailSource = card;
+
+    // ── 读取卡片数据 ──
+    const sliderBox   = card.querySelector('.slider-box');
+    const infoBox     = card.querySelector('.info-box');
+    const nameEl      = card.querySelector('.g-name');
+    const tagsEl      = card.querySelector('.g-tags');
+    const descEl      = card.querySelector('.desc-text');
+
+    const title    = (nameEl?.textContent || '').trim() || '未命名';
+    const tagsRaw  = (tagsEl?.textContent || '').trim().replace(/^标签[：:]\s*/, '');
+    const descFull = (descEl?.textContent || '').trim();
+
+    // 图片列表
+    const imgs = sliderBox ? [...sliderBox.querySelectorAll('img')] : [];
+    const imgSrcs = imgs.map(i => i.getAttribute('src')).filter(Boolean);
+
+    // 收藏状态
+    const cid   = card.dataset.cardId;
+    const faved = cid && favorites.has(cid);
+
+    // ── 更新顶部标题 & 收藏按钮 ──
+    document.getElementById('cardDetailHeaderTitle').textContent = title;
+    document.getElementById('cardDetailFavBtn').textContent = faved ? '💖' : '🤍';
+
+    // ── 构建内容区 ──
+    document.getElementById('cardDetailBody').scrollTop = 0;
+    const body = document.getElementById('cardDetailInner');
+    body.innerHTML = '';
+
+    // 图片轮播
+    if (imgSrcs.length > 0) {
+        const galleryWrap = document.createElement('div');
+        galleryWrap.style.cssText = 'position:relative;background:#000;overflow:hidden;';
+        const aspect = document.createElement('div');
+        aspect.style.cssText = 'width:100%;max-height:420px;min-height:200px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#111;';
+
+        let curIdx = 0;
+        const track = document.createElement('div');
+        track.style.cssText = 'display:flex;width:100%;height:100%;min-height:200px;transition:transform 0.3s ease;';
+        imgSrcs.forEach(src => {
+            const slide = document.createElement('div');
+            slide.style.cssText = 'flex-shrink:0;width:100%;min-height:200px;max-height:420px;display:flex;align-items:center;justify-content:center;background:#111;';
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.cssText = 'max-width:100%;max-height:420px;width:auto;object-fit:contain;display:block;margin:0 auto;';
+            slide.appendChild(img);
+            track.appendChild(slide);
+        });
+        aspect.appendChild(track);
+
+        // 左右箭头（多张时才显示）
+        if (imgSrcs.length > 1) {
+            const counter = document.createElement('div');
+            counter.style.cssText = 'position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,0.5);color:#fff;font-size:12px;padding:2px 8px;border-radius:10px;z-index:2;';
+            counter.textContent = `1 / ${imgSrcs.length}`;
+            aspect.appendChild(counter);
+
+            ['←','→'].forEach((arrow, dir) => {
+                const btn = document.createElement('div');
+                btn.textContent = arrow;
+                btn.style.cssText = `position:absolute;top:50%;transform:translateY(-50%);${dir===0?'left:8px':'right:8px'};z-index:2;
+                    width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.4);color:#fff;
+                    display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;touch-action:manipulation;`;
+                btn.addEventListener('click', () => {
+                    curIdx = dir === 0
+                        ? (curIdx - 1 + imgSrcs.length) % imgSrcs.length
+                        : (curIdx + 1) % imgSrcs.length;
+                    track.style.transform = `translateX(-${curIdx * 100}%)`;
+                    counter.textContent = `${curIdx + 1} / ${imgSrcs.length}`;
+                });
+                aspect.appendChild(btn);
+            });
+
+            // 触摸滑动
+            let tx = 0;
+            aspect.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+            aspect.addEventListener('touchend', e => {
+                const dx = e.changedTouches[0].clientX - tx;
+                if (Math.abs(dx) > 40) {
+                    curIdx = dx < 0
+                        ? (curIdx + 1) % imgSrcs.length
+                        : (curIdx - 1 + imgSrcs.length) % imgSrcs.length;
+                    track.style.transform = `translateX(-${curIdx * 100}%)`;
+                    counter.textContent = `${curIdx + 1} / ${imgSrcs.length}`;
+                }
+            }, { passive: true });
+        }
+
+        galleryWrap.appendChild(aspect);
+        body.appendChild(galleryWrap);
+    }
+
+    // 标题
+    const titleEl = document.createElement('div');
+    titleEl.style.cssText = 'padding:14px 16px 6px;font-size:17px;font-weight:800;color:var(--text);line-height:1.5;';
+    titleEl.textContent = title;
+    body.appendChild(titleEl);
+
+    // 标签
+    if (tagsRaw) {
+        const tagsWrap = document.createElement('div');
+        tagsWrap.style.cssText = 'padding:0 16px 12px;display:flex;flex-wrap:wrap;gap:6px;';
+        tagsRaw.split(/[\s\/]+/).filter(Boolean).forEach(t => {
+            const chip = document.createElement('span');
+            chip.textContent = t;
+            chip.style.cssText = 'background:rgba(255,102,153,0.12);color:var(--primary);font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,102,153,0.25);';
+            tagsWrap.appendChild(chip);
+        });
+        body.appendChild(tagsWrap);
+    }
+
+    // 简介
+    if (descFull) {
+        const descWrap = document.createElement('div');
+        descWrap.style.cssText = 'margin:0 16px 16px;background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);';
+        const descText = document.createElement('div');
+        descText.style.cssText = 'font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word;';
+        descText.textContent = descFull;
+        descWrap.appendChild(descText);
+        body.appendChild(descWrap);
+    }
+
+    // 获取链接按钮——优先找 get-link-btn，其次找 link-jump-btn，直接触发点击
+    const getLinkBtn = card.querySelector('.get-link-btn') || card.querySelector('.link-jump-btn:not(.edit-kv-btn)');
+    // 直接下载按钮
+    const directDlBtn = card.querySelector('.direct-dl-btn');
+
+    const hasAnyLink = getLinkBtn || directDlBtn;
+    if (hasAnyLink) {
+        const btnWrap = document.createElement('div');
+        btnWrap.style.cssText = 'padding:0 16px 32px;display:flex;gap:10px;flex-direction:column;';
+
+        if (getLinkBtn) {
+            const dlBtn = document.createElement('button');
+            dlBtn.style.cssText = 'width:100%;padding:14px 0;border-radius:14px;border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 16px rgba(255,102,153,0.35);touch-action:manipulation;';
+            dlBtn.innerHTML = '🔗 获取链接';
+            dlBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                getLinkBtn.click();
+            });
+            btnWrap.appendChild(dlBtn);
+        }
+
+        if (directDlBtn) {
+            const ddBtn = document.createElement('button');
+            ddBtn.style.cssText = 'width:100%;padding:12px 0;border-radius:14px;border:1px solid var(--primary);background:transparent;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;';
+            ddBtn.innerHTML = '⚡ ' + (directDlBtn.textContent.trim() || '直接下载');
+            ddBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                directDlBtn.click();
+            });
+            btnWrap.appendChild(ddBtn);
+        }
+
+        body.appendChild(btnWrap);
+    }
+
+    // ── 显示详情页（右侧滑入）──
+    const page = document.getElementById('cardDetailPage');
+    page.style.display = 'flex';
+    requestAnimationFrame(() => page.style.transform = 'translateX(0)');
+}
+
+function closeCardDetail() {
+    const page = document.getElementById('cardDetailPage');
+    page.style.transform = 'translateX(100%)';
+    setTimeout(() => { page.style.display = 'none'; }, 230);
+    _cardDetailSource = null;
+}
+
+function cardDetailToggleFav() {
+    if (!_cardDetailSource) return;
+    const favBtn = _cardDetailSource.querySelector('.fav-btn');
+    if (favBtn) {
+        toggleFavorite(favBtn);
+        const cid   = _cardDetailSource.dataset.cardId;
+        const faved = cid && favorites.has(cid);
+        document.getElementById('cardDetailFavBtn').textContent = faved ? '💖' : '🤍';
+    }
+}
+
 function clearAllData() {
     if (!confirm('⚠️ 确定要清理全部本地数据吗？\n\n将清除：本地缓存、收藏、分类配置、公告、轮播图等所有本地存储。\n\n云端数据不受影响，刷新后会重新从云端加载。')) return;
     localStorage.clear();
@@ -6292,6 +6501,10 @@ window.closeNoticePanel = function() {
 
 <!-- 天笑导航 全屏面板 -->
 <style>
+/* 天笑导航面板自身透明，背景由 fixed 的 txnavBgLayer 提供 */
+#navPanelPage {
+    background: transparent !important;
+}
 @keyframes txnavSpin {
     to { transform: rotate(360deg); }
 }
@@ -6562,10 +6775,10 @@ window.closeNoticePanel = function() {
         </div>
         <div id="txnavSavePlaceholder" style="width:56px;"></div>
     </div>
-    <!-- 背景图层：固定读取 images/nav_bg.jpg，上传到 GitHub 即生效 -->
-    <div id="txnavBgLayer" style="position:absolute;inset:0;z-index:0;
+    <!-- 背景图层：fixed 定位，键盘弹出时不上移，和主页 bg-layer 一致 -->
+    <div id="txnavBgLayer" style="position:fixed;inset:0;z-index:1499;
          background:url('images/nav_bg.jpg') center top/cover no-repeat;
-         pointer-events:none;"></div>
+         pointer-events:none;display:none;"></div>
     <!-- 加载遮罩：背景图加载完前覆盖，防止露馅 -->
     <div id="txnavLoadOverlay" style="position:absolute;inset:0;z-index:10;
          background:var(--bg);display:flex;flex-direction:column;
@@ -7085,6 +7298,7 @@ window.sidebarGoNav = function() {
     document.getElementById('sidebarNav').classList.add('active');
     const panel = document.getElementById('navPanelPage');
     panel.style.display = 'flex';
+    document.getElementById('txnavBgLayer').style.display = 'block';
     // 管理员模式显示保存按钮
     const saveBtn = document.getElementById('txnavSaveBtn');
     const savePh  = document.getElementById('txnavSavePlaceholder');
@@ -7114,6 +7328,7 @@ function closeNavPanel() {
     if (txnavDirty && !confirm('有未保存的改动，确定离开？')) return;
     txnavDirty = false;
     document.getElementById('navPanelPage').style.display = 'none';
+    document.getElementById('txnavBgLayer').style.display = 'none';
     document.getElementById('sidebarHome').classList.add('active');
     document.getElementById('sidebarNav').classList.remove('active');
 }
@@ -7168,6 +7383,37 @@ function closeNavPanel() {
     </div>
 </div>
 
+
+<!-- 资源卡片详情页 -->
+<div id="cardDetailPage" style="position:fixed;inset:0;z-index:1500;display:none;flex-direction:column;
+     background:var(--bg);transform:translateX(100%);transition:transform 0.22s cubic-bezier(.4,0,.2,1);">
+    <!-- 顶部导航栏 -->
+    <div id="cardDetailHeader" style="display:flex;align-items:center;height:54px;padding:0 12px;
+         background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;z-index:2;">
+        <style>
+        @media (min-width:600px) {
+            #cardDetailPage { background: #f0f0f5; }
+            #cardDetailInner { max-width: 680px; margin: 0 auto; background: var(--bg); min-height: 100%; box-shadow: 0 0 40px rgba(0,0,0,0.12); }
+            #cardDetailHeader > *:not(style) { max-width: 680px; }
+            #cardDetailHeader { justify-content: center; }
+            #cardDetailHeaderInner { max-width: 680px; width: 100%; display: flex; align-items: center; gap: 8px; }
+        }
+        </style>
+        <div onclick="closeCardDetail()" style="width:36px;height:36px;display:flex;align-items:center;
+             justify-content:center;border-radius:50%;font-size:20px;cursor:pointer;color:var(--primary);
+             touch-action:manipulation;">←</div>
+        <div id="cardDetailHeaderTitle" style="flex:1;font-size:15px;font-weight:700;color:var(--text);
+             overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        <div id="cardDetailFavBtn" style="width:36px;height:36px;display:flex;align-items:center;
+             justify-content:center;font-size:20px;cursor:pointer;touch-action:manipulation;"
+             onclick="cardDetailToggleFav()">🤍</div>
+    </div>
+    <!-- 滚动内容区 -->
+    <div id="cardDetailBody" style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;
+         overscroll-behavior-y:contain;">
+        <div id="cardDetailInner"></div>
+    </div>
+</div>
 
 <div id="bg-layer"></div>
 </body></html>
