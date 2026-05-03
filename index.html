@@ -3055,12 +3055,21 @@ function openFavoritePanel() {
 
             setTimeout(() => {
                 if (card.classList.contains('active-render')) {
-                    card.classList.add('card-expanded');
-                    const _sb = card.querySelector('.slider-box');
-                    if (_sb) initSliderTrack(_sb);
                     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    card.style.boxShadow = '0 0 0 3px var(--primary)';
-                    setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+                    // 绿色边框渐变出现，2秒后渐变消失
+                    card.style.transition = 'outline 0.3s ease, outline-offset 0.3s ease';
+                    card.style.outline = '3px solid #22c55e';
+                    card.style.outlineOffset = '2px';
+                    setTimeout(() => {
+                        card.style.transition = 'outline 0.6s ease, outline-offset 0.6s ease';
+                        card.style.outline = '3px solid transparent';
+                        card.style.outlineOffset = '0px';
+                        setTimeout(() => {
+                            card.style.outline = '';
+                            card.style.outlineOffset = '';
+                            card.style.transition = '';
+                        }, 600);
+                    }, 2000);
                 }
             }, 200);
         });
@@ -3541,7 +3550,7 @@ function enterAdmin() {
             const offset = range.startOffset;
             const text = el.textContent;
             // 如果光标在"标签: "之内（前4字符），阻止删除
-            if ((e.key === 'Backspace' || e.key === 'Delete') && offset <= 4 && text.startsWith('标签')) {
+            if ((e.key === 'Backspace' || e.key === 'Delete') && offset < 4 && text.startsWith('标签')) {
                 e.preventDefault();
             }
         });
@@ -3688,7 +3697,7 @@ function addCard() {
                     }
                     offset = total + range.startOffset;
                 }
-                if (offset <= 4) e.preventDefault();
+                if (offset < 4) e.preventDefault();
             });
         });
     }
@@ -4225,7 +4234,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-//   修复：确保所有卡片都包含简介区域
+// � 修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4328,7 +4337,7 @@ function resetAllCardStates() {
     });
 }
 
-//  🐛 修复：处理标签粘贴，清理格式
+// �🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -4615,8 +4624,8 @@ function addLinkJumpButtons() {
                             const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
                             const labelLines = [], extraLines = [];
                             ltLines.forEach(l => {
-                                if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
-                                else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+                                if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+                                else if (!/https?:\/\//i.test(l)) labelLines.push(l); // 非URL非提取码的行都当标签
                             });
                             const items = kvLinks.map((url, i) => ({
                                 url,
@@ -4861,8 +4870,8 @@ async function showKvLinkEditor(cardId, wrap) {
     const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const labelLines = [], extraLines = [], urlsFromLt = [];
     ltLines.forEach(l => {
-        if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
-        else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+        if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+        else if (!/https?:\/\//i.test(l)) labelLines.push(l); // 非URL非提取码的行都当标签
         else {
             // 该行里所有URL提取出来
             const found = [...l.matchAll(/https?:\/\/[^\s]+/g)].map(m => m[0].replace(/[,，。.;；!！?？\)）\]】}>》'"]+$/, ''));
@@ -4914,7 +4923,7 @@ async function showKvLinkEditor(cardId, wrap) {
         const labelInput = document.createElement('input');
         labelInput.type = 'text';
         labelInput.placeholder = '分卷标签（如：分卷1）';
-        labelInput.value = labelLines[idx] || (currentLinks.length > 1 ? `分卷${idx + 1}` : '');
+        labelInput.value = labelLines[idx] || '';
         labelInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; margin-bottom:6px; outline:none;';
         row.appendChild(labelInput);
 
