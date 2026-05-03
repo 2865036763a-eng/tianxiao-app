@@ -3055,12 +3055,21 @@ function openFavoritePanel() {
 
             setTimeout(() => {
                 if (card.classList.contains('active-render')) {
-                    card.classList.add('card-expanded');
-                    const _sb = card.querySelector('.slider-box');
-                    if (_sb) initSliderTrack(_sb);
                     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    card.style.boxShadow = '0 0 0 3px var(--primary)';
-                    setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+                    // 绿色边框渐变出现，2秒后渐变消失
+                    card.style.transition = 'outline 0.3s ease, outline-offset 0.3s ease';
+                    card.style.outline = '3px solid #22c55e';
+                    card.style.outlineOffset = '2px';
+                    setTimeout(() => {
+                        card.style.transition = 'outline 0.6s ease, outline-offset 0.6s ease';
+                        card.style.outline = '3px solid transparent';
+                        card.style.outlineOffset = '0px';
+                        setTimeout(() => {
+                            card.style.outline = '';
+                            card.style.outlineOffset = '';
+                            card.style.transition = '';
+                        }, 600);
+                    }, 2000);
                 }
             }, 200);
         });
@@ -3541,7 +3550,7 @@ function enterAdmin() {
             const offset = range.startOffset;
             const text = el.textContent;
             // 如果光标在"标签: "之内（前4字符），阻止删除
-            if ((e.key === 'Backspace' || e.key === 'Delete') && offset <= 4 && text.startsWith('标签')) {
+            if ((e.key === 'Backspace' || e.key === 'Delete') && offset < 4 && text.startsWith('标签')) {
                 e.preventDefault();
             }
         });
@@ -3688,7 +3697,7 @@ function addCard() {
                     }
                     offset = total + range.startOffset;
                 }
-                if (offset <= 4) e.preventDefault();
+                if (offset < 4) e.preventDefault();
             });
         });
     }
@@ -4225,7 +4234,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-// � 修复：确保所有卡片都包含简介区域
+//   修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4328,7 +4337,7 @@ function resetAllCardStates() {
     });
 }
 
-// �🐛 修复：处理标签粘贴，清理格式
+//  🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -4610,23 +4619,45 @@ function addLinkJumpButtons() {
                         } catch(e) {}
 
                         if (kvLinks) {
-                            // KV有数据，结合link-text里的说明
-                            const ltText = linkText ? getDomTextWithNewlines(linkText) : '';
-                            const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                            const labelLines = [], extraLines = [];
-                            ltLines.forEach(l => {
-                                if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
-                                else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
-                            });
+                            // KV有数据，用KV链接 + link-text元数据
+                            const ltText2 = linkText ? getDomTextWithNewlines(linkText) : '';
+                            let perMeta = [];
+                            if (ltText2.includes('|||')) {
+                                perMeta = ltText2.split('|||').map(block => {
+                                    const parts = block.split('\t');
+                                    if (parts.length >= 4) {
+                                        // 新v2格式：网盘名称\t备注\t提取码\t解压码
+                                        return { label: parts[0]||'', remark: parts[1]||'', passcode: parts[2]||'', unzip: parts[3]||'' };
+                                    } else {
+                                        // 旧格式兼容：标签\t提取码
+                                        let extra = (parts[1]||'').replace(/^提取码[:：]\s*/i,'');
+                                        return { label: parts[0]||'', remark: '', passcode: extra, unzip: '' };
+                                    }
+                                });
+                            } else if (ltText2 && ltText2 !== '（链接已安全存储）') {
+                                const ltLines2 = ltText2.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                                const ll = [], el = [];
+                                ltLines2.forEach(l => {
+                                    if (/提取码|密码|解压码|password/i.test(l)) el.push(l.replace(/^(提取码|解压码|密码)[：:]\s*/i,''));
+                                    else if (!/https?:\/\//i.test(l)) ll.push(l);
+                                });
+                                kvLinks.forEach((_, i) => perMeta.push({ label: ll[i] || '', remark: '', passcode: el[i] || '', unzip: '' }));
+                            }
                             const items = kvLinks.map((url, i) => ({
                                 url,
-                                label: labelLines[i] || `链接 ${i + 1}`,
-                                extra: extraLines[i] || ''
+                                label: perMeta[i]?.label || '',
+                                remark: perMeta[i]?.remark || '',
+                                passcode: perMeta[i]?.passcode || '',
+                                unzip: perMeta[i]?.unzip || '',
+                                extra: perMeta[i]?.passcode || '' // 兼容旧renderLinkItems
                             }));
                             showLinkSelector(items);
                         } else if (hasLocalUrls) {
                             // KV没有，用本地URL
                             showLinkSelector(localUrls);
+                        } else if (ltMeaningful) {
+                            // KV 没返回数据，但 link-text 有内容，提示管理员更新
+                            showToast('❌ 云端链接暂时无法获取，请稍后重试');
                         } else {
                             showToast('❌ 该卡片暂无链接');
                         }
@@ -4855,20 +4886,39 @@ async function showKvLinkEditor(cardId, wrap) {
         }
     } catch(e) {}
 
-    // 读取link-text里的分卷/提取码说明（以及可能还存在的URL，用于回填）
+    // 读取link-text里的说明文字（结构化格式：每块用|||分隔，块内格式：标签\t提取码）
+    // 兼容旧格式：按行分离标签和提取码
     const ltEl = wrap ? wrap.querySelector('.link-text') : null;
     const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
-    const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const labelLines = [], extraLines = [], urlsFromLt = [];
-    ltLines.forEach(l => {
-        if (/^(分卷|卷|vol|part|第.卷)[\s\d]*$/i.test(l)) labelLines.push(l);
-        else if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
-        else {
-            // 该行里所有URL提取出来
-            const found = [...l.matchAll(/https?:\/\/[^\s]+/g)].map(m => m[0].replace(/[,，。.;；!！?？\)）\]】}>》'"]+$/, ''));
-            urlsFromLt.push(...found);
+    
+    // 解析每个链接对应的 {label, extra}
+    let perLinkMeta = []; // [{label, extra}]
+    
+    if (ltText.includes('|||')) {
+        // 新结构化格式
+        perLinkMeta = ltText.split('|||').map(block => {
+            const parts = block.split('\t');
+            return { label: (parts[0] || '').trim(), extra: (parts[1] || '').trim() };
+        });
+    } else {
+        // 旧格式兼容：按行分离，标签和提取码交替存储
+        const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const labelLines = [], extraLines = [];
+        ltLines.forEach(l => {
+            if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+            else if (!/https?:\/\//i.test(l)) labelLines.push(l);
+        });
+        const maxLen = Math.max(labelLines.length, extraLines.length, 1);
+        for (let i = 0; i < maxLen; i++) {
+            perLinkMeta.push({ label: labelLines[i] || '', extra: extraLines[i] || '' });
         }
-    });
+    }
+    
+    const urlsFromLt = [];
+    if (ltText) {
+        const found = [...ltText.matchAll(/https?:\/\/[^\s\t|]+/g)].map(m => m[0].replace(/[,，。.;；!！?？\)）\]】}>》'"]+$/, ''));
+        urlsFromLt.push(...found);
+    }
     // KV没有链接时，用link-text里的URL作为回填
     if (currentLinks.length === 0 && urlsFromLt.length > 0) {
         currentLinks = urlsFromLt;
@@ -4881,67 +4931,137 @@ async function showKvLinkEditor(cardId, wrap) {
 
     const box = document.createElement('div');
     box.className = 'modal-box';
-    box.style.cssText = 'max-width:520px; width:95%; max-height:85vh; overflow-y:auto;';
+    box.style.cssText = 'max-width:520px; width:95%; max-height:88vh; overflow-y:auto;';
     box.onclick = e => e.stopPropagation();
 
     const title = document.createElement('div');
     title.className = 'modal-title';
-    title.textContent = '✏️ 修改KV链接';
+    title.textContent = '✏️ 修改链接';
     box.appendChild(title);
 
     const hint = document.createElement('div');
     hint.style.cssText = 'font-size:12px; color:#888; padding:0 12px 10px; line-height:1.6;';
-    hint.textContent = '每组填写：分卷标签（可选）、链接、提取码（可选）。保存后立即生效。';
+    hint.textContent = '每组填写链接信息，网盘名称和链接必填，其余选填。';
     box.appendChild(hint);
 
     const rowsContainer = document.createElement('div');
     rowsContainer.style.cssText = 'padding:0 12px;';
     box.appendChild(rowsContainer);
 
-    // 初始行数：取已有链接数，至少1行
+    // 解析新格式（5字段：网盘名称\t备注\t提取码\t解压码，URL单独存KV）
+    // 兼容旧格式
+    function parseMetaV2(ltText) {
+        const result = [];
+        if (!ltText || ltText === '（链接已安全存储）') return result;
+        if (ltText.includes('|||')) {
+            ltText.split('|||').forEach(block => {
+                const parts = block.split('\t');
+                // 新v2格式：网盘名称\t备注\t提取码\t解压码
+                if (parts.length >= 4) {
+                    result.push({ driveName: parts[0]||'', remark: parts[1]||'', passcode: parts[2]||'', unzip: parts[3]||'' });
+                } else {
+                    // 旧格式兼容：标签\t提取码
+                    let extra = (parts[1]||'').replace(/^提取码[:：]\s*/i,'');
+                    result.push({ driveName: parts[0]||'', remark: '', passcode: extra, unzip: '' });
+                }
+            });
+        } else {
+            // 最旧格式：纯换行
+            const lines = ltText.split('\n').map(l=>l.trim()).filter(Boolean);
+            const ll=[], el=[];
+            lines.forEach(l => {
+                if (/提取码|密码|解压码|password/i.test(l)) el.push(l.replace(/^(提取码|解压码|密码)[：:]\s*/i,''));
+                else if (!/https?:\/\//i.test(l)) ll.push(l);
+            });
+            for (let i=0; i<Math.max(ll.length,el.length,1); i++) {
+                result.push({ driveName: ll[i]||'', remark: '', passcode: el[i]||'', unzip: '' });
+            }
+        }
+        return result;
+    }
+
+    const ltText3 = ltEl ? getDomTextWithNewlines(ltEl) : '';
+    const parsedMeta = parseMetaV2(ltText3);
     const initCount = Math.max(currentLinks.length, 1);
-    
-    function createRow(idx) {
-        const row = document.createElement('div');
-        row.style.cssText = 'background:#f8f9fb; border:1px solid #e0e0e0; border-radius:10px; padding:10px 12px; margin-bottom:10px;';
-        
-        const rowTitle = document.createElement('div');
-        rowTitle.style.cssText = 'font-size:12px; font-weight:bold; color:#666; margin-bottom:6px;';
-        rowTitle.textContent = `第 ${idx + 1} 个链接`;
-        row.appendChild(rowTitle);
 
-        // 分卷标签输入
-        const labelInput = document.createElement('input');
-        labelInput.type = 'text';
-        labelInput.placeholder = '分卷标签（如：分卷1）';
-        labelInput.value = labelLines[idx] || (currentLinks.length > 1 ? `分卷${idx + 1}` : '');
-        labelInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; margin-bottom:6px; outline:none;';
-        row.appendChild(labelInput);
+    function makeInput(placeholder, value, isUrl) {
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.placeholder = placeholder;
+        inp.value = value || '';
+        inp.style.cssText = `width:100%; box-sizing:border-box; border:1px solid #e0e0e0; border-radius:8px; padding:8px 10px; font-size:13px; margin-bottom:7px; outline:none; background:#fff;${isUrl ? 'word-break:break-all;' : ''}`;
+        return inp;
+    }
 
-        // 链接输入
-        const urlInput = document.createElement('input');
-        urlInput.type = 'text';
-        urlInput.placeholder = '链接（https://...）';
-        urlInput.value = currentLinks[idx] || '';
-        urlInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; margin-bottom:6px; outline:none; word-break:break-all;';
-        row.appendChild(urlInput);
-
-        // 提取码输入
-        const extraInput = document.createElement('input');
-        extraInput.type = 'text';
-        extraInput.placeholder = '提取码（可选，如：abcd）';
-        extraInput.value = extraLines[idx] ? extraLines[idx].replace(/^(提取码|解压码|密码)[：:]\s*/i, '') : '';
-        extraInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; outline:none;';
-        row.appendChild(extraInput);
-
-        row.dataset.labelInput = '';
-        row._labelInput = labelInput;
-        row._urlInput = urlInput;
-        row._extraInput = extraInput;
-        return row;
+    function makeLabel(text) {
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:11px; color:#aaa; margin-bottom:2px; margin-top:2px;';
+        lbl.textContent = text;
+        return lbl;
     }
 
     const rows = [];
+
+    function createRow(idx) {
+        const meta = parsedMeta[idx] || { driveName: '', remark: '', passcode: '', unzip: '' };
+        const row = document.createElement('div');
+        row.style.cssText = 'background:#f8f9fb; border:1.5px solid #e8eaed; border-radius:12px; padding:12px 14px; margin-bottom:12px; position:relative;';
+
+        const rowHead = document.createElement('div');
+        rowHead.style.cssText = 'font-size:12px; font-weight:700; color:#999; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;';
+        rowHead.innerHTML = `<span>第 ${idx + 1} 个链接</span>`;
+
+        // 删除行按钮
+        const delBtn = document.createElement('span');
+        delBtn.textContent = '✕';
+        delBtn.style.cssText = 'cursor:pointer; color:#bbb; font-size:14px; padding:2px 6px; border-radius:4px;';
+        delBtn.onclick = () => {
+            row.remove();
+            const i = rows.indexOf(row);
+            if (i > -1) rows.splice(i, 1);
+            // 更新序号
+            rowsContainer.querySelectorAll('[data-rowhead]').forEach((h, ni) => {
+                h.querySelector('span').textContent = `第 ${ni + 1} 个链接`;
+            });
+        };
+        rowHead.appendChild(delBtn);
+        rowHead.dataset.rowhead = '1';
+        row.appendChild(rowHead);
+
+        row.appendChild(makeLabel('📦 网盘名称（必填，如：蓝奏云/百度网盘/分卷1）'));
+        const driveNameInput = makeInput('蓝奏云 / 百度网盘 / 分卷1...', meta.driveName);
+        driveNameInput.style.marginBottom = '7px';
+        row.appendChild(driveNameInput);
+
+        row.appendChild(makeLabel('🔗 链接（必填）'));
+        const urlInput = makeInput('https://...', currentLinks[idx] || '', true);
+        row.appendChild(urlInput);
+
+        row.appendChild(makeLabel('💬 备注（选填，如：推荐/安卓版）'));
+        const remarkInput = makeInput('推荐 / 安卓版 / 最新版...', meta.remark);
+        row.appendChild(remarkInput);
+
+        row.appendChild(makeLabel('🔑 提取码（选填）'));
+        let cleanPass = meta.passcode;
+        while (/^(提取码|解压码|密码)[：:]\s*/i.test(cleanPass)) cleanPass = cleanPass.replace(/^(提取码|解压码|密码)[：:]\s*/i,'');
+        const passcodeInput = makeInput('如：abcd', cleanPass);
+        row.appendChild(passcodeInput);
+
+        row.appendChild(makeLabel('🗜️ 解压码（选填）'));
+        let cleanUnzip = meta.unzip;
+        while (/^(解压码|提取码|密码)[：:]\s*/i.test(cleanUnzip)) cleanUnzip = cleanUnzip.replace(/^(解压码|提取码|密码)[：:]\s*/i,'');
+        const unzipInput = makeInput('如：www.xxx.com', cleanUnzip);
+        unzipInput.style.marginBottom = '0';
+        row.appendChild(unzipInput);
+
+        row._driveNameInput = driveNameInput;
+        row._urlInput = urlInput;
+        row._remarkInput = remarkInput;
+        row._passcodeInput = passcodeInput;
+        row._unzipInput = unzipInput;
+        return row;
+    }
+
     for (let i = 0; i < initCount; i++) {
         const row = createRow(i);
         rows.push(row);
@@ -4950,14 +5070,13 @@ async function showKvLinkEditor(cardId, wrap) {
 
     // 加行按钮
     const addRowBtn = document.createElement('button');
-    addRowBtn.style.cssText = 'width:calc(100% - 24px); margin:0 12px 12px; padding:8px; border:1px dashed #ccc; border-radius:8px; background:#fff; color:#666; font-size:13px; cursor:pointer;';
+    addRowBtn.style.cssText = 'width:calc(100% - 24px); margin:0 12px 12px; padding:9px; border:1.5px dashed #ccc; border-radius:10px; background:#fff; color:#888; font-size:13px; cursor:pointer;';
     addRowBtn.textContent = '➕ 添加一个链接';
     addRowBtn.onclick = () => {
         const row = createRow(rows.length);
         rows.push(row);
         rowsContainer.appendChild(row);
-        addRowBtn.remove();
-        rowsContainer.after(addRowBtn);
+        row.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     box.appendChild(addRowBtn);
 
@@ -4976,30 +5095,22 @@ async function showKvLinkEditor(cardId, wrap) {
     saveBtn.style.cssText = 'flex:2; padding:12px; background:#ff9800; border:none; border-radius:8px; color:#fff; font-weight:bold; font-size:14px; cursor:pointer;';
     saveBtn.textContent = '💾 保存到KV';
     saveBtn.onclick = async () => {
-        const newLinks = rows.map(r => r._urlInput.value.trim()).filter(u => u.length > 0);
+        const validRows = rows.filter(r => r._urlInput.value.trim());
+        const newLinks = validRows.map(r => r._urlInput.value.trim());
         if (newLinks.length === 0) { showToast('❌ 至少填一个链接'); return; }
 
-        // 更新link-text里的说明文字（分卷标签+提取码）
+        // 新v2格式存储：网盘名称\t备注\t提取码\t解压码，用|||分隔
         if (ltEl) {
-            const newLtParts = rows
-                .filter(r => r._urlInput.value.trim())
-                .map(r => {
-                    const label = r._labelInput.value.trim();
-                    const extra = r._extraInput.value.trim();
-                    let part = '';
-                    if (label) part += label + '\n';
-                    if (extra) {
-                        // 彻底剥掉所有重复前缀，统一存为 提取码:xxxx
-                        let cleanExtra = extra;
-                        while (/^(提取码|解压码|密码)[：:]\s*/i.test(cleanExtra)) {
-                            cleanExtra = cleanExtra.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
-                        }
-                        part += '提取码:' + cleanExtra;
-                    }
-                    return part.trim();
-                })
-                .filter(p => p.length > 0);
-            ltEl.textContent = newLtParts.join('\n') || '（链接已安全存储）';
+            const parts = validRows.map(r => {
+                const dn = r._driveNameInput.value.trim();
+                const rm = r._remarkInput.value.trim();
+                let pc = r._passcodeInput.value.trim();
+                while (/^(提取码|解压码|密码)[：:]\s*/i.test(pc)) pc = pc.replace(/^(提取码|解压码|密码)[：:]\s*/i,'');
+                let uz = r._unzipInput.value.trim();
+                while (/^(解压码|提取码|密码)[：:]\s*/i.test(uz)) uz = uz.replace(/^(解压码|提取码|密码)[：:]\s*/i,'');
+                return `${dn}\t${rm}\t${pc}\t${uz}`;
+            });
+            ltEl.textContent = parts.join('|||');
         }
 
         saveBtn.textContent = '⏳ 保存中...';
@@ -5013,7 +5124,6 @@ async function showKvLinkEditor(cardId, wrap) {
             if (res.ok) {
                 showToast('✅ 链接已更新！');
                 modal.remove();
-                // 触发自动保存，把link-text新内容存入云端
                 autoSave();
             } else {
                 const err = await res.json().catch(() => ({}));
@@ -5058,13 +5168,15 @@ function showLinkSelector(urls, event) {
     // 按网盘类型分组
     const groups = {};
     urls.forEach((item) => {
-        const url   = typeof item === 'string' ? item : item.url;
-        const label = typeof item === 'object' && item.label ? item.label : '';
-        const extra = typeof item === 'object' && item.extra ? item.extra : '';
+        const url      = typeof item === 'string' ? item : item.url;
+        const label    = typeof item === 'object' ? (item.label || '') : '';
+        const remark   = typeof item === 'object' ? (item.remark || '') : '';
+        const passcode = typeof item === 'object' ? (item.passcode || item.extra || '') : '';
+        const unzip    = typeof item === 'object' ? (item.unzip || '') : '';
         const drive = detectDrive(url);
         const key   = drive.name;
         if (!groups[key]) groups[key] = { drive, items: [] };
-        groups[key].items.push({ url, label, extra });
+        groups[key].items.push({ url, label, remark, passcode, unzip });
     });
 
     const modal = document.createElement('div');
@@ -5126,16 +5238,20 @@ function showLinkSelector(urls, event) {
 
 function renderLinkItems(container, items) {
     items.forEach((item, idx) => {
-        const { url, label, extra } = item;
+        const { url, label, remark, passcode, unzip } = item;
+        // 兼容旧 extra 字段
+        const pc = passcode || (item.extra ? item.extra.replace(/^(提取码|解压码|密码)[：:]\s*/i,'') : '');
         const drive = detectDrive(url);
 
         const itemDiv = document.createElement('div');
         itemDiv.style.cssText = 'margin-bottom:12px; border:1px solid #e8e8e8; border-radius:10px; padding:12px; background:#fafafa;';
 
-        if (label) {
+        // 网盘名称 / 备注
+        const headerParts = [label, remark].filter(Boolean);
+        if (headerParts.length > 0) {
             const labelEl = document.createElement('div');
-            labelEl.style.cssText = 'font-size:13px; font-weight:bold; color:#333; margin-bottom:8px;';
-            labelEl.textContent = label + '链接:';
+            labelEl.style.cssText = 'font-size:13px; font-weight:700; color:#333; margin-bottom:8px;';
+            labelEl.textContent = headerParts.join(' · ');
             itemDiv.appendChild(labelEl);
         }
 
@@ -5146,29 +5262,30 @@ function renderLinkItems(container, items) {
         itemDiv.appendChild(openBtn);
 
         const copyBtn = document.createElement('button');
-        copyBtn.style.cssText = 'width:100%; padding:10px; border:none; border-radius:8px; background:#28a745; color:#fff; font-size:13px; cursor:pointer; touch-action:manipulation;';
+        copyBtn.style.cssText = 'width:100%; padding:10px; border:none; border-radius:8px; background:#28a745; color:#fff; font-size:13px; cursor:pointer; touch-action:manipulation; margin-bottom:' + (pc || unzip ? '8px' : '0') + ';';
         copyBtn.textContent = '📋 复制链接';
         copyBtn.addEventListener('click', () => copyLinkToClipboard(url, copyBtn));
         itemDiv.appendChild(copyBtn);
 
-        if (extra) {
-            const extraEl = document.createElement('div');
-            // 循环剥掉所有重复的"提取码/密码/解压码："前缀
-            let code = extra;
-            while (/^(提取码|解压码|密码)[：:]\s*/i.test(code)) {
-                code = code.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
-            }
-            extraEl.style.cssText = 'margin-top:8px; padding:8px 10px; background:#fff; border:1px solid #e0e0e0; border-radius:6px; display:flex; align-items:center; justify-content:space-between;';
-            extraEl.innerHTML = `<span style="font-size:13px;color:#555;">提取码：<b style="color:#333;letter-spacing:2px;">${code}</b></span>`;
-            const copyCodeBtn = document.createElement('button');
-            copyCodeBtn.style.cssText = 'padding:4px 10px; border:none; border-radius:6px; background:#ff6699; color:#fff; font-size:12px; cursor:pointer;';
-            copyCodeBtn.textContent = '复制';
-            copyCodeBtn.addEventListener('click', () => {
-                navigator.clipboard ? navigator.clipboard.writeText(code).then(() => showToast('✅ 提取码已复制')) : (() => { const t = document.createElement('textarea'); t.value = code; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); showToast('✅ 提取码已复制'); })();
+        function makeCodeRow(labelText, code) {
+            let c = code;
+            while (/^(提取码|解压码|密码)[：:]\s*/i.test(c)) c = c.replace(/^(提取码|解压码|密码)[：:]\s*/i,'');
+            if (!c) return;
+            const el = document.createElement('div');
+            el.style.cssText = 'margin-top:6px; padding:8px 10px; background:#fff; border:1px solid #e0e0e0; border-radius:6px; display:flex; align-items:center; justify-content:space-between;';
+            el.innerHTML = `<span style="font-size:13px;color:#555;">${labelText}：<b style="color:#333;letter-spacing:2px;">${c}</b></span>`;
+            const cpBtn = document.createElement('button');
+            cpBtn.style.cssText = 'padding:4px 10px; border:none; border-radius:6px; background:#ff6699; color:#fff; font-size:12px; cursor:pointer; flex-shrink:0;';
+            cpBtn.textContent = '复制';
+            cpBtn.addEventListener('click', () => {
+                navigator.clipboard ? navigator.clipboard.writeText(c).then(() => showToast('✅ 已复制')) : (() => { const t = document.createElement('textarea'); t.value = c; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); showToast('✅ 已复制'); })();
             });
-            extraEl.appendChild(copyCodeBtn);
-            itemDiv.appendChild(extraEl);
+            el.appendChild(cpBtn);
+            itemDiv.appendChild(el);
         }
+
+        makeCodeRow('提取码', pc);
+        makeCodeRow('解压码', unzip);
 
         container.appendChild(itemDiv);
     });
