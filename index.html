@@ -4225,7 +4225,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-// � 修复：确保所有卡片都包含简介区域
+//   修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4328,7 +4328,7 @@ function resetAllCardStates() {
     });
 }
 
-// �🐛 修复：处理标签粘贴，清理格式
+//  🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -5544,16 +5544,6 @@ function showSearchImageEgg(src) {
             el.style.transform = 'none';
         }
 
-        // 导航面板背景层：同样锁定物理尺寸，防键盘上移
-        var txnavBg = document.getElementById('txnavBgLayer');
-        if (txnavBg) {
-            txnavBg.style.width  = screenW + 'px';
-            txnavBg.style.height = screenH + 'px';
-            txnavBg.style.top    = '0';
-            txnavBg.style.left   = '0';
-            txnavBg.style.position = 'fixed';
-        }
-
         // gateKeeper
         var gate = document.getElementById('gateKeeper');
         if (gate) {
@@ -6245,10 +6235,12 @@ function openCardDetail(card) {
     // 图片轮播
     if (imgSrcs.length > 0) {
         const galleryWrap = document.createElement('div');
-        galleryWrap.style.cssText = 'position:relative;width:100%;overflow:hidden;background:#111;';
+        galleryWrap.style.cssText = 'position:relative;width:100%;max-width:480px;margin:0 auto;overflow:hidden;background:#111;' +
+            'border-left:2px solid rgba(255,102,153,0.25);border-right:2px solid rgba(255,102,153,0.25);';
 
         const aspect = document.createElement('div');
-        aspect.style.cssText = 'width:100%;height:280px;position:relative;overflow:hidden;background:#111;';
+        // 4:3 比例，比 16:9 更适合游戏封面，PC端有 max-width 约束不会过大
+        aspect.style.cssText = 'width:100%;padding-top:75%;position:relative;overflow:hidden;background:#111;';
 
         let curIdx = 0;
         const track = document.createElement('div');
@@ -6760,8 +6752,8 @@ window.closeNoticePanel = function() {
         </div>
         <div id="txnavSavePlaceholder" style="width:56px;"></div>
     </div>
-    <!-- 背景图层：fixed 定位，键盘弹出时不上移，和主页 bg-layer 一致 -->
-    <div id="txnavBgLayer" style="position:fixed;inset:0;z-index:1499;
+    <!-- 背景图层：absolute 定位在 panel 内，z-index:0 不盖内容 -->
+    <div id="txnavBgLayer" style="position:absolute;inset:0;z-index:0;
          background:var(--bg) url('images/nav_bg.jpg') center top/cover no-repeat;
          pointer-events:none;display:none;"></div>
     <!-- 加载遮罩：背景图加载完前覆盖，防止露馅 -->
@@ -6774,7 +6766,7 @@ window.closeNoticePanel = function() {
              animation:txnavSpin 0.8s linear infinite;"></div>
         <div style="font-size:13px;color:#aaa;">少女祈祷中…</div>
     </div>
-    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:1;">
+    <div class="fullpage-body" style="position:absolute;top:57px;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:2;">
         <!-- 分类Tab行 -->
         <div class="txnav-header-row">
             <div class="txnav-tabs" id="txnavTabs"></div>
@@ -7370,8 +7362,9 @@ function closeNavPanel() {
 
 
 <!-- 资源卡片详情页 -->
-<div id="cardDetailPage" style="position:fixed;inset:0;z-index:1500;display:none;flex-direction:column;
-     background:var(--bg);transform:translateX(100%);transition:transform 0.22s cubic-bezier(.4,0,.2,1);">
+<div id="cardDetailPage" style="position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;
+     max-height:100%;z-index:1500;display:none;flex-direction:column;
+     background:var(--bg);transform:translateX(100%);transition:transform 0.22s cubic-bezier(.4,0,.2,1);overflow:hidden;">
     <!-- 顶部导航栏 -->
     <div id="cardDetailHeader" style="display:flex;align-items:center;height:54px;padding:0 12px;
          background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px;z-index:2;">
