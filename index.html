@@ -4234,7 +4234,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-// � 修复：确保所有卡片都包含简介区域
+//   修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4337,7 +4337,7 @@ function resetAllCardStates() {
     });
 }
 
-// �🐛 修复：处理标签粘贴，清理格式
+//  🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -4619,18 +4619,27 @@ function addLinkJumpButtons() {
                         } catch(e) {}
 
                         if (kvLinks) {
-                            // KV有数据，结合link-text里的说明
-                            const ltText = linkText ? getDomTextWithNewlines(linkText) : '';
-                            const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                            const labelLines = [], extraLines = [];
-                            ltLines.forEach(l => {
-                                if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
-                                else if (!/https?:\/\//i.test(l)) labelLines.push(l); // 非URL非提取码的行都当标签
-                            });
+                            // KV有数据，结合link-text里的说明（兼容新旧格式）
+                            const ltText2 = linkText ? getDomTextWithNewlines(linkText) : '';
+                            let perMeta = [];
+                            if (ltText2.includes('|||')) {
+                                perMeta = ltText2.split('|||').map(block => {
+                                    const parts = block.split('\t');
+                                    return { label: (parts[0] || '').trim(), extra: (parts[1] || '').trim() };
+                                });
+                            } else {
+                                const ltLines2 = ltText2.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                                const ll = [], el = [];
+                                ltLines2.forEach(l => {
+                                    if (/提取码|密码|解压码|password/i.test(l)) el.push(l);
+                                    else if (!/https?:\/\//i.test(l)) ll.push(l);
+                                });
+                                kvLinks.forEach((_, i) => perMeta.push({ label: ll[i] || '', extra: el[i] || '' }));
+                            }
                             const items = kvLinks.map((url, i) => ({
                                 url,
-                                label: labelLines[i] || `链接 ${i + 1}`,
-                                extra: extraLines[i] || ''
+                                label: perMeta[i]?.label || `链接 ${i + 1}`,
+                                extra: perMeta[i]?.extra || ''
                             }));
                             showLinkSelector(items);
                         } else if (hasLocalUrls) {
@@ -4864,20 +4873,39 @@ async function showKvLinkEditor(cardId, wrap) {
         }
     } catch(e) {}
 
-    // 读取link-text里的分卷/提取码说明（以及可能还存在的URL，用于回填）
+    // 读取link-text里的说明文字（结构化格式：每块用|||分隔，块内格式：标签\t提取码）
+    // 兼容旧格式：按行分离标签和提取码
     const ltEl = wrap ? wrap.querySelector('.link-text') : null;
     const ltText = ltEl ? getDomTextWithNewlines(ltEl) : '';
-    const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const labelLines = [], extraLines = [], urlsFromLt = [];
-    ltLines.forEach(l => {
-        if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
-        else if (!/https?:\/\//i.test(l)) labelLines.push(l); // 非URL非提取码的行都当标签
-        else {
-            // 该行里所有URL提取出来
-            const found = [...l.matchAll(/https?:\/\/[^\s]+/g)].map(m => m[0].replace(/[,，。.;；!！?？\)）\]】}>》'"]+$/, ''));
-            urlsFromLt.push(...found);
+    
+    // 解析每个链接对应的 {label, extra}
+    let perLinkMeta = []; // [{label, extra}]
+    
+    if (ltText.includes('|||')) {
+        // 新结构化格式
+        perLinkMeta = ltText.split('|||').map(block => {
+            const parts = block.split('\t');
+            return { label: (parts[0] || '').trim(), extra: (parts[1] || '').trim() };
+        });
+    } else {
+        // 旧格式兼容：按行分离，标签和提取码交替存储
+        const ltLines = ltText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const labelLines = [], extraLines = [];
+        ltLines.forEach(l => {
+            if (/提取码|密码|解压码|password/i.test(l)) extraLines.push(l);
+            else if (!/https?:\/\//i.test(l)) labelLines.push(l);
+        });
+        const maxLen = Math.max(labelLines.length, extraLines.length, 1);
+        for (let i = 0; i < maxLen; i++) {
+            perLinkMeta.push({ label: labelLines[i] || '', extra: extraLines[i] || '' });
         }
-    });
+    }
+    
+    const urlsFromLt = [];
+    if (ltText) {
+        const found = [...ltText.matchAll(/https?:\/\/[^\s\t|]+/g)].map(m => m[0].replace(/[,，。.;；!！?？\)）\]】}>》'"]+$/, ''));
+        urlsFromLt.push(...found);
+    }
     // KV没有链接时，用link-text里的URL作为回填
     if (currentLinks.length === 0 && urlsFromLt.length > 0) {
         currentLinks = urlsFromLt;
@@ -4922,8 +4950,9 @@ async function showKvLinkEditor(cardId, wrap) {
         // 分卷标签输入
         const labelInput = document.createElement('input');
         labelInput.type = 'text';
-        labelInput.placeholder = '分卷标签（如：分卷1）';
-        labelInput.value = labelLines[idx] || '';
+        labelInput.placeholder = '标签（如：分卷1、度盘备份）';
+        const meta = perLinkMeta[idx] || { label: '', extra: '' };
+        labelInput.value = meta.label;
         labelInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; margin-bottom:6px; outline:none;';
         row.appendChild(labelInput);
 
@@ -4939,7 +4968,11 @@ async function showKvLinkEditor(cardId, wrap) {
         const extraInput = document.createElement('input');
         extraInput.type = 'text';
         extraInput.placeholder = '提取码（可选，如：abcd）';
-        extraInput.value = extraLines[idx] ? extraLines[idx].replace(/^(提取码|解压码|密码)[：:]\s*/i, '') : '';
+        let cleanMeta = meta.extra;
+        while (/^(提取码|解压码|密码)[：:]\s*/i.test(cleanMeta)) {
+            cleanMeta = cleanMeta.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
+        }
+        extraInput.value = cleanMeta;
         extraInput.style.cssText = 'width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; padding:7px 10px; font-size:13px; outline:none;';
         row.appendChild(extraInput);
 
@@ -4988,27 +5021,21 @@ async function showKvLinkEditor(cardId, wrap) {
         const newLinks = rows.map(r => r._urlInput.value.trim()).filter(u => u.length > 0);
         if (newLinks.length === 0) { showToast('❌ 至少填一个链接'); return; }
 
-        // 更新link-text里的说明文字（分卷标签+提取码）
+        // 更新link-text里的说明文字（新结构化格式：每块用|||分隔，块内：标签\t提取码）
         if (ltEl) {
             const newLtParts = rows
                 .filter(r => r._urlInput.value.trim())
                 .map(r => {
                     const label = r._labelInput.value.trim();
                     const extra = r._extraInput.value.trim();
-                    let part = '';
-                    if (label) part += label + '\n';
-                    if (extra) {
-                        // 彻底剥掉所有重复前缀，统一存为 提取码:xxxx
-                        let cleanExtra = extra;
-                        while (/^(提取码|解压码|密码)[：:]\s*/i.test(cleanExtra)) {
-                            cleanExtra = cleanExtra.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
-                        }
-                        part += '提取码:' + cleanExtra;
+                    let cleanExtra = extra;
+                    while (/^(提取码|解压码|密码)[：:]\s*/i.test(cleanExtra)) {
+                        cleanExtra = cleanExtra.replace(/^(提取码|解压码|密码)[：:]\s*/i, '');
                     }
-                    return part.trim();
-                })
-                .filter(p => p.length > 0);
-            ltEl.textContent = newLtParts.join('\n') || '（链接已安全存储）';
+                    // 格式：标签\t提取码（用|||分隔每个链接的元数据）
+                    return label + '\t' + (cleanExtra ? '提取码:' + cleanExtra : '');
+                });
+            ltEl.textContent = newLtParts.join('|||') || '（链接已安全存储）';
         }
 
         saveBtn.textContent = '⏳ 保存中...';
