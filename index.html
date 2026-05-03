@@ -2470,7 +2470,7 @@ async function uploadNewCardLinksToKV(token) {
             if (res.ok) {
                 // 上传成功：清空 link-text，保留纯文字说明（提取码等），去掉 URL
                 const cleanText = text.replace(/(https?:\/\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+)/g, '').trim();
-                linkText.textContent = cleanText || '（链接已安全存储）';
+                linkText.textContent = cleanText || '';
                 linkText.removeAttribute('data-kv-placeholder');
                 // 标记已上传，不要重复上传
                 card.dataset.useKv = 'done';
@@ -2529,7 +2529,7 @@ async function migrateAllLinksToKV() {
             if (res.ok) {
                 // 清除明文URL，保留分卷/提取码等说明文字
                 const cleanText = text.replace(urlPattern, '').replace(/\n{3,}/g, '\n\n').trim();
-                linkText.textContent = cleanText || '（链接已安全存储）';
+                linkText.textContent = cleanText || '';
                 card.dataset.useKv = 'done';
                 success++;
             } else {
@@ -3671,7 +3671,7 @@ function addCard() {
                 <div class="desc-expand-btn" onclick="toggleDescExpand(this)">展开简介 ▾</div>
             </div>
             <div class="link-wrap">
-                <div class="link-text" data-kv-placeholder="1">（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）</div>
+                <div class="link-text" data-kv-placeholder="1"></div>
                 <div class="expand-btn" onclick="toggleExpand(this)">展开 ▾</div>
             </div>
             <div class="direct-dl-edit">
@@ -4598,7 +4598,8 @@ function addLinkJumpButtons() {
             const ltMeaningful = ltRaw.length > 0
                 && ltRaw !== '（链接已安全存储）'
                 && ltRaw !== '（链接将在保存云端时上传到安全存储，此处填写后点☁️保存云端）';
-            const hasAnyLink = hasLocalUrls || isKvCard || ltMeaningful;
+            // 只要有cardId就显示获取链接按钮，让用户尝试KV查询
+            const hasAnyLink = hasLocalUrls || isKvCard || ltMeaningful || !!cardId;
 
             if (cardId && hasAnyLink) {
                 // 统一显示「获取链接」按钮——先尝试KV，KV没有就用本地URL
