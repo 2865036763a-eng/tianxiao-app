@@ -1358,6 +1358,16 @@
             background: #fff; border-radius: 16px; padding: 24px 28px;
             text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             max-width: 340px; width: 90%;
+            transform: translateZ(0); /* 创建独立 stacking context，防止 iframe 逃出 */
+            position: relative;
+            z-index: 1;
+        }
+        #turnstileWidget {
+            min-height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
         }
         #turnstileBox .ts-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 6px; }
         #turnstileBox .ts-sub { font-size: 13px; color: #999; margin-bottom: 16px; }
@@ -1852,7 +1862,8 @@ let _tsTimeoutId = null;
 function requestTurnstileToken(timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
         if (typeof turnstile === 'undefined') {
-            reject(new Error('验证服务未加载，请刷新页面或检查网络'));
+            // Turnstile脚本未加载（大陆网络被墙），直接用空token
+            resolve('');
             return;
         }
         _tsResolve = resolve;
@@ -1863,7 +1874,8 @@ function requestTurnstileToken(timeoutMs = 20000) {
         modal.classList.add('show');
         _tsTimeoutId = setTimeout(() => {
             closeTurnstile();
-            reject(new Error('验证超时，请检查网络后重试'));
+            // 超时不中断，用空token继续（兼容大陆网络）
+            resolve('');
         }, timeoutMs);
         try {
             _tsWidgetId = turnstile.render(container, {
@@ -1877,7 +1889,7 @@ function requestTurnstileToken(timeoutMs = 20000) {
                 'error-callback': function() {
                     clearTimeout(_tsTimeoutId);
                     closeTurnstile();
-                    reject(new Error('验证失败，请重试'));
+                    resolve(''); // 验证失败时用空token继续
                 },
                 'expired-callback': function() {
                     clearTimeout(_tsTimeoutId);
@@ -4621,8 +4633,34 @@ function addLinkJumpButtons() {
                         let tsToken = '';
                         if (!isEditMode) {
                             showToast('⏳ 正在完成人机验证...');
-                            tsToken = await requestTurnstileToken();
-                            showToast('✅ 验证通过，获取链接中...');
+                            try {
+                                tsToken = await requestTurnstileToken(15000); // 15秒超时
+                                showToast('✅ 验证通过，获取链接中...');
+                            } catch(tsErr) {
+                                // 验证超时/失败，弹出选择框
+                                const skip = await new Promise(resolve => {
+                                    const mask = document.createElement('div');
+                                    mask.style.cssText = 'position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;';
+                                    mask.innerHTML = `<div style="background:var(--card);border-radius:20px;padding:24px;width:88%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+                                        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ 人机验证未完成</div>
+                                        <div style="font-size:13px;color:#888;margin-bottom:20px;line-height:1.6;">验证服务连接超时（可能是网络问题）。<br>你可以选择跳过验证继续获取链接，或重试。</div>
+                                        <div style="display:flex;gap:10px;">
+                                            <button id="_tsSkip" style="flex:1;padding:11px;border-radius:12px;border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">跳过验证</button>
+                                            <button id="_tsRetry" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:14px;cursor:pointer;">重试</button>
+                                        </div>
+                                    </div>`;
+                                    document.body.appendChild(mask);
+                                    mask.querySelector('#_tsSkip').onclick = () => { mask.remove(); resolve(true); };
+                                    mask.querySelector('#_tsRetry').onclick = () => { mask.remove(); resolve(false); };
+                                });
+                                if (!skip) {
+                                    // 用户选择重试，重新触发获取链接
+                                    btn.click();
+                                    return;
+                                }
+                                // 跳过：tsToken 保持空字符串，Worker 端会宽松处理
+                                tsToken = '';
+                            }
                         }
                         const headers = {};
                         if (isEditMode) {
@@ -6351,7 +6389,7 @@ function openCardDetail(card) {
 
     const title    = (nameEl?.textContent || '').trim() || '未命名';
     const tagsRaw  = (tagsEl?.textContent || '').trim().replace(/^标签[：:]\s*/, '');
-    const descFull = (descEl?.textContent || '').trim();
+    const descFull = descEl ? (descEl.innerText || descEl.textContent || '').trim() : '';
 
     // 图片列表
     const imgs = sliderBox ? [...sliderBox.querySelectorAll('img')] : [];
