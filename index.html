@@ -2049,6 +2049,7 @@ function __safeFixDeleteImage(card){
         <button class="btn-save" onclick="saveToCloud()">☁️ 保存云端</button>
         <button onclick="toggleCatPanel()" style="background:#e91e63!important;">🏷️ 分类</button>
         <button onclick="toggleBannerEdit()" style="background:#ff9800!important;">🖼️ 轮播图</button>
+        <button onclick="openGalleryPanel()" style="background:#673ab7!important;">📖 傻子必看</button>
         <button onclick="toggleShortlinkPanel()" style="background:#9c27b0!important;">🔗 短链</button>
         <button onclick="exportHTML()" style="background:#17a2b8!important;">💾 导出备份</button>
         <button onclick="migrateAllLinksToKV()" style="background:#c62828!important;">🔒 迁移链接</button>
@@ -8127,7 +8128,7 @@ function closeNavPanel() {
          overscroll-behavior-y:contain;position:relative;z-index:1;"></div>
     <!-- 悬浮球：打开傻子必看 -->
     <div class="detail-fab" onclick="openGalleryPanel()" title="傻子必看">
-        <img src="images/fab_icon.png" alt="傻子必看" onerror="this.style.display='none';this.parentElement.textContent='🖼️';">
+        <img src="images/fab_icon.png" alt="傻子必看" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\'font-size:28px;\'>📖</span>';">
     </div>
 </div>
 
