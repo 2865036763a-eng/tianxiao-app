@@ -352,7 +352,7 @@
         .fullpage-panel {
             position: fixed;
             inset: 0;
-            z-index: 1500;
+            z-index: 1600;
             background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('images/bg.jpg');
             background-size: cover;
             background-position: center center;
@@ -913,6 +913,162 @@
         img[data-img-loaded="true"] + .img-404,
         img[data-img-loaded="true"] ~ .img-404 {
             display: none !important;
+        }
+
+        /* 下载页悬浮球 */
+        .detail-fab {
+            position: absolute;
+            bottom: 24px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 4px 16px rgba(255, 102, 153, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .detail-fab:active {
+            transform: scale(0.92);
+            box-shadow: 0 2px 8px rgba(255, 102, 153, 0.3);
+        }
+        .detail-fab img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        /* ── 傻子必看面板 ── */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 16px;
+        }
+        @media (min-width: 600px) {
+            .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        }
+        .gallery-item {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffd6e8, #ffe8f2);
+            aspect-ratio: 1 / 1;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .gallery-item:active { transform: scale(0.96); }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        /* 管理员删除按钮 */
+        .gallery-item .del-img-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 80, 80, 0.85);
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .admin-mode .gallery-item .del-img-btn,
+        .gallery-item:hover .del-img-btn {
+            opacity: 1;
+        }
+        /* 添加图片按钮 */
+        .gallery-add-btn {
+            aspect-ratio: 1 / 1;
+            border-radius: 14px;
+            border: 2px dashed var(--primary);
+            background: rgba(255, 102, 153, 0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+        .gallery-add-btn:active { background: rgba(255, 102, 153, 0.15); }
+        .gallery-add-btn .add-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+        /* 图片大图预览 */
+        .gallery-fullimg-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 2500;
+            background: rgba(0, 0, 0, 0.88);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .gallery-fullimg-modal.show { display: flex; }
+        .gallery-fullimg-modal img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .gallery-fullimg-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        /* 空状态 */
+        .gallery-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #bbb;
+            font-size: 14px;
+        }
+        .gallery-empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+        #galleryBgLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/gallery_bg.jpg') center top / cover no-repeat;
+            opacity: 1;
+            pointer-events: none;
+        }
+        #galleryBgLayer.night {
+            background-image: url('images/gallery_bg_night.jpg');
         }
 
         /* 紧凑模式的信息预览 */
@@ -2021,6 +2177,26 @@ function __safeFixDeleteImage(card){
     </div>
 </div>
 
+<!-- 📖 傻子必看面板 -->
+<div id="galleryPanelPage" class="fullpage-panel" style="display:none;">
+    <!-- 傻子必看背景图层 -->
+    <div id="galleryBgLayer"></div>
+    <div class="fullpage-header">
+        <div class="fullpage-back-btn" onclick="closeGalleryPanel()">←</div>
+        <div class="fullpage-header-title">📖 傻子必看</div>
+        <div style="width:40px;"></div>
+    </div>
+    <div class="fullpage-body" style="position:relative;z-index:1;">
+        <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+</div>
+
+<!-- 🖼️ 图片大图预览 -->
+<div id="galleryFullImgModal" class="gallery-fullimg-modal" onclick="closeGalleryFullImg()">
+    <div class="gallery-fullimg-close">✕</div>
+    <img id="galleryFullImg" src="" alt="">
+</div>
+
 <div id="loginModal" class="modal-overlay" style="display: none;">
     <div class="modal-box">
         <div class="modal-title">🔑 验证管理身份：</div>
@@ -2220,6 +2396,7 @@ const ACCESS_PASS = "tianxiao";
 const PAGE_SIZE = 30;
 const FAV_KEY = "TX_FAVORITES";
 const NOTICE_KEY = 'TX_NOTICE_CONTENT';
+const GALLERY_KEY = 'TX_GALLERY_IMAGES'; // 📖 傻子必看图床链接存储键
 const APP_VERSION = "3.3.0"; // 链接复制功能 + 识别所有链接
 const VERSION_KEY = "TX_APP_VERSION";
 
@@ -3153,6 +3330,114 @@ function closeNoticePanel() {
     // 退出编辑状态
     const body = document.getElementById('noticeContentBody');
     body.contentEditable = 'false';
+}
+
+// ==========================================
+// 📖 傻子必看面板
+// ==========================================
+let galleryImages = []; // 图床链接数组
+
+function openGalleryPanel() {
+    const panel = document.getElementById('galleryPanelPage');
+    renderGallery();
+    panel.style.display = 'flex';
+    requestAnimationFrame(() => {
+        const hdr = panel.querySelector('.fullpage-header');
+        const body = panel.querySelector('.fullpage-body');
+        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+    });
+}
+
+function closeGalleryPanel() {
+    document.getElementById('galleryPanelPage').style.display = 'none';
+}
+
+function renderGallery() {
+    const grid = document.getElementById('galleryGrid');
+    if (!grid) return;
+
+    let html = '';
+
+    // 管理员模式：添加按钮
+    if (isEditMode) {
+        html += `
+            <div class="gallery-add-btn" onclick="addGalleryImage()">
+                <div class="add-icon">+</div>
+                <div>添加图片</div>
+            </div>
+        `;
+    }
+
+    if (galleryImages.length === 0) {
+        html += `
+            <div class="gallery-empty">
+                <div class="empty-icon">🖼️</div>
+                <div>暂无内容</div>
+                ${isEditMode ? '<div style="margin-top:8px;font-size:12px;color:#ccc;">点击上方 + 添加图床图片</div>' : ''}
+            </div>
+        `;
+    } else {
+        galleryImages.forEach((url, idx) => {
+            html += `
+                <div class="gallery-item" onclick="openGalleryFullImg('${url.replace(/'/g, "\\'")}')">
+                    <img src="${url}" loading="lazy" alt="" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffd6e8,#ffe8f2)';">
+                    ${isEditMode ? `<div class="del-img-btn" onclick="event.stopPropagation();removeGalleryImage(${idx})">×</div>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    grid.innerHTML = html;
+}
+
+function addGalleryImage() {
+    if (!isEditMode) return;
+    const url = prompt('请输入图床图片链接（URL）：');
+    if (!url || !url.trim()) return;
+    const trimmed = url.trim();
+    // 简单URL验证
+    if (!trimmed.match(/^https?:\/\/.+/i)) {
+        showToast('❌ 请输入有效的 http:// 或 https:// 链接');
+        return;
+    }
+    galleryImages.push(trimmed);
+    saveGalleryData();
+    renderGallery();
+    showToast('✅ 图片已添加');
+}
+
+function removeGalleryImage(idx) {
+    if (!isEditMode) return;
+    if (!confirm('确定删除这张图片？')) return;
+    galleryImages.splice(idx, 1);
+    saveGalleryData();
+    renderGallery();
+    showToast('🗑️ 已删除');
+}
+
+function saveGalleryData() {
+    localStorage.setItem(GALLERY_KEY, JSON.stringify(galleryImages));
+}
+
+function loadGalleryData() {
+    try {
+        const raw = localStorage.getItem(GALLERY_KEY);
+        galleryImages = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        galleryImages = [];
+    }
+}
+
+function openGalleryFullImg(url) {
+    const modal = document.getElementById('galleryFullImgModal');
+    const img = document.getElementById('galleryFullImg');
+    img.src = url;
+    modal.classList.add('show');
+}
+
+function closeGalleryFullImg() {
+    document.getElementById('galleryFullImgModal').classList.remove('show');
+    document.getElementById('galleryFullImg').src = '';
 }
 
 function startNoticeEdit() {
@@ -6063,6 +6348,8 @@ function applyDarkMode(dark, save = true) {
         if (gate) { dark ? gate.classList.add('night') : gate.classList.remove('night'); }
         const dbl = document.getElementById('detailBgLayer');
         if (dbl) { dark ? dbl.classList.add('night') : dbl.classList.remove('night'); }
+        const gbl = document.getElementById('galleryBgLayer');
+        if (gbl) { dark ? gbl.classList.add('night') : gbl.classList.remove('night'); }
     });
 }
 
@@ -6084,9 +6371,11 @@ window.onload = async () => {
     (function() {
         var img1 = new Image(); img1.src = 'images/bg_night.jpg';
         var img2 = new Image(); img2.src = 'images/detail_bg_night.jpg';
+        var img3 = new Image(); img3.src = 'images/gallery_bg_night.jpg';
     })();
     checkForUpdates();
     noticeText = localStorage.getItem(NOTICE_KEY) || '';
+    loadGalleryData(); // 📖 加载傻子必看数据
     // 🏷️ 先渲染导航，不依赖云端
     loadCategories();
     renderNav();
@@ -7829,6 +8118,10 @@ function closeNavPanel() {
     <!-- 滚动内容区 -->
     <div id="cardDetailBody" style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;
          overscroll-behavior-y:contain;position:relative;z-index:1;"></div>
+    <!-- 悬浮球：打开傻子必看 -->
+    <div class="detail-fab" onclick="openGalleryPanel()" title="傻子必看">
+        <img src="images/fab_icon.png" alt="傻子必看" onerror="this.style.display='none';this.parentElement.textContent='🖼️';">
+    </div>
 </div>
 
 <div id="bg-layer"></div>
