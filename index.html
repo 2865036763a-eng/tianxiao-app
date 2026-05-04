@@ -228,6 +228,24 @@
             transition: background-image 0.6s ease;
         }
 
+        /* ── 下载页标签：不透明，保持清晰 ── */
+        .detail-tag-chip {
+            background: #ffe0eb !important;
+            color: var(--primary) !important;
+            border: 1px solid #ffb3cc !important;
+            font-size: clamp(12px, 1.2vw, 14px);
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        [data-theme="dark"] .detail-tag-chip {
+            background: #4a1a3a !important;
+            color: #ff99bb !important;
+            border: 1px solid #7a3a5a !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
         /* ── 下载页标题渐变遮罩：确保任何背景图上都能看清 ── */
         .detail-title-gradient {
             /* 日间：黑色渐变压底 + 白色文字 */
@@ -2990,6 +3008,8 @@ function navPage(dir) {
 function verifyAccess() {
     if(document.getElementById("accessPass").value === ACCESS_PASS) {
         sessionStorage.setItem('TX_GATE_PASSED', '1');
+        // 📢 标记：本次会话首次进入，加载完成后优先显示公告
+        sessionStorage.setItem('TX_SHOW_NOTICE', '1');
         document.getElementById("gateKeeper").style.display = "none";
         document.getElementById("contentBlocker").style.display = "none";
     }
@@ -5992,6 +6012,13 @@ window.onload = async () => {
     // 🖼️ 初始化图片预览功能
     initImagePreview();
     
+    // 📢 首次进入优先显示公告（门禁通过后自动弹出，避免被忽略）
+    if (sessionStorage.getItem('TX_SHOW_NOTICE') === '1') {
+        sessionStorage.removeItem('TX_SHOW_NOTICE');
+        // 延迟一小段时间，等所有动画和渲染完成后再弹出
+        setTimeout(() => openNoticePanel(), 400);
+    }
+    
     // 📱 注册Service Worker（PWA支持）
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register(createServiceWorkerBlob()).then(function(registration) {
@@ -6604,8 +6631,8 @@ function openCardDetail(card) {
         tagsWrap.style.cssText = 'padding:0 20px 14px;display:flex;flex-wrap:wrap;gap:7px;max-width:600px;margin:0 auto;';
         tagsRaw.split(/[\s\/]+/).filter(Boolean).forEach(t => {
             const chip = document.createElement('span');
+            chip.className = 'detail-tag-chip';
             chip.textContent = t;
-            chip.style.cssText = 'background:rgba(255,102,153,0.12);color:var(--primary);font-size:clamp(12px,1.2vw,14px);font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,102,153,0.25);';
             tagsWrap.appendChild(chip);
         });
         body.appendChild(tagsWrap);
