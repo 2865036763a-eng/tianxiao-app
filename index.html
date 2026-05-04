@@ -946,118 +946,71 @@
         }
 
         /* ── 傻子必看面板 ── */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 16px;
+        .gallery-content-wrap {
+            padding: 16px 20px 40px;
         }
-        @media (min-width: 600px) {
-            .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .gallery-content-body {
+            max-width: 640px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px) saturate(1.2);
+            -webkit-backdrop-filter: blur(12px) saturate(1.2);
+            border-radius: 16px;
+            padding: 20px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            font-size: clamp(14px, 1.4vw, 17px);
+            color: var(--text);
+            line-height: 1.85;
+            word-break: break-word;
+            min-height: 200px;
         }
-        .gallery-item {
-            position: relative;
-            border-radius: 14px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #ffd6e8, #ffe8f2);
-            aspect-ratio: 1 / 1;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .gallery-item:active { transform: scale(0.96); }
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        /* 管理员删除按钮 */
-        .gallery-item .del-img-btn {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: rgba(255, 80, 80, 0.85);
-            color: #fff;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 2;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        .admin-mode .gallery-item .del-img-btn,
-        .gallery-item:hover .del-img-btn {
-            opacity: 1;
-        }
-        /* 添加图片按钮 */
-        .gallery-add-btn {
-            aspect-ratio: 1 / 1;
-            border-radius: 14px;
-            border: 2px dashed var(--primary);
-            background: rgba(255, 102, 153, 0.06);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            cursor: pointer;
-            color: var(--primary);
-            font-size: 13px;
-            font-weight: 600;
-            transition: background 0.2s ease;
-        }
-        .gallery-add-btn:active { background: rgba(255, 102, 153, 0.15); }
-        .gallery-add-btn .add-icon {
-            font-size: 28px;
-            line-height: 1;
-        }
-        /* 图片大图预览 */
-        .gallery-fullimg-modal {
-            position: fixed;
-            inset: 0;
-            z-index: 2500;
-            background: rgba(0, 0, 0, 0.88);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .gallery-fullimg-modal.show { display: flex; }
-        .gallery-fullimg-modal img {
+        .gallery-content-body img {
             max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border-radius: 8px;
+            border-radius: 12px;
+            display: block;
+            margin: 12px auto;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
         }
-        .gallery-fullimg-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
+        .gallery-content-body:focus { outline: none; }
+        .gallery-edit-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            margin: 12px auto 0;
+            max-width: 640px;
+        }
+        .gallery-save-btn, .gallery-insert-img-btn {
+            display: none;
+            margin: 16px auto 0;
+            padding: 10px 24px;
+            border-radius: 24px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
             color: #fff;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor: pointer;
+            text-align: center;
+            max-width: 200px;
         }
-        /* 空状态 */
-        .gallery-empty {
-            grid-column: 1 / -1;
+        .gallery-save-btn {
+            background: linear-gradient(135deg, #ff6699, #ff99bb);
+            box-shadow: 0 3px 12px rgba(255, 102, 153, 0.3);
+        }
+        .gallery-insert-img-btn {
+            background: linear-gradient(135deg, #9c27b0, #ce93d8);
+            box-shadow: 0 3px 12px rgba(156, 39, 176, 0.3);
+        }
+        .admin-mode .gallery-save-btn,
+        .admin-mode .gallery-insert-img-btn { display: block; }
+        /* 空内容占位 */
+        .gallery-empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #bbb;
             font-size: 14px;
         }
-        .gallery-empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .gallery-empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
 
         #galleryBgLayer {
             position: fixed;
@@ -2188,14 +2141,13 @@ function __safeFixDeleteImage(card){
         <div style="width:40px;"></div>
     </div>
     <div class="fullpage-body" style="position:relative;z-index:1;">
-        <div class="gallery-grid" id="galleryGrid"></div>
+        <div class="gallery-content-wrap">
+            <div id="galleryContentBody" class="gallery-content-body"></div>
+            <div class="gallery-edit-hint" id="galleryEditHint"></div>
+            <button class="gallery-save-btn" onclick="saveGalleryContent()">💾 保存内容</button>
+            <button class="gallery-insert-img-btn" id="galleryInsertImgBtn" onclick="insertGalleryImage()">🖼️ 插入图片</button>
+        </div>
     </div>
-</div>
-
-<!-- 🖼️ 图片大图预览 -->
-<div id="galleryFullImgModal" class="gallery-fullimg-modal" onclick="closeGalleryFullImg()">
-    <div class="gallery-fullimg-close">✕</div>
-    <img id="galleryFullImg" src="" alt="">
 </div>
 
 <div id="loginModal" class="modal-overlay" style="display: none;">
@@ -2741,10 +2693,14 @@ async function loadFromGrave() {
                     if (typeof content.commentUrl === 'string' && content.commentUrl) {
                         localStorage.setItem(COMMENT_URL_KEY, content.commentUrl);
                     }
-                    // 📖 从云端恢复傻子必看图床链接
-                    if (Array.isArray(content.gallery)) {
-                        galleryImages = content.gallery;
-                        localStorage.setItem(GALLERY_KEY, JSON.stringify(galleryImages));
+                    // 📖 从云端恢复傻子必看富文本内容
+                    if (typeof content.galleryContent === 'string') {
+                        galleryContent = content.galleryContent;
+                        localStorage.setItem(GALLERY_KEY, content.galleryContent);
+                    } else if (Array.isArray(content.gallery)) {
+                        // 兼容旧版数组格式
+                        galleryContent = content.gallery.map(url => `<img src="${url}" style="max-width:100%;border-radius:12px;display:block;margin:12px auto;" alt="">`).join('<br>');
+                        localStorage.setItem(GALLERY_KEY, galleryContent);
                     }
                     
                     const cardCount = document.querySelectorAll('.card').length;
@@ -2952,9 +2908,9 @@ async function saveToCloud() {
     // ✨ v3.4.0：同时保存轮播图配置
     // 📢 同时保存公告内容
     const noticeContent = localStorage.getItem(NOTICE_KEY) || '';
-    // 📖 同时保存傻子必看图床链接
-    const galleryData = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
-    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, commentUrl: localStorage.getItem(COMMENT_URL_KEY) || '', gallery: galleryData, updated: new Date().toISOString() });
+    // 📖 同时保存傻子必看富文本内容
+    const galleryData = localStorage.getItem(GALLERY_KEY) || '';
+    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, commentUrl: localStorage.getItem(COMMENT_URL_KEY) || '', galleryContent: galleryData, updated: new Date().toISOString() });
     
     let encoded;
     try {
@@ -3341,111 +3297,111 @@ function closeNoticePanel() {
 }
 
 // ==========================================
-// 📖 傻子必看面板
+// 📖 傻子必看面板（富文本：文字+图片混合）
 // ==========================================
-let galleryImages = []; // 图床链接数组
+let galleryContent = ''; // 富文本 HTML 内容
 
 function openGalleryPanel() {
     const panel = document.getElementById('galleryPanelPage');
-    renderGallery();
+    const body = document.getElementById('galleryContentBody');
+    const hint = document.getElementById('galleryEditHint');
+    const saveBtn = document.querySelector('.gallery-save-btn');
+    const insertBtn = document.getElementById('galleryInsertImgBtn');
+
+    // 读取内容：内存变量优先（云端已加载），否则回退到 localStorage
+    const saved = galleryContent || localStorage.getItem(GALLERY_KEY) || '';
+
+    if (saved.trim()) {
+        // 有内容：直接渲染 HTML（支持文字、图片、换行等）
+        body.innerHTML = saved;
+    } else {
+        // 空内容
+        body.innerHTML = `
+            <div class="gallery-empty-state">
+                <div class="empty-icon">🖼️</div>
+                <div>暂无内容</div>
+                ${isEditMode ? '<div style="margin-top:8px;font-size:12px;color:#ccc;">管理员可以直接编辑添加内容</div>' : ''}
+            </div>
+        `;
+    }
+
+    if (isEditMode) {
+        body.contentEditable = 'true';
+        hint.textContent = '✏️ 直接编辑上方内容，可输入文字、粘贴图片。完成后点击「保存内容」';
+        if (insertBtn) insertBtn.style.display = 'block';
+        if (saveBtn) saveBtn.style.display = 'block';
+        setTimeout(() => { body.focus(); }, 100);
+    } else {
+        body.contentEditable = 'false';
+        hint.textContent = '';
+        if (insertBtn) insertBtn.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+    }
+
     panel.style.display = 'flex';
     requestAnimationFrame(() => {
         const hdr = panel.querySelector('.fullpage-header');
-        const body = panel.querySelector('.fullpage-body');
-        if (hdr && body) body.style.top = hdr.offsetHeight + 'px';
+        const bdy = panel.querySelector('.fullpage-body');
+        if (hdr && bdy) bdy.style.top = hdr.offsetHeight + 'px';
     });
 }
 
 function closeGalleryPanel() {
     document.getElementById('galleryPanelPage').style.display = 'none';
+    const body = document.getElementById('galleryContentBody');
+    if (body) body.contentEditable = 'false';
 }
 
-function renderGallery() {
-    const grid = document.getElementById('galleryGrid');
-    if (!grid) return;
-
-    let html = '';
-
-    // 管理员模式：添加按钮
-    if (isEditMode) {
-        html += `
-            <div class="gallery-add-btn" onclick="addGalleryImage()">
-                <div class="add-icon">+</div>
-                <div>添加图片</div>
-            </div>
-        `;
-    }
-
-    if (galleryImages.length === 0) {
-        html += `
-            <div class="gallery-empty">
-                <div class="empty-icon">🖼️</div>
-                <div>暂无内容</div>
-                ${isEditMode ? '<div style="margin-top:8px;font-size:12px;color:#ccc;">点击上方 + 添加图床图片</div>' : ''}
-            </div>
-        `;
-    } else {
-        galleryImages.forEach((url, idx) => {
-            html += `
-                <div class="gallery-item" onclick="openGalleryFullImg('${url.replace(/'/g, "\\'")}')">
-                    <img src="${url}" loading="lazy" alt="" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ffd6e8,#ffe8f2)';">
-                    ${isEditMode ? `<div class="del-img-btn" onclick="event.stopPropagation();removeGalleryImage(${idx})">×</div>` : ''}
-                </div>
-            `;
-        });
-    }
-
-    grid.innerHTML = html;
-}
-
-function addGalleryImage() {
+function insertGalleryImage() {
     if (!isEditMode) return;
-    const url = prompt('请输入图床图片链接（URL）：');
+    const url = prompt('请输入图床图片链接（URL），将插入到光标位置：');
     if (!url || !url.trim()) return;
     const trimmed = url.trim();
-    // 简单URL验证
     if (!trimmed.match(/^https?:\/\/.+/i)) {
         showToast('❌ 请输入有效的 http:// 或 https:// 链接');
         return;
     }
-    galleryImages.push(trimmed);
-    saveGalleryData();
-    renderGallery();
-    showToast('✅ 图片已添加');
+    // 插入图片到光标位置
+    const body = document.getElementById('galleryContentBody');
+    body.focus();
+    const imgHtml = `<br><img src="${trimmed}" style="max-width:100%;border-radius:12px;display:block;margin:12px auto;" alt=""><br>`;
+    document.execCommand('insertHTML', false, imgHtml);
+    showToast('✅ 图片已插入');
 }
 
-function removeGalleryImage(idx) {
-    if (!isEditMode) return;
-    if (!confirm('确定删除这张图片？')) return;
-    galleryImages.splice(idx, 1);
-    saveGalleryData();
-    renderGallery();
-    showToast('🗑️ 已删除');
-}
-
-function saveGalleryData() {
-    localStorage.setItem(GALLERY_KEY, JSON.stringify(galleryImages));
+function saveGalleryContent() {
+    const body = document.getElementById('galleryContentBody');
+    // 保存原始 HTML（保留 <img>、<br>、<div> 等格式）
+    const content = body.innerHTML || '';
+    galleryContent = content;
+    localStorage.setItem(GALLERY_KEY, content);
+    body.contentEditable = 'false';
+    showToast('✅ 傻子必看已保存！记得点「☁️ 保存云端」同步给所有人');
 }
 
 function loadGalleryData() {
     try {
         const raw = localStorage.getItem(GALLERY_KEY);
-        galleryImages = raw ? JSON.parse(raw) : [];
+        // 可能是旧版数组格式，也可能是新版 HTML 字符串
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    // 旧版数组 → 迁移为图片列表 HTML
+                    galleryContent = parsed.map(url => `<img src="${url}" style="max-width:100%;border-radius:12px;display:block;margin:12px auto;" alt="">`).join('<br>');
+                } else {
+                    galleryContent = raw;
+                }
+            } catch (e) {
+                // 不是 JSON，当作 HTML 字符串
+                galleryContent = raw;
+            }
+        } else {
+            galleryContent = '';
+        }
     } catch (e) {
-        galleryImages = [];
+        galleryContent = '';
     }
-}
-
-function openGalleryFullImg(url) {
-    const modal = document.getElementById('galleryFullImgModal');
-    const img = document.getElementById('galleryFullImg');
-    img.src = url;
-    modal.classList.add('show');
-}
-
-function closeGalleryFullImg() {
-    document.getElementById('galleryFullImgModal').classList.remove('show');
-    document.getElementById('galleryFullImg').src = '';
 }
 
 function startNoticeEdit() {
