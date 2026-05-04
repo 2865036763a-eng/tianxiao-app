@@ -209,15 +209,23 @@
             pointer-events: none;
             will-change: transform;
         }
+        #detailBgLayer {
+            position: absolute;
+            top: 54px; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            background: url('images/detail_bg.jpg') center top / cover no-repeat;
+            opacity: 0.18;
+            transition: background-image 0.6s ease, opacity 0.6s ease;
+            pointer-events: none;
+        }
+        #detailBgLayer.night {
+            background-image: url('images/detail_bg_night.jpg');
+        }
         #bg-layer.night {
             background-image: url('images/bg_night.jpg');
         }
         #bg-layer, #bg-layer.night {
             transition: background-image 0.6s ease;
-        }
-        /* 详情页背景图 */
-        #detailBgLayer.night {
-            background-image: url('images/detail_bg_night.jpg');
         }
         
         /* 标题栏图标按钮 */
@@ -7582,9 +7590,7 @@ function closeNavPanel() {
              onclick="cardDetailToggleFav()">🤍</div>
     </div>
     <!-- 详情页背景图层 -->
-    <div id="detailBgLayer" style="position:absolute;inset:54px 0 0 0;z-index:0;
-         background:url('images/detail_bg.jpg') center top / cover no-repeat;opacity:0.18;
-         transition:background-image 0.6s ease,opacity 0.6s ease;pointer-events:none;"></div>
+    <div id="detailBgLayer"></div>
     <!-- 滚动内容区 -->
     <div id="cardDetailBody" style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;
          overscroll-behavior-y:contain;position:relative;z-index:1;"></div>
