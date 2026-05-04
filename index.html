@@ -228,6 +228,24 @@
             transition: background-image 0.6s ease;
         }
 
+        /* ── 下载页标题渐变遮罩：确保任何背景图上都能看清 ── */
+        .detail-title-gradient {
+            /* 日间：黑色渐变压底 + 白色文字 */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.08) 85%, transparent 100%);
+            color: #fff !important;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.6);
+            border-radius: 0 0 12px 12px;
+            position: relative;
+            z-index: 1;
+        }
+        [data-theme="dark"] .detail-title-gradient {
+            /* 夜间：白色渐变压底 + 深色文字 */
+            background: linear-gradient(to bottom, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.50) 55%, rgba(255,255,255,0.10) 85%, transparent 100%);
+            color: #2c3e50 !important;
+            text-shadow: none;
+            border-radius: 0 0 12px 12px;
+        }
+
         /* ── 下载页毛玻璃半透明：透出背景图 ── */
         .detail-glass {
             background: rgba(255,255,255,0.55) !important;
@@ -6575,7 +6593,8 @@ function openCardDetail(card) {
 
     // 标题
     const titleEl = document.createElement('div');
-    titleEl.style.cssText = 'padding:16px 20px 8px;font-size:clamp(16px,2vw,22px);font-weight:800;color:var(--text);line-height:1.5;max-width:600px;margin:0 auto;';
+    titleEl.className = 'detail-title-gradient';
+    titleEl.style.cssText = 'padding:16px 20px 12px;font-size:clamp(16px,2vw,22px);font-weight:800;line-height:1.5;max-width:600px;margin:0 auto;';
     titleEl.textContent = title;
     body.appendChild(titleEl);
 
