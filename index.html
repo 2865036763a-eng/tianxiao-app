@@ -2740,6 +2740,11 @@ async function loadFromGrave() {
                     if (typeof content.commentUrl === 'string' && content.commentUrl) {
                         localStorage.setItem(COMMENT_URL_KEY, content.commentUrl);
                     }
+                    // 📖 从云端恢复傻子必看图床链接
+                    if (Array.isArray(content.gallery)) {
+                        galleryImages = content.gallery;
+                        localStorage.setItem(GALLERY_KEY, JSON.stringify(galleryImages));
+                    }
                     
                     const cardCount = document.querySelectorAll('.card').length;
                     window._ghSha = json.sha;
@@ -2946,7 +2951,9 @@ async function saveToCloud() {
     // ✨ v3.4.0：同时保存轮播图配置
     // 📢 同时保存公告内容
     const noticeContent = localStorage.getItem(NOTICE_KEY) || '';
-    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, commentUrl: localStorage.getItem(COMMENT_URL_KEY) || '', updated: new Date().toISOString() });
+    // 📖 同时保存傻子必看图床链接
+    const galleryData = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
+    const payload = JSON.stringify({ cards, banner: bannerSlides, notice: noticeContent, categories: categoryList, commentUrl: localStorage.getItem(COMMENT_URL_KEY) || '', gallery: galleryData, updated: new Date().toISOString() });
     
     let encoded;
     try {
