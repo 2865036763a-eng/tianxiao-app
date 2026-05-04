@@ -1859,11 +1859,11 @@ let _tsReject = null;
 let _tsWidgetId = null;
 let _tsTimeoutId = null;
 
-function requestTurnstileToken(timeoutMs = 20000) {
+function requestTurnstileToken(timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
         if (typeof turnstile === 'undefined') {
-            // Turnstile脚本未加载（大陆网络被墙），直接用空token
-            resolve('');
+            // 🛡️ 安全强化：脚本未加载时拒绝，不再放行空token
+            reject(new Error('验证服务加载失败，请检查网络后重试'));
             return;
         }
         _tsResolve = resolve;
@@ -1874,8 +1874,8 @@ function requestTurnstileToken(timeoutMs = 20000) {
         modal.classList.add('show');
         _tsTimeoutId = setTimeout(() => {
             closeTurnstile();
-            // 超时不中断，用空token继续（兼容大陆网络）
-            resolve('');
+            // 🛡️ 超时拒绝，不再放行空token（防止脚本批量抓取）
+            reject(new Error('验证超时，请检查网络后重试'));
         }, timeoutMs);
         try {
             _tsWidgetId = turnstile.render(container, {
@@ -1889,7 +1889,8 @@ function requestTurnstileToken(timeoutMs = 20000) {
                 'error-callback': function() {
                     clearTimeout(_tsTimeoutId);
                     closeTurnstile();
-                    resolve(''); // 验证失败时用空token继续
+                    // 🛡️ 验证失败拒绝，不再放行空token
+                    reject(new Error('验证失败，请重试'));
                 },
                 'expired-callback': function() {
                     clearTimeout(_tsTimeoutId);
@@ -4634,32 +4635,15 @@ function addLinkJumpButtons() {
                         if (!isEditMode) {
                             showToast('⏳ 正在完成人机验证...');
                             try {
-                                tsToken = await requestTurnstileToken(15000); // 15秒超时
+                                // 🛡️ 延长至30秒给大陆用户加载时间，但超时绝不放行
+                                tsToken = await requestTurnstileToken(30000);
                                 showToast('✅ 验证通过，获取链接中...');
                             } catch(tsErr) {
-                                // 验证超时/失败，弹出选择框
-                                const skip = await new Promise(resolve => {
-                                    const mask = document.createElement('div');
-                                    mask.style.cssText = 'position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;';
-                                    mask.innerHTML = `<div style="background:var(--card);border-radius:20px;padding:24px;width:88%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-                                        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ 人机验证未完成</div>
-                                        <div style="font-size:13px;color:#888;margin-bottom:20px;line-height:1.6;">验证服务连接超时（可能是网络问题）。<br>你可以选择跳过验证继续获取链接，或重试。</div>
-                                        <div style="display:flex;gap:10px;">
-                                            <button id="_tsSkip" style="flex:1;padding:11px;border-radius:12px;border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">跳过验证</button>
-                                            <button id="_tsRetry" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:14px;cursor:pointer;">重试</button>
-                                        </div>
-                                    </div>`;
-                                    document.body.appendChild(mask);
-                                    mask.querySelector('#_tsSkip').onclick = () => { mask.remove(); resolve(true); };
-                                    mask.querySelector('#_tsRetry').onclick = () => { mask.remove(); resolve(false); };
-                                });
-                                if (!skip) {
-                                    // 用户选择重试，重新触发获取链接
-                                    btn.click();
-                                    return;
-                                }
-                                // 跳过：tsToken 保持空字符串，Worker 端会宽松处理
-                                tsToken = '';
+                                // 🛡️ 安全强化：验证失败/超时直接终止，不再提供"跳过"选项
+                                showToast('❌ ' + tsErr.message);
+                                btn.textContent = '🔗 获取链接';
+                                btn.disabled = false;
+                                return;
                             }
                         }
                         const headers = {};
