@@ -1849,14 +1849,8 @@ let _tsReject = null;
 let _tsWidgetId = null;
 let _tsTimeoutId = null;
 
-function requestTurnstileToken(timeoutMs = 60000) {
+function requestTurnstileToken(timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
-        // 本地文件/localhost 环境跳过验证，直接 resolve 空 token
-        const loc = window.location;
-        if (loc.protocol === 'file:' || loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') {
-            resolve('');
-            return;
-        }
         if (typeof turnstile === 'undefined') {
             reject(new Error('验证服务未加载，请刷新页面或检查网络'));
             return;
@@ -1869,8 +1863,7 @@ function requestTurnstileToken(timeoutMs = 60000) {
         modal.classList.add('show');
         _tsTimeoutId = setTimeout(() => {
             closeTurnstile();
-            // 超时不中断，用空token继续（兼容大陆网络环境）
-            resolve('');
+            reject(new Error('验证超时，请检查网络后重试'));
         }, timeoutMs);
         try {
             _tsWidgetId = turnstile.render(container, {
@@ -4260,7 +4253,7 @@ function toggleDescExpand(btn) {
     }
 }
 
-// � 修复：确保所有卡片都包含简介区域
+//   修复：确保所有卡片都包含简介区域
 function ensureDescriptionAreas() {
     const cards = document.querySelectorAll('.card');
     cards.forEach(card => {
@@ -4363,7 +4356,7 @@ function resetAllCardStates() {
     });
 }
 
-// �🐛 修复：处理标签粘贴，清理格式
+//  🐛 修复：处理标签粘贴，清理格式
 function handleTagPaste(event) {
     event.preventDefault();
     const text = (event.clipboardData || window.clipboardData).getData('text');
@@ -4627,15 +4620,9 @@ function addLinkJumpButtons() {
                         let kvLinks = null;
                         let tsToken = '';
                         if (!isEditMode) {
-                            try {
-                                showToast('⏳ 正在完成人机验证...');
-                                tsToken = await requestTurnstileToken();
-                                showToast('✅ 验证通过，获取链接中...');
-                            } catch(tsErr) {
-                                // 验证失败时用空token继续尝试（本地环境）
-                                tsToken = '';
-                                showToast('⚠️ 验证跳过，尝试获取链接...');
-                            }
+                            showToast('⏳ 正在完成人机验证...');
+                            tsToken = await requestTurnstileToken();
+                            showToast('✅ 验证通过，获取链接中...');
                         }
                         const headers = {};
                         if (isEditMode) {
