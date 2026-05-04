@@ -2577,6 +2577,8 @@ async function saveToCloud() {
     resetAllCardStates();
     // ✨ 清除动态生成的紧凑卡片元素，不应存入云端
     stripCompactCardElements();
+    // 🛡️ 修复：规范化简介换行，确保保存时不丢失格式
+    normalizeDescNewlines();
 
     // 🔒 新卡片链接上传KV：把 data-use-kv="1" 的卡片链接提取并上传，link-text 清空
     await uploadNewCardLinksToKV(token);
@@ -4289,16 +4291,6 @@ function ensureDescriptionAreas() {
 // card-thumb / card-preview / card-close-hint 是运行时生成的，不能存入云端
 // 否则下次加载时 generateCompactCardHTML 会因检测到已存在而跳过重新生成，
 // 导致缩略图/标签内容错误（保存时可能是空值或旧值）
-// 清理粘贴带入的富文本格式（font、span with style、color 等）
-function stripInlineStyles() {
-    document.querySelectorAll('.g-name, .desc-text, .g-tags').forEach(el => {
-        // 如果有子元素（说明有富文本），提取纯文字替换
-        if (el.children.length > 0) {
-            el.textContent = el.textContent;
-        }
-    });
-}
-
 // 清理粘贴带入的富文本格式（保留文字结构，只去除 inline style/font/color 标签）
 function stripInlineStyles() {
     document.querySelectorAll('.g-name, .desc-text').forEach(el => {
@@ -4322,6 +4314,42 @@ function stripInlineStyles() {
             });
         }
         cleanNode(el);
+    });
+}
+
+// 🛡️ 修复：规范化 desc-text 中的换行
+// contenteditable 可能产生纯文本 \n 而不是 <div>/<br>，保存前统一转为 <br>
+function normalizeDescNewlines() {
+    document.querySelectorAll('.desc-text').forEach(el => {
+        // 如果 desc-text 包含纯文本子节点且有 \n，转为 <br>
+        if (el.children.length === 0) {
+            // 纯文本模式：把 \n 直接转为 <br>
+            const text = el.textContent || '';
+            if (text.includes('\n')) {
+                el.innerHTML = text
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .split('\n').join('<br>');
+            }
+        } else {
+            // 有子元素模式：遍历所有文本节点，把 \n 转为 <br>
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+            const nodesToFix = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (node.textContent.includes('\n')) {
+                    nodesToFix.push(node);
+                }
+            }
+            nodesToFix.forEach(node => {
+                const parts = node.textContent.split('\n');
+                const fragment = document.createDocumentFragment();
+                parts.forEach((part, i) => {
+                    if (part) fragment.appendChild(document.createTextNode(part));
+                    if (i < parts.length - 1) fragment.appendChild(document.createElement('br'));
+                });
+                node.parentNode.replaceChild(fragment, node);
+            });
+        }
     });
 }
 
@@ -4381,12 +4409,15 @@ function handleTagPaste(event) {
     autoSave();
 }
 
-// 通用纯文本粘贴：清除 inline style/font/color，只保留纯文字
+// 通用纯文本粘贴：清除 inline style/font/color，保留文字与换行
 function handlePlainPaste(event) {
     event.preventDefault();
-    const text = (event.clipboardData || window.clipboardData).getData('text/plain');
-    // 只保留纯文字，丢弃所有富文本格式
-    document.execCommand('insertText', false, text);
+    let text = (event.clipboardData || window.clipboardData).getData('text/plain');
+    // 将换行符转为 <br>，确保在 white-space:normal 下也能显示换行
+    // 先对 text 中的特殊 HTML 字符进行转义，防止注入
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const html = text.split(/\r?\n/).map(line => line || '<br>').join('<br>');
+    document.execCommand('insertHTML', false, html);
     autoSave();
 }
 
@@ -6373,7 +6404,8 @@ function openCardDetail(card) {
 
     const title    = (nameEl?.textContent || '').trim() || '未命名';
     const tagsRaw  = (tagsEl?.textContent || '').trim().replace(/^标签[：:]\s*/, '');
-    const descFull = descEl ? (descEl.innerText || descEl.textContent || '').trim() : '';
+    // 🛡️ 修复：使用 innerHTML 保留换行结构（<div>/<br>），而不是 textContent 丢失换行
+    const descFull = descEl ? (descEl.innerHTML || '').trim() : '';
 
     // 图片列表
     const imgs = sliderBox ? [...sliderBox.querySelectorAll('img')] : [];
@@ -6479,8 +6511,15 @@ function openCardDetail(card) {
         const descWrap = document.createElement('div');
         descWrap.style.cssText = 'margin:0 auto 16px;max-width:560px;width:calc(100% - 40px);background:var(--card);border-radius:14px;padding:16px 18px;border:1px solid var(--border);';
         const descText = document.createElement('div');
-        descText.style.cssText = 'font-size:clamp(13px,1.3vw,16px);color:var(--text);line-height:1.9;white-space:pre-wrap;word-break:break-word;';
-        descText.textContent = descFull;
+        descText.style.cssText = 'font-size:clamp(13px,1.3vw,16px);color:var(--text);line-height:1.9;word-break:break-word;';
+        // 🛡️ 修复：使用 innerHTML 保留 <div>/<br> 换行结构
+        // 同时清理潜在危险标签，只允许安全的换行相关标签
+        const safeHtml = descFull
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+            .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
+            .replace(/on\w+\s*=\s*'[^']*'/gi, '');
+        descText.innerHTML = safeHtml;
         descWrap.appendChild(descText);
         body.appendChild(descWrap);
     }
