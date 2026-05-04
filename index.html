@@ -3008,10 +3008,10 @@ function navPage(dir) {
 function verifyAccess() {
     if(document.getElementById("accessPass").value === ACCESS_PASS) {
         sessionStorage.setItem('TX_GATE_PASSED', '1');
-        // 📢 标记：本次会话首次进入，加载完成后优先显示公告
-        sessionStorage.setItem('TX_SHOW_NOTICE', '1');
         document.getElementById("gateKeeper").style.display = "none";
         document.getElementById("contentBlocker").style.display = "none";
+        // 📢 门禁通过后立即弹出公告，确保不被忽略
+        openNoticePanel();
     }
     else alert("你好像不是自己人，自由之地不欢迎你♂");
 }
@@ -6011,13 +6011,6 @@ window.onload = async () => {
     
     // 🖼️ 初始化图片预览功能
     initImagePreview();
-    
-    // 📢 首次进入优先显示公告（门禁通过后自动弹出，避免被忽略）
-    if (sessionStorage.getItem('TX_SHOW_NOTICE') === '1') {
-        sessionStorage.removeItem('TX_SHOW_NOTICE');
-        // 延迟一小段时间，等所有动画和渲染完成后再弹出
-        setTimeout(() => openNoticePanel(), 400);
-    }
     
     // 📱 注册Service Worker（PWA支持）
     if ('serviceWorker' in navigator) {
