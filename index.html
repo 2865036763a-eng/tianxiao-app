@@ -918,13 +918,13 @@
         /* 下载页悬浮球 */
         .detail-fab {
             position: absolute;
-            bottom: 24px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
+            bottom: 20px;
+            right: 16px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: var(--primary);
-            box-shadow: 0 4px 16px rgba(255, 102, 153, 0.4);
+            box-shadow: 0 4px 20px rgba(255, 102, 153, 0.45);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -932,16 +932,17 @@
             z-index: 5;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.35);
         }
         .detail-fab:active {
             transform: scale(0.92);
-            box-shadow: 0 2px 8px rgba(255, 102, 153, 0.3);
+            box-shadow: 0 2px 10px rgba(255, 102, 153, 0.35);
         }
         .detail-fab img {
-            width: 32px;
-            height: 32px;
-            object-fit: contain;
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 50%;
             pointer-events: none;
         }
 
@@ -1042,6 +1043,35 @@
         }
         #galleryBgLayer.night {
             background-image: url('images/gallery_bg_night.jpg');
+        }
+        /* 🌀 傻子必看加载遮罩 */
+        #galleryLoadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 3;
+            background: var(--bg);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            transition: opacity 0.4s ease;
+        }
+        #galleryLoadingOverlay.show {
+            display: flex;
+        }
+        #galleryLoadingOverlay .load-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,102,153,0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spinLoad 0.8s linear infinite;
+        }
+        #galleryLoadingOverlay .load-text {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
         }
 
         /* 紧凑模式的信息预览 */
@@ -1479,6 +1509,43 @@
         .btn-cancel { background: rgba(245,235,242,0.85); color: #888; border: 1px solid #e0c0d0; font-weight: 700; }
         .btn-confirm { background: rgba(255,220,240,0.8); color: var(--primary-dark); border: 1px solid var(--primary-light); font-weight: 700; }
         
+        /* 🌀 全局加载遮罩 */
+        #globalLoadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: var(--bg);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            transition: opacity 0.4s ease;
+        }
+        #globalLoadingOverlay.show {
+            display: flex;
+        }
+        #globalLoadingOverlay .load-spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(255,102,153,0.15);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spinLoad 0.8s linear infinite;
+        }
+        @keyframes spinLoad {
+            to { transform: rotate(360deg); }
+        }
+        #globalLoadingOverlay .load-text {
+            font-size: 15px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        #globalLoadingOverlay .load-sub {
+            font-size: 12px;
+            color: #aaa;
+        }
+
         /* ☁️ 云端连接进度条 */
         #cloudProgress {
             position: fixed;
@@ -2063,6 +2130,13 @@ function __safeFixDeleteImage(card){
 </div>
 
 
+<!-- 🌀 全局加载遮罩（门禁通过后云端未完成时显示） -->
+<div id="globalLoadingOverlay">
+    <div class="load-spinner"></div>
+    <div class="load-text">正在加载资源...</div>
+    <div class="load-sub">首次访问可能需要几秒钟</div>
+</div>
+
 <!-- ☁️ 云端连接进度条 -->
 <div id="cloudProgress" style="display: none;">
     <div class="progress-bar">
@@ -2155,6 +2229,11 @@ function __safeFixDeleteImage(card){
 <div id="galleryPanelPage" class="fullpage-panel" style="display:none;">
     <!-- 傻子必看背景图层 -->
     <div id="galleryBgLayer"></div>
+    <!-- 🌀 傻子必看加载遮罩（背景图加载完前显示） -->
+    <div id="galleryLoadingOverlay">
+        <div class="load-spinner"></div>
+        <div class="load-text">正在加载...</div>
+    </div>
     <div class="fullpage-header">
         <div class="fullpage-back-btn" onclick="closeGalleryPanel()">←</div>
         <div class="fullpage-header-title">📖 傻子必看</div>
@@ -2372,6 +2451,7 @@ const NOTICE_KEY = 'TX_NOTICE_CONTENT';
 const GALLERY_KEY = 'TX_GALLERY_IMAGES'; // 📖 傻子必看图床链接存储键
 const APP_VERSION = "3.3.0"; // 链接复制功能 + 识别所有链接
 const VERSION_KEY = "TX_APP_VERSION";
+let _cloudLoadDone = false; // 🌀 云端加载完成标志
 
 // ===== Cloudflare Worker API =====
 const WORKER_API = "https://api.tianxiao.us.kg/api/data";
@@ -2729,6 +2809,11 @@ async function loadFromGrave() {
                     showProgress(100, `✅ 加载完成！共 ${cardCount} 个资源`);
                     console.log("✅ 云端数据已同步");
                     
+                    _cloudLoadDone = true; // 🌀 标记云端加载完成
+                    // 隐藏门禁后的全局加载遮罩
+                    const gOverlay = document.getElementById('globalLoadingOverlay');
+                    if (gOverlay) gOverlay.classList.remove('show');
+                    
                     hideProgress();
                     showLoadNotification(`✅ 已加载 ${cardCount} 个资源`, true);
                     return true; // 成功
@@ -2771,6 +2856,10 @@ async function loadFromGrave() {
             // 用完所有重试机会，使用本地缓存
             showProgress(100, '❌ 云端连接失败，使用本地缓存...');
             console.log("⚠️ 云端加载失败，使用本地缓存");
+            
+            _cloudLoadDone = true; // 🌀 标记完成（即使失败也不再阻塞）
+            const gOverlay = document.getElementById('globalLoadingOverlay');
+            if (gOverlay) gOverlay.classList.remove('show');
             
             const cached = localStorage.getItem("TX_CACHE");
             if (cached) {
@@ -3234,6 +3323,11 @@ function verifyAccess() {
         document.getElementById("contentBlocker").style.display = "none";
         // 📢 门禁通过后立即弹出公告，确保不被忽略
         openNoticePanel();
+        // 🌀 如果云端还没加载完，显示全局加载遮罩
+        if (!_cloudLoadDone) {
+            const overlay = document.getElementById('globalLoadingOverlay');
+            if (overlay) overlay.classList.add('show');
+        }
     }
     else alert("你好像不是自己人，自由之地不欢迎你♂");
 }
@@ -3328,6 +3422,21 @@ function openGalleryPanel() {
     const saveBtn = document.querySelector('.gallery-save-btn');
     const insertBtn = document.getElementById('galleryInsertImgBtn');
 
+    // 🌀 背景图加载动画
+    const bgLayer = document.getElementById('galleryBgLayer');
+    const loadOverlay = document.getElementById('galleryLoadingOverlay');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const bgUrl = isDark ? 'images/gallery_bg_night.jpg' : 'images/gallery_bg.jpg';
+    
+    // 预加载背景图
+    const bgImg = new Image();
+    bgImg.src = bgUrl;
+    if (loadOverlay) loadOverlay.classList.add('show');
+    
+    bgImg.onload = bgImg.onerror = () => {
+        if (loadOverlay) loadOverlay.classList.remove('show');
+    };
+
     // 读取内容：内存变量优先（云端已加载），否则回退到 localStorage
     const saved = galleryContent || localStorage.getItem(GALLERY_KEY) || '';
 
@@ -3364,6 +3473,9 @@ function closeGalleryPanel() {
     document.getElementById('galleryPanelPage').style.display = 'none';
     const body = document.getElementById('galleryContentBody');
     if (body) body.contentEditable = 'false';
+    // 重置加载遮罩，确保下次打开重新显示
+    const loadOverlay = document.getElementById('galleryLoadingOverlay');
+    if (loadOverlay) loadOverlay.classList.remove('show');
 }
 
 function insertGalleryImage() {
