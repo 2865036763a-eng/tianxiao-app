@@ -5837,8 +5837,12 @@ function showLinkSelector(urls, event) {
         const passcode = typeof item === 'object' ? (item.passcode || item.extra || '') : '';
         const unzip    = typeof item === 'object' ? (item.unzip || '') : '';
         const drive = detectDrive(url);
-        const key   = drive.name;
-        if (!groups[key]) groups[key] = { drive, items: [] };
+        // 🛠️ 如果识别为"其他链接"但用户填写了网盘名称，用用户填的名称
+        const key = (drive.name === '其他链接' && label.trim()) ? label.trim() : drive.name;
+        const groupDrive = (drive.name === '其他链接' && label.trim())
+            ? { name: label.trim(), icon: '📦', color: '#43a047' }
+            : drive;
+        if (!groups[key]) groups[key] = { drive: groupDrive, items: [] };
         groups[key].items.push({ url, label, remark, passcode, unzip });
     });
 
@@ -5904,17 +5908,21 @@ function renderLinkItems(container, items) {
         const { url, label, remark, passcode, unzip } = item;
         // 兼容旧 extra 字段
         const pc = passcode || (item.extra ? item.extra.replace(/^(提取码|解压码|密码)[：:]\s*/i,'') : '');
-        const drive = detectDrive(url);
+        const rawDrive = detectDrive(url);
+        // 🛠️ 如果识别为"其他链接"但用户填写了网盘名称，用用户填的名称
+        const drive = (rawDrive.name === '其他链接' && label.trim())
+            ? { name: label.trim(), icon: '📦', color: '#43a047' }
+            : rawDrive;
 
         const itemDiv = document.createElement('div');
         itemDiv.style.cssText = 'margin-bottom:12px; border:1px solid #e8e8e8; border-radius:10px; padding:12px; background:#fafafa;';
 
-        // 网盘名称 / 备注
-        const headerParts = [label, remark].filter(Boolean);
-        if (headerParts.length > 0) {
+        // 🛠️ 只显示备注；如果没填备注，显示网盘名称
+        const headerText = remark.trim() || label.trim() || '';
+        if (headerText) {
             const labelEl = document.createElement('div');
             labelEl.style.cssText = 'font-size:13px; font-weight:700; color:#333; margin-bottom:8px;';
-            labelEl.textContent = headerParts.join(' · ');
+            labelEl.textContent = headerText;
             itemDiv.appendChild(labelEl);
         }
 
